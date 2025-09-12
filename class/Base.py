@@ -1,47 +1,37 @@
 from typing import Any, Dict, Optional
+import pygame
+import sys
 
 # Exemple de configuration des niveaux (tiers).
-# Chaque clé est un tier (int). Les valeurs sont les attributs applicables à la base à ce niveau.
+# Chaque clé est un tier. Les valeurs sont les attributs applicables à la base à ce niveau.
 LEVELS: Dict[int, Dict[str, Any]] = {
     1: {
         "cout_upgrade": 1000,    # coût pour passer au niveau suivant
         "PV_max": 500,
         "gains": 300,
-        "att": 0,
-        "distance_att": 0,
-        "hauteur": 5,
-        "largeur": 4,
-        "img_key": "base_lvl1",  # clé pour charger une image si tu as un système de ressources
+        "atk": 0,
+        "distance_atk": 0,
     },
     2: {
         "cout_upgrade": 2000,
         "PV_max": 800,
         "gains": 350,
-        "att": 0,
-        "distance_att": 0,
-        "hauteur": 5,
-        "largeur": 4,
-        "img_key": "base_lvl2",
+        "atk": 0,
+        "distance_atk": 0,
     },
     3: {
         "cout_upgrade": 6000,
         "PV_max": 1300,
         "gains": 400,
-        "att": 0,
-        "distance_att": 0,
-        "hauteur": 5,
-        "largeur": 4,
-        "img_key": "base_lvl3",
+        "atk": 0,
+        "distance_atk": 0,
     },
     4: {
         "cout_upgrade": None,   # None => pas d'upgrade possible (niveau max)
         "PV_max": 1700,
         "gains": 450,
-        "att": 30,
-        "distance_att": 3,
-        "hauteur": 5,
-        "largeur": 4,
-        "img_key": "base_lvl4",
+        "atk": 100,
+        "distance_atk": 3,
     },
 }
 
@@ -56,28 +46,32 @@ class Base:
         self,
         img: Optional[Any] = None,
         tier: int = 1,
-        PV_actuelle: Optional[int] = None,
     ) -> None:
         # charger les valeurs du tier de départ
         if tier not in LEVELS:
             raise ValueError(f"Tier invalide {tier}. Valeurs valides : {list(LEVELS.keys())}")
 
-        self.img = img
-        self.tier = tier
+        # taille
+        self.hauteur = 5
+        self.largeur = 4
 
-        lvl = LEVELS[self.tier]
-        self.PV_max = lvl["PV_max"]
-        # si PV_actuelle n'est pas fourni, on initialise à PV_max
-        self.PV_actuelle = self.PV_max if PV_actuelle is None else min(PV_actuelle, self.PV_max)
+        # récupération des données dans le dictionaire
+        self.tier = tier
+        dict_tier = LEVELS[self.tier]
+
+        # vie
+        self.PV_max = dict_tier["PV_max"]
+        self.PV_actuelle = self.PV_max
+
+        # Stats attaques
+        self.atk = dict_tier.get("atk", 0)
+        self.distance_atk = dict_tier.get("distance_atk", 0)
 
         # autres attributs
-        self.att = lvl.get("att", 0)
-        self.distance_att = lvl.get("distance_att", 0)
-        self.cout = lvl.get("cout_upgrade", 0)
-        self.hauteur = lvl.get("hauteur", 1)
-        self.largeur = lvl.get("largeur", 1)
-        self.gains = lvl.get("gains", 0)
-        self.img_key = lvl.get("img_key", None)
+        self.img = img
+        
+        self.cout = dict_tier.get("cout_upgrade", 0)
+        self.gains = dict_tier.get("gains", 0)
 
     # ---------- Informations niveaux ----------
     @property
@@ -100,7 +94,7 @@ class Base:
         return (self.tier + 1) in LEVELS and LEVELS[self.tier].get("cout_upgrade") is not None
 
     # ---------- Upgrade ----------
-    def apply_level(self, tier: int, heal_on_upgrade: bool = True) -> None:
+    def apply_level(self, tier: int) -> None:
         """
         Applique les stats du `tier` à la base.
         Si heal_on_upgrade = True, on augmente PV_actuelle à la nouvelle PV_max
@@ -115,23 +109,13 @@ class Base:
         # appliquer les valeurs
         self.tier = tier
         self.PV_max = new_conf["PV_max"]
-        self.att = new_conf.get("att", self.att)
-        self.distance_att = new_conf.get("distance_att", self.distance_att)
-        self.hauteur = new_conf.get("hauteur", self.hauteur)
-        self.largeur = new_conf.get("largeur", self.largeur)
+        self.atk = new_conf.get("atk", self.atk)
+        self.distance_atk = new_conf.get("distance_atk", self.distance_atk)
         self.gains = new_conf.get("gains", self.gains)
-        self.img_key = new_conf.get("img_key", self.img_key)
 
-        # PV_actuelle : augmenter (soigner) lors de l'upgrade selon l'option
-        if heal_on_upgrade:
-            # option 1 : remettre à PV_max
-            self.PV_actuelle = self.PV_max
-            # option 2 (alternative) : ajouter la différence au PV_actuelle
-            # diff = max(0, self.PV_max - old_PV_max)
-            # self.PV_actuelle += diff
-        else:
-            # clamp PV_actuelle <= PV_max
-            self.PV_actuelle = min(self.PV_actuelle, self.PV_max)
+        # ajout de pv gagné
+        self.PV_actuelle += self.PV_max
+
 
     def upgrade(self, payer_fct) -> bool:
         """
@@ -164,14 +148,50 @@ class Base:
         return self.PV_actuelle <= 0
 
     def attack(self, cible: Any) -> None:
-        """
-        Exemple simple : inflige self.att à la cible si dans portée.
-        La logique réelle dépendra de la représentation de la cible.
-        """
-        # stub : la vérification de portée doit être effectuée par le code appelant
+        # note : la vérification de portée doit être effectuée par le code appelant
         if hasattr(cible, "take_damage"):
-            cible.take_damage(self.att)
+            cible.take_damage(self.atk)
+
+    def heal(self, amount : int):
+        self.PV_actuelle = min(self.PV_max, self.PV_actuelle + amount)
 
     # ---------- Rendu ----------
-    def draw(self, surface, topleft_pixel: tuple[int, int], tile_size: int):
-        pass
+    def draw(self, screen, x : int, y : int):
+        # Charger l'image
+        image = pygame.image.load(self.img).convert_alpha()
+
+        taille_pixel : int = 100
+
+        # Redimensionner l'image à la taille voulue
+        image = pygame.transform.scale(image, (self.largeur*taille_pixel, self.hauteur*taille_pixel)) 
+
+        # Afficher l'image sur l'écran
+        screen.blit(image, (x, y))
+
+if __name__ == "__main__":
+    # Initialiser Pygame
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))
+    pygame.display.set_caption("Test affichage image")
+
+    # Créer un objet à tester
+    B1 = Base("/home/gabriel/Bureau/IUT/BUT3/xenon-space---Video-game/Foozle_2DS0012_Void_EnemyFleet_1/Kla'ed/Base/PNGs/Kla'ed - Dreadnought - Base.png")
+
+    # Boucle principale
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Effacer l'écran (fond blanc)
+        screen.fill((255, 255, 255))
+
+        # Dessiner l'objet
+        B1.draw(screen, 0, 0)
+
+        # Mettre à jour l'affichage
+        pygame.display.flip()
+
+    pygame.quit()
+    sys.exit()
