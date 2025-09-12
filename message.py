@@ -1,101 +1,84 @@
 import pygame
 from ship import Ship
 
+# --- Paramètres du plateau ---
 TAILLE_CASE = 80
 NB_LIGNES = 6
 NB_COLONNES = 10
-
-# --- Paramètres du plateau ---
 LARGEUR = NB_COLONNES * TAILLE_CASE
 HAUTEUR = NB_LIGNES * TAILLE_CASE
 
-# --- Initialisation ---
 pygame.init()
 fenetre = pygame.display.set_mode((LARGEUR, HAUTEUR))
-pygame.display.set_caption("Plateau avec Ship et rotation en prévisualisation")
+pygame.display.set_caption("Plateau avec Ship et déplacement intégré")
 
 # --- Image factice pour les vaisseaux ---
 img = pygame.Surface((TAILLE_CASE, TAILLE_CASE))
 img.fill((100, 100, 255))
 
-# --- Liste de vaisseaux ---
+# --- Création de vaisseaux ---
 ships = [
     Ship(200, 75, 3, 3, 325, 200, (1, 3), False, False, img, 1, 2, 2),
     Ship(400, 175, 4, 4, 650, 390, (2, 1), False, False, img, 1, 4, 7),
 ]
 
-ship_selectionne = None
-positions_possibles = []
+selected_ship = None
 
-# --- Boucle principale ---
 running = True
 while running:
     mouse_pos = pygame.mouse.get_pos()
-    mouse_case = (mouse_pos[1] // TAILLE_CASE, mouse_pos[0] // TAILLE_CASE)
+    mouse_tile = (mouse_pos[1] // TAILLE_CASE, mouse_pos[0] // TAILLE_CASE)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-        # Clic souris
+        # --- Clic souris ---
         if event.type == pygame.MOUSEBUTTONDOWN:
-            l, c = mouse_case
-
-            if ship_selectionne:
-                # Vérifie si la case est possible ET que tout le vaisseau reste dans le damier
-                if (l, c) in positions_possibles and ship_selectionne.est_dans_plateau(
-                    l, c, ship_selectionne.preview_direction, NB_COLONNES, NB_LIGNES
-                ):
-                    ship_selectionne.ligne = l
-                    ship_selectionne.col = c
-                    ship_selectionne.direction = ship_selectionne.preview_direction
-                ship_selectionne = None
-                positions_possibles = []
-
+            if selected_ship:
+                # Déplacement via Ship
+                selected_ship.move_to(mouse_tile, NB_COLONNES, NB_LIGNES)
+                selected_ship = None
             else:
                 # Sélection d’un vaisseau
                 for ship in ships:
-                    largeur, hauteur = ship.get_dimensions(ship.direction)
-                    if (ship.ligne <= l < ship.ligne + hauteur and
-                        ship.col <= c < ship.col + largeur):
-                        ship_selectionne = ship
-                        positions_possibles = ship.positions_possibles(NB_COLONNES, NB_LIGNES)
-                        ship_selectionne.preview_direction = ship.direction
+                    width, height = ship.get_dimensions(ship.direction)
+                    if (ship.row <= mouse_tile[0] < ship.row + height and
+                        ship.col <= mouse_tile[1] < ship.col + width):
+                        selected_ship = ship
+                        selected_ship.preview_direction = ship.direction
                         break
 
-        # Rotation avec R (prévisualisation seulement)
-        if event.type == pygame.KEYDOWN and ship_selectionne:
+        # --- Rotation avec R ---
+        if event.type == pygame.KEYDOWN and selected_ship:
             if event.key == pygame.K_r:
-                ship_selectionne.rotate_preview(NB_COLONNES, NB_LIGNES, mouse_case)
+                selected_ship.rotate_preview_if_possible(mouse_tile, NB_COLONNES, NB_LIGNES)
 
     # --- Dessin plateau ---
     fenetre.fill((255, 255, 255))
-    for ligne in range(NB_LIGNES):
+    for row in range(NB_LIGNES):
         for col in range(NB_COLONNES):
-            couleur = (200, 200, 200) if (ligne + col) % 2 == 0 else (100, 100, 100)
-            pygame.draw.rect(fenetre, couleur,
-                             (col * TAILLE_CASE, ligne * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE))
+            color = (200, 200, 200) if (row + col) % 2 == 0 else (100, 100, 100)
+            pygame.draw.rect(fenetre, color,
+                             (col * TAILLE_CASE, row * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE))
 
-    # --- Dessin des vaisseaux réels ---
+    # --- Dessin vaisseaux ---
     for ship in ships:
         ship.draw(fenetre, TAILLE_CASE)
 
-    # --- Dessin cases possibles au-dessus des vaisseaux ---
-    for l, c in positions_possibles:
-        rect = pygame.Rect(c * TAILLE_CASE, l * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
-        pygame.draw.rect(fenetre, (255, 255, 0), rect, 3)
+    # --- Cases possibles ---
+    if selected_ship:
+        for row, col in selected_ship.get_possible_positions(NB_COLONNES, NB_LIGNES):
+            rect = pygame.Rect(col * TAILLE_CASE, row * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
+            pygame.draw.rect(fenetre, (255, 255, 0), rect, 3)
 
-    # --- Prévisualisation ---
-    if ship_selectionne and mouse_case in positions_possibles:
-        l, c = mouse_case
-        largeur, hauteur = ship_selectionne.get_dimensions(ship_selectionne.preview_direction)
-        w = largeur * TAILLE_CASE
-        h = hauteur * TAILLE_CASE
-        x = c * TAILLE_CASE
-        y = l * TAILLE_CASE
-        surf = pygame.Surface((w, h), pygame.SRCALPHA)
-        surf.fill((255, 0, 0, 120))  # rouge transparent
-        fenetre.blit(surf, (x, y))
+        # --- Prévisualisation ---
+        if mouse_tile in selected_ship.get_possible_positions(NB_COLONNES, NB_LIGNES):
+            row, col = mouse_tile
+            width, height = selected_ship.get_dimensions(selected_ship.preview_direction)
+            surf = pygame.Surface((width * TAILLE_CASE, height * TAILLE_CASE), pygame.SRCALPHA)
+            surf.fill((255, 0, 0, 120))
+            fenetre.blit(surf, (col * TAILLE_CASE, row * TAILLE_CASE))
 
     pygame.display.flip()
 
