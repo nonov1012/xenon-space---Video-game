@@ -25,30 +25,36 @@ class Ship:
         self.stockage = stockage              # Contenu du vaisseau (si applicable)
         self.img = img                    # Image du vaisseau
         self.tiers = tiers                # Niveau requis pour le construire
+        self.cordonner_x = 1
+        self.cordonner_y = 1
+        self.direction = 2
 
-    def move(self):  # Méthode qui gère le déplacement
+    def rotate(self, map):  # Méthode qui gère le déplacement
         pass
 
-    def attack(self):  # Méthode qui gère l'attaque
+    def move(self, type_case):  # Méthode qui gère le déplacement
         pass
 
-    def draw(self):  # ?
+    def attack(self, ship_defendu):  # Méthode qui gère l'attaque
+        ship_defendu.take_damage(self.att)
+
+    def draw(self, map):  # ?
         pass
 
-    def take_damage(self):  # Méthode qui gère la prise de dégâts
-        pass
+
+    def take_damage(self, ship_attaquant):  # Méthode qui gère la prise de dégâts
+        self.PV_actuelle = self.PV_actuelle - ship_attaquant
 
     def dead(self):  # Méthode qui gère la destruction du vaisseau
         pass
 
 
 # Exemple de création de vaisseaux
-#img = pygame.image.load("test.png")
+img = pygame.image.load("test.png")
 
-#petit = Ship(200, 75, 3, 3, 325, (325 * 0.6), 1, False, False, img, 1)       # Vaisseau petit
-#moyen = Ship(400, 175, 4, 4, 650, (650 * 0.6), 1, False, False, img, 1)      # Vaisseau moyen
-#foreuse = Ship(300, 0, 0, 3, 400, (400 * 0.6), 1, True, False, img, 2)       # Foreuse
+petit = Ship(200, 75, 3, 3, 325, (325 * 0.6), 1, False, False, img, 1)       # Vaisseau petit
+moyen = Ship(400, 175, 4, 4, 650, (650 * 0.6), 2, False, False, img, 1)      # Vaisseau moyen
+foreuse = Ship(300, 0, 0, 3, 400, (400 * 0.6), 1, True, False, img, 2)       # Foreuse
 #transporteur = Ship(600, 60, 6, 6, 500, (500 * 0.6), 2, False, True, img, 3) # Transporteur
 #grand = Ship(750, 300, 6, 6, 1050, (1050 * 0.6), 2, False, False, img, 4)    # Grand vaisseau
-
 
