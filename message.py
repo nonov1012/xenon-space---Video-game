@@ -42,10 +42,12 @@ while running:
             l, c = mouse_case
 
             if ship_selectionne:
-                if (l, c) in positions_possibles:
+                # Vérifie si la case est possible ET que tout le vaisseau reste dans le damier
+                if (l, c) in positions_possibles and ship_selectionne.est_dans_plateau(
+                    l, c, ship_selectionne.preview_direction, NB_COLONNES, NB_LIGNES
+                ):
                     ship_selectionne.ligne = l
                     ship_selectionne.col = c
-                    # appliquer la direction choisie
                     ship_selectionne.direction = ship_selectionne.preview_direction
                 ship_selectionne = None
                 positions_possibles = []
@@ -66,7 +68,6 @@ while running:
             if event.key == pygame.K_r:
                 ship_selectionne.rotate_preview(NB_COLONNES, NB_LIGNES, mouse_case)
 
-
     # --- Dessin plateau ---
     fenetre.fill((255, 255, 255))
     for ligne in range(NB_LIGNES):
@@ -75,7 +76,11 @@ while running:
             pygame.draw.rect(fenetre, couleur,
                              (col * TAILLE_CASE, ligne * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE))
 
-    # --- Dessin cases possibles ---
+    # --- Dessin des vaisseaux réels ---
+    for ship in ships:
+        ship.draw(fenetre, TAILLE_CASE)
+
+    # --- Dessin cases possibles au-dessus des vaisseaux ---
     for l, c in positions_possibles:
         rect = pygame.Rect(c * TAILLE_CASE, l * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
         pygame.draw.rect(fenetre, (255, 255, 0), rect, 3)
@@ -91,10 +96,6 @@ while running:
         surf = pygame.Surface((w, h), pygame.SRCALPHA)
         surf.fill((255, 0, 0, 120))  # rouge transparent
         fenetre.blit(surf, (x, y))
-
-    # --- Dessin des vaisseaux réels ---
-    for ship in ships:
-        ship.draw(fenetre, TAILLE_CASE)
 
     pygame.display.flip()
 

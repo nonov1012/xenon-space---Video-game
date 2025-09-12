@@ -78,21 +78,32 @@ class Ship:
         surface.blit(img_rot, (x, y))
 
     def positions_possibles(self, nb_colonnes, nb_lignes):
-        """Cases adjacentes autour du vaisseau entier"""
+        """Cases adjacentes autour de la tête du vaisseau"""
         largeur, hauteur = self.get_dimensions(self.direction)
-        positions = set()
 
-        for dy in range(hauteur):
-            for dx in range(largeur):
-                l = self.ligne + dy
-                c = self.col + dx
-                for d_l, d_c in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                    nl, nc = l + d_l, c + d_c
-                    if 0 <= nl < nb_lignes and 0 <= nc < nb_colonnes:
-                        if not (self.ligne <= nl < self.ligne + hauteur and
-                                self.col <= nc < self.col + largeur):
-                            positions.add((nl, nc))
-        return list(positions)
+        # Tête toujours en haut du vaisseau
+        if self.direction == "haut":
+            l_tete, c_tete = self.ligne, self.col
+        elif self.direction == "bas":
+            l_tete, c_tete = self.ligne, self.col
+        elif self.direction == "gauche":
+            l_tete, c_tete = self.ligne, self.col
+        elif self.direction == "droite":
+            l_tete, c_tete = self.ligne, self.col + largeur - 1
+
+        positions = []
+        for d_l, d_c in [(0, 1), (0, -1), (1, 0), (-1, 0)]:  # droite, gauche, bas, haut
+            nl, nc = l_tete + d_l, c_tete + d_c
+            if 0 <= nl < nb_lignes and 0 <= nc < nb_colonnes:
+                positions.append((nl, nc))
+
+        return positions
+    
+    def est_dans_plateau(self, ligne, col, direction, nb_colonnes, nb_lignes):
+        """Retourne True si tout le vaisseau reste dans le plateau"""
+        largeur, hauteur = self.get_dimensions(direction)
+        return 0 <= ligne <= nb_lignes - hauteur and 0 <= col <= nb_colonnes - largeur
+
 
     def rotate_preview(self, nb_colonnes, nb_lignes, mouse_case):
         """Tourne la preview en respectant les limites du plateau"""
@@ -100,12 +111,12 @@ class Ship:
         idx = directions.index(self.preview_direction)
         new_dir = directions[(idx + 1) % 4]
 
-        largeur, hauteur = self.get_dimensions(new_dir)
         l, c = mouse_case
 
-        # Vérifie si ça dépasse → si oui, refuse la rotation
-        if l + hauteur <= nb_lignes and c + largeur <= nb_colonnes:
+        # Vérifie si tout le vaisseau reste dans le plateau
+        if self.est_dans_plateau(l, c, new_dir, nb_colonnes, nb_lignes):
             self.preview_direction = new_dir
+
 
 
 # Exemple de création de vaisseaux
