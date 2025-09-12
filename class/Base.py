@@ -1,6 +1,11 @@
+from time import sleep
 from typing import Any, Dict, Optional
 import pygame
 import sys
+from Gif import load_gif_as_frames
+from Animator import Animator
+import os
+from Point import Point
 
 # Exemple de configuration des niveaux (tiers).
 # Chaque clé est un tier. Les valeurs sont les attributs applicables à la base à ce niveau.
@@ -36,162 +41,130 @@ LEVELS: Dict[int, Dict[str, Any]] = {
 }
 
 
+import os
+import pygame
+from typing import Any, Dict, Optional
+
+# ---------------- Exemple de configuration des niveaux ----------------
+LEVELS: Dict[int, Dict[str, Any]] = {
+    1: {"cout_upgrade": 1000, "PV_max": 500, "gains": 300, "atk": 0, "distance_atk": 0},
+    2: {"cout_upgrade": 2000, "PV_max": 800, "gains": 350, "atk": 0, "distance_atk": 0},
+    3: {"cout_upgrade": 6000, "PV_max": 1300, "gains": 400, "atk": 0, "distance_atk": 0},
+    4: {"cout_upgrade": None, "PV_max": 1700, "gains": 450, "atk": 100, "distance_atk": 3},
+}
+
 class Base:
-    """
-    Représente la base d'un joueur.
-    La configuration des différents niveaux/tier est dans LEVELS.
-    """
+    """Représente la base d'un joueur avec niveaux, PV, et combat."""
 
-    def __init__(
-        self,
-        img: Optional[Any] = None,
-        tier: int = 1,
-    ) -> None:
-        # charger les valeurs du tier de départ
-        if tier not in LEVELS:
-            raise ValueError(f"Tier invalide {tier}. Valeurs valides : {list(LEVELS.keys())}")
-
-        # taille
-        self.hauteur = 5
+    def __init__(self, screen : pygame.Surface, point : Point, tier: int = 1):
         self.largeur = 4
-
-        # récupération des données dans le dictionaire
+        self.hauteur = 5
         self.tier = tier
-        dict_tier = LEVELS[self.tier]
 
-        # vie
+        # Charger les stats du tier
+        dict_tier = LEVELS[self.tier]
         self.PV_max = dict_tier["PV_max"]
         self.PV_actuelle = self.PV_max
-
-        # Stats attaques
         self.atk = dict_tier.get("atk", 0)
         self.distance_atk = dict_tier.get("distance_atk", 0)
-
-        # autres attributs
-        self.img = img
-        
-        self.cout = dict_tier.get("cout_upgrade", 0)
         self.gains = dict_tier.get("gains", 0)
+        self.cout = dict_tier.get("cout_upgrade", 0)
 
-    # ---------- Informations niveaux ----------
+        sprites_path = os.path.join(os.path.dirname(__file__),"../sprites/base/")
+
+        # Animation
+        self.animator = Animator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y))
+
+    # ---------- Niveaux ----------
     @property
     def max_tier(self) -> int:
-        """Retourne le tier maximal défini dans LEVELS."""
         return max(LEVELS.keys())
 
-    def get_next_tier_cost(self) -> Optional[int]:
-        """
-        Retourne le coût pour passer au niveau suivant,
-        ou None si on est au niveau max.
-        """
-        next_tier = self.tier + 1
-        if next_tier not in LEVELS:
-            return None
-        return LEVELS[self.tier]["cout_upgrade"]
-
     def can_upgrade(self) -> bool:
-        """Retourne True si la base peut être upgrade (il existe un niveau suivant)."""
-        return (self.tier + 1) in LEVELS and LEVELS[self.tier].get("cout_upgrade") is not None
+        return (self.tier + 1 in LEVELS) and LEVELS[self.tier].get("cout_upgrade") is not None
 
-    # ---------- Upgrade ----------
+    def get_next_tier_cost(self) -> Optional[int]:
+        return LEVELS[self.tier].get("cout_upgrade")
+
     def apply_level(self, tier: int) -> None:
-        """
-        Applique les stats du `tier` à la base.
-        Si heal_on_upgrade = True, on augmente PV_actuelle à la nouvelle PV_max
-        (ou on ajoute la différence).
-        """
         if tier not in LEVELS:
             raise ValueError(f"Tier inconnu {tier}")
-
-        old_PV_max = getattr(self, "PV_max", 0)
         new_conf = LEVELS[tier]
-
-        # appliquer les valeurs
         self.tier = tier
         self.PV_max = new_conf["PV_max"]
         self.atk = new_conf.get("atk", self.atk)
         self.distance_atk = new_conf.get("distance_atk", self.distance_atk)
         self.gains = new_conf.get("gains", self.gains)
-
-        # ajout de pv gagné
+        # PV actuels augmentés proportionnellement
         self.PV_actuelle += self.PV_max
 
-
     def upgrade(self, payer_fct) -> bool:
-        """
-        Tente d'upgrader la base au niveau suivant.
-        payer_fct doit être une fonction callable(price:int) -> bool qui gère le paiement
-        (par ex. Player.buy).
-        Retourne True si upgrade réussie.
-        """
         if not self.can_upgrade():
             return False
-
-        price = LEVELS[self.tier]["cout_upgrade"]
-        if price is None:
+        price = self.get_next_tier_cost()
+        if price is None or not payer_fct(price):
             return False
-
-        if not payer_fct(price):
-            return False
-
-        # appliquer le niveau suivant
-        self.apply_level(self.tier + 1, heal_on_upgrade=True)
+        self.apply_level(self.tier + 1)
         return True
 
-    # ---------- Combat & états ----------
-    def take_damage(self, degats: int) -> None:
-        """Soustrait des PV et clamp à 0."""
-        self.PV_actuelle = max(0, self.PV_actuelle - max(0, int(degats)))
+    # ---------- Combat ----------
+    def take_damage(self, amount: int):
+        self.PV_actuelle = max(0, self.PV_actuelle - max(0, amount))
+        self.update()
+
+    def heal(self, amount: int):
+        self.PV_actuelle = min(self.PV_max, self.PV_actuelle + amount)
 
     def dead(self) -> bool:
-        """Retourne True si la base est détruite."""
         return self.PV_actuelle <= 0
 
-    def attack(self, cible: Any) -> None:
-        # note : la vérification de portée doit être effectuée par le code appelant
+    def attack(self, cible: Any):
         if hasattr(cible, "take_damage"):
             cible.take_damage(self.atk)
 
-    def heal(self, amount : int):
-        self.PV_actuelle = min(self.PV_max, self.PV_actuelle + amount)
-
     # ---------- Rendu ----------
-    def draw(self, screen, x : int, y : int):
-        # Charger l'image
-        image = pygame.image.load(self.img).convert_alpha()
+    def draw(self, x: int, y: int):
+        self.animator.draw_image()
+        self.animator.display_health(self.PV_actuelle, self.PV_max)
 
-        taille_pixel : int = 100
-
-        # Redimensionner l'image à la taille voulue
-        image = pygame.transform.scale(image, (self.largeur*taille_pixel, self.hauteur*taille_pixel)) 
-
-        # Afficher l'image sur l'écran
-        screen.blit(image, (x, y))
+    # ---------- Autres ----------
+    def update(self):
+        if self.dead():
+            self.animator.draw_death()
+        self.animator.display_health(self.PV_actuelle, self.PV_max)
 
 if __name__ == "__main__":
     # Initialiser Pygame
     pygame.init()
-    screen = pygame.display.set_mode((800, 600))
+    screen = pygame.display.set_mode((400, 500))
+    clock = pygame.time.Clock()
     pygame.display.set_caption("Test affichage image")
 
     # Créer un objet à tester
-    B1 = Base("/home/gabriel/Bureau/IUT/BUT3/xenon-space---Video-game/Foozle_2DS0012_Void_EnemyFleet_1/Kla'ed/Base/PNGs/Kla'ed - Dreadnought - Base.png")
+    B1 = Base(screen, Point(0, 0))
+
+    # Dessiner l'objet
+    B1.draw(0, 0)
 
     # Boucle principale
     running = True
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Bouton gauche de la souris
+                    B1.take_damage(100)
+                    print(f"PV actuels : {B1.PV_actuelle}")
 
-        # Effacer l'écran (fond blanc)
-        screen.fill((255, 255, 255))
+        if B1.dead():
+            B1.update()
 
-        # Dessiner l'objet
-        B1.draw(screen, 0, 0)
-
-        # Mettre à jour l'affichage
+        # Mettre à jour l'affichagew
         pygame.display.flip()
+
+        # Limite les FPS à 60
+        clock.tick(60)
 
     pygame.quit()
     sys.exit()
