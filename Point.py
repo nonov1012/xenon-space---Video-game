@@ -11,7 +11,7 @@ class TypeSol(Enum):
 
     def __str__(self):
         """Retourne le nom du type de sol."""
-        return self.name.lower()
+        return self.name
 
 
 class Point:
@@ -59,10 +59,20 @@ class Point:
         """Vide le point (met remplit à False)."""
         self.remplit = False
 
+    def vide_remplit(self) -> None:
+        """
+        Bascule l'état 'remplit' du point.
+        - Si le point est actuellement rempli, il est vidé.
+        - Sinon, on essaie de le remplir (avec la même logique de sécurité que remplir()).
+        """
+        if self.remplit:
+            self.vider()
+        else:
+            self.remplir()
+
     def __str__(self) -> str:
         """Retourne une représentation lisible du point."""
-        etat = "rempli" if self.remplit else "vide"
-        return f"({self.x}, {self.y}, sol={self.type_sol}, {etat})"
+        return f"({self.x}, {self.y}, {self.type_sol}, {self.remplit})"
 
     def __repr__(self) -> str:
         """Retourne une représentation détaillée (utile pour le debug)."""
@@ -81,6 +91,9 @@ if __name__ == "__main__":
     print(A)  # (1, 2, sol=vide, rempli)
 
     B.remplir()
+    print(B)  # (4, 8, sol=atmosphere, rempli)
+
+    B.vide_remplit()
     print(B)  # (4, 8, sol=atmosphere, rempli)
 
     try:
