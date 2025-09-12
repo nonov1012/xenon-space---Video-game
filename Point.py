@@ -31,7 +31,7 @@ class Point:
         self._x: int = x
         self._y: int = y
         self.type_sol: TypeSol = type_sol
-        self.remplit: bool = False  # Par défaut, un point est vide/non-rempli
+        self.remplit: bool = False  # Par défaut, un point n'est pas rempli
 
     @property
     def x(self) -> int:
@@ -45,20 +45,18 @@ class Point:
 
     def remplir(self) -> None:
         """
-        Remplit le point si son type de sol est VIDE.
+        Remplit le point si son type de sol est VIDE ou ATMOSPHERE.
         Sinon, lève une exception.
         """
-        if self.type_sol != TypeSol.VIDE:
+        if self.type_sol not in (TypeSol.VIDE, TypeSol.ATMOSPHERE):
             raise ValueError(
                 f"Impossible de remplir un point de type {self.type_sol.name} "
-                f"(seuls les points VIDE peuvent être remplis)."
+                f"(seuls les points VIDE ou ATMOSPHERE peuvent être remplis)."
             )
         self.remplit = True
 
     def vider(self) -> None:
-        """
-        Vide le point (met remplit à False).
-        """
+        """Vide le point (met remplit à False)."""
         self.remplit = False
 
     def __str__(self) -> str:
@@ -76,15 +74,16 @@ class Point:
 
 if __name__ == "__main__":
     A: Point = Point(1, 2, TypeSol.VIDE)
-    B: Point = Point(4, 8, TypeSol.PLANETE)
-
-    print(A)  # (1, 2, sol=vide, vide)
-    print(B)  # (4, 8, sol=planete, vide)
+    B: Point = Point(4, 8, TypeSol.ATMOSPHERE)
+    C: Point = Point(3, 5, TypeSol.PLANETE)
 
     A.remplir()
     print(A)  # (1, 2, sol=vide, rempli)
 
+    B.remplir()
+    print(B)  # (4, 8, sol=atmosphere, rempli)
+
     try:
-        B.remplir()  # Va lever une erreur
+        C.remplir()  # Va lever une erreur
     except ValueError as e:
         print("Erreur :", e)
