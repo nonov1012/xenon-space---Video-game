@@ -1,36 +1,37 @@
 # Programme créé par Dupuis Brian
 # Ce programme contient la classe Ship
 
+
+# La classe Ship permet la création des vaisseaux et gère toutes les mécaniques associées
 import pygame
 import numpy as np
 
-# La classe Ship permet la création des vaisseaux et gère toutes les mécaniques associées
 class Ship:
     def __init__(self, PV_max: int, att: int, distance_att: int, distance_dep: int,
-                 cout: int, money_dead: int, taille, minage: bool, transport: bool, 
-                 img: pygame.image, tiers: int):
-        
+                 cout: int, money_dead: int, taille, minage: bool, transport: bool,
+                 img: pygame.image, tiers: int, ligne=0, col=0):
 
-        self.PV_max = PV_max              # Points de vie maximum du vaisseau
-        self.PV_actuelle = PV_max         # Points de vie actuels du vaisseau
-        self.att = att                    # Dégâts du vaisseau
-        self.distance_att = distance_att  # Portée d'attaque du vaisseau
-        self.distance_dep = distance_dep  # Distance de déplacement du vaisseau
-        self.cout = cout                  # Coût de construction du vaisseau
-        self.money_dead = money_dead      # L'argent rapporté à l'adversaire en cas de destruction
-        self.taille = taille              # Taille du vaisseau sur la carte
-        self.minage = minage              # Peut-il miner ?
-        self.transport = transport        # Peut-il transporter d'autres vaisseaux ?
-        stockage = np.array([None, None, None], dtype=Ship)
-        self.stockage = stockage              # Contenu du vaisseau (si applicable)
-        self.img = img                    # Image du vaisseau
-        self.tiers = tiers                # Niveau requis pour le construire
-        self.cordonner_x = 1
-        self.cordonner_y = 1
-        self.direction = 2
+        self.PV_max = PV_max
+        self.PV_actuelle = PV_max
+        self.att = att
+        self.distance_att = distance_att
+        self.distance_dep = distance_dep
+        self.cout = cout
+        self.money_dead = money_dead
+        self.taille = taille  # (largeur, hauteur) en cases (par défaut vers le bas)
+        self.minage = minage
+        self.transport = transport
+        self.stockage = np.array([None, None, None], dtype=object)
+        self.img = img
+        self.tiers = tiers
 
-    def rotate(self, map):  # Méthode qui gère le déplacement
-        pass
+        # Position de la tête du vaisseau
+        self.ligne = ligne
+        self.col = col
+
+        # Orientation
+        self.direction = "bas"
+        self.preview_direction = self.direction
 
     def move(self, type_case):  # Méthode qui gère le déplacement
         pass
@@ -47,6 +48,64 @@ class Ship:
 
     def dead(self):  # Méthode qui gère la destruction du vaisseau
         pass
+
+    def get_dimensions(self, direction):
+        """Retourne (largeur, hauteur) en cases selon la direction"""
+        if direction in ("haut", "bas"):
+            return self.taille
+        else:  # gauche/droite
+            return (self.taille[1], self.taille[0])
+
+    def draw(self, surface, taille_case):
+        """Dessine le vaisseau orienté"""
+        largeur, hauteur = self.get_dimensions(self.direction)
+        x = self.col * taille_case
+        y = self.ligne * taille_case
+        w = largeur * taille_case
+        h = hauteur * taille_case
+
+        # Choix de la rotation d’image
+        if self.direction == "bas":
+            img_rot = self.img
+        elif self.direction == "haut":
+            img_rot = pygame.transform.rotate(self.img, 180)
+        elif self.direction == "gauche":
+            img_rot = pygame.transform.rotate(self.img, 90)
+        elif self.direction == "droite":
+            img_rot = pygame.transform.rotate(self.img, -90)
+
+        img_rot = pygame.transform.scale(img_rot, (w, h))
+        surface.blit(img_rot, (x, y))
+
+    def positions_possibles(self, nb_colonnes, nb_lignes):
+        """Cases adjacentes autour du vaisseau entier"""
+        largeur, hauteur = self.get_dimensions(self.direction)
+        positions = set()
+
+        for dy in range(hauteur):
+            for dx in range(largeur):
+                l = self.ligne + dy
+                c = self.col + dx
+                for d_l, d_c in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                    nl, nc = l + d_l, c + d_c
+                    if 0 <= nl < nb_lignes and 0 <= nc < nb_colonnes:
+                        if not (self.ligne <= nl < self.ligne + hauteur and
+                                self.col <= nc < self.col + largeur):
+                            positions.add((nl, nc))
+        return list(positions)
+
+    def rotate_preview(self, nb_colonnes, nb_lignes, mouse_case):
+        """Tourne la preview en respectant les limites du plateau"""
+        directions = ["haut", "droite", "bas", "gauche"]
+        idx = directions.index(self.preview_direction)
+        new_dir = directions[(idx + 1) % 4]
+
+        largeur, hauteur = self.get_dimensions(new_dir)
+        l, c = mouse_case
+
+        # Vérifie si ça dépasse → si oui, refuse la rotation
+        if l + hauteur <= nb_lignes and c + largeur <= nb_colonnes:
+            self.preview_direction = new_dir
 
 
 # Exemple de création de vaisseaux
