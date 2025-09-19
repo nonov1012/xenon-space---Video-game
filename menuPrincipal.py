@@ -1,6 +1,6 @@
 import pygame
 import sys
-from titreAnime import TitreAnime 
+from classes.TitreAnime import TitreAnime 
 
 
 
@@ -12,35 +12,35 @@ pygame.init()
 ecran = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Xenon Space")
 
-new_cursor = pygame.image.load('images/cursor.png')
+new_cursor = pygame.image.load('assets/img/menu/cursor.png')
 new_cursor = pygame.transform.scale(new_cursor,(40,40))
 
 pygame.mouse.set_visible(False)
 
 pygame.mixer.init()
-musique_menu = pygame.mixer.music.load('sounds/musics/menu_theme.mp3')
+musique_menu = pygame.mixer.music.load('assets/sounds/musics/music_ingame.mp3')
 pygame.mixer.music.play(loops=-1)
 pygame.mixer.music.set_volume(0.2)
 
 
-son_hover = pygame.mixer.Sound("sounds/buttons/button_hover.mp3")
-son_click = pygame.mixer.Sound("sounds/buttons/button_pressed.mp3")
+son_hover = pygame.mixer.Sound("assets/sounds/menu/buttons/button_hover.mp3")
+son_click = pygame.mixer.Sound("assets/sounds/menu/buttons/button_pressed.mp3")
 son_hover.set_volume(0.3)
 son_click.set_volume(1)
 
 # -------------------------------
 # Icône et fond
 # -------------------------------
-icone = pygame.image.load("Images/logo.png")
+icone = pygame.image.load("assets/img/menu/logo.png")
 pygame.display.set_icon(icone)
 
-fond = pygame.image.load("Images/fond.png").convert()
+fond = pygame.image.load("assets/img/menu/fond.png").convert()
 fond = pygame.transform.scale(fond, ecran.get_size())
 
 # -------------------------------
 # Titre animé
 # -------------------------------
-police_titre = pygame.font.Font("Fonts/SpaceNova.otf", 100)
+police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 100)
 titre = TitreAnime("XENON-SPACE", police_titre, (ecran.get_width()//2, 200),
                    couleur_haut=(255,255,0), couleur_bas=(255,0,255))
 
@@ -48,9 +48,9 @@ titre = TitreAnime("XENON-SPACE", police_titre, (ecran.get_width()//2, 200),
 # Couleur, police et boutons
 # -------------------------------
 blanc = (255, 255, 255)
-police = pygame.font.Font("Fonts/SpaceNova.otf", 25)
+police = pygame.font.Font("assets/fonts/SpaceNova.otf", 25)
 
-image_bouton = pygame.image.load("Images/bouton_menu.png").convert_alpha()
+image_bouton = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
 image_bouton = pygame.transform.scale(image_bouton, (500, 150))  
 largeur_bouton, hauteur_bouton = image_bouton.get_size()
 
