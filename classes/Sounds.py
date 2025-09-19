@@ -34,8 +34,14 @@ class SoundManager:
 if __name__ == "__main__":
     pygame.init()
     sm = SoundManager()
+<<<<<<< HEAD:classes/Sounds.py
     sm.play_music("assets/sounds/musics/music_ingame.mp3")
     sm.load_sfx("laser_base", "assets/sounds/base/laser_base.mp3")
+=======
+    
+    sm.play_music("sounds/musiques/music_ingame.mp3")
+    sm.load_sfx("laser_base", "sounds/base/laser_base.mp3")
+>>>>>>> 51e945a (feat: sound manager):class/Sounds.py
     sm.play_sfx("laser_base")
     
     pygame.time.wait(30000000)
