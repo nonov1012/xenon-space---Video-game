@@ -1,4 +1,4 @@
-from Base import Base
+from classes.MotherShip import Base
 from ship import Ship
 
 class Player:
