@@ -53,7 +53,7 @@ LEVELS: Dict[int, Dict[str, Any]] = {
     4: {"cout_upgrade": None, "PV_max": 1700, "gains": 450, "atk": 100, "distance_atk": 3},
 }
 
-class Base:
+class MotherShip:
     """Représente la base d'un joueur avec niveaux, PV, et combat."""
 
     def __init__(self, screen : pygame.Surface, point : Point, tier: int = 1):
@@ -151,7 +151,7 @@ def main():
     pygame.display.set_caption("Test affichage Base")
 
     # Créer un objet à tester
-    B1 = Base(screen, Point(0, 0))
+    B1 = MotherShip(screen, Point(0, 0))
     B1.animator.play("base")
     B1.animator.update_and_draw()
     B1.animator.play("engine")
