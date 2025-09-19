@@ -110,6 +110,7 @@ class Base:
     # ---------- Combat ----------
     def take_damage(self, amount: int):
         self.PV_actuelle = max(0, self.PV_actuelle - max(0, amount))
+        self.animator.play("shield")
         self.update()
 
     def heal(self, amount: int):
@@ -130,41 +131,62 @@ class Base:
     # ---------- Autres ----------
     def update(self):
         if self.dead():
-            self.animator.draw_death()
-        self.animator.display_health(self.PV_actuelle, self.PV_max)
+            self.animator.play("destruction")
+        self.animator.update(self.PV_actuelle, self.PV_max)
 
-if __name__ == "__main__":
-    # Initialiser Pygame
+    def __del__(self):
+        print("Base détruit")
+
+def handle_events(B1):
+    """
+    Gère les événements clavier/souris et retourne False si on veut quitter.
+    """
+    
+    return True
+
+def main():
     pygame.init()
     screen = pygame.display.set_mode((400, 500))
     clock = pygame.time.Clock()
-    pygame.display.set_caption("Test affichage image")
+    pygame.display.set_caption("Test affichage Base")
 
     # Créer un objet à tester
     B1 = Base(screen, Point(0, 0))
+    B1.animator.play("base")
+    B1.animator.update_and_draw()
+    B1.animator.play("engine")
 
-    # Dessiner l'objet
-    B1.draw(0, 0)
-
-    # Boucle principale
     running = True
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Bouton gauche de la souris
-                    B1.take_damage(100)
-                    print(f"PV actuels : {B1.PV_actuelle}")
+        if 'B1' not in locals(): 
+            running = False
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 3:  # clic droit : dégâts
+                        B1.take_damage(100)
+                        print(f"PV actuels : {B1.PV_actuelle}")
+                    elif event.button == 1:  # clic gauche : arme
+                        B1.animator.play("weapons", reset=True)
 
-        if B1.dead():
-            B1.update()
+            # Mettre à jour l'animation courante
+            B1.animator.update_and_draw()
 
-        # Mettre à jour l'affichagew
+            if B1.dead():
+                # Joue l'animation de destruction + fade
+                if B1.animator.play_with_fade("destruction", fade_duration=1000):
+                    del B1
+
         pygame.display.flip()
-
-        # Limite les FPS à 60
         clock.tick(60)
 
     pygame.quit()
     sys.exit()
+
+
+if __name__ == "__main__":
+    main()
