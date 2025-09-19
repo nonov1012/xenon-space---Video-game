@@ -132,3 +132,15 @@ class ShipAnimator(Animator):
     def update(self, PV_actuelle : int, PV_max : int):
         self.PV_actuelle = PV_actuelle
         self.PV_max = PV_max
+
+    def play_with_fade(self, name: str, fade_duration: int = 1000, reset: bool = False):
+        """
+        Joue une animation et applique un fondu progressif.
+        Retourne True si l'animation + le fade sont terminés.
+        """
+        self.idle = False
+        self.play(name, reset=reset)  # définit current_anim
+        self.update_and_draw()  # avance et dessine l'animation
+
+        done = self.disepear(duration_ms=fade_duration)  # applique le fade
+        return done

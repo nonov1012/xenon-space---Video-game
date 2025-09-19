@@ -89,17 +89,27 @@ class Animator:
         rect = pygame.Rect(self.x, self.y, self.pixel_w, self.pixel_h)
         pygame.draw.rect(self.screen, color, rect)
 
-    def play_with_fade(self, name: str, fade_duration: int = 1000, reset: bool = False):
+    def update_and_draw(self):
         """
-        Joue une animation et applique un fondu progressif.
-        Retourne True si l'animation + le fade sont terminés.
+        Met à jour et dessine l'animation de l'entité.
         """
-        self.idle = False
-        self.play(name, reset=reset)  # définit current_anim
-        self.update_and_draw()  # avance et dessine l'animation
+        # --- Effacer l'image actuelle ---
+        self.erase()
 
-        done = self.disepear(duration_ms=fade_duration)  # applique le fade
-        return done
+        # --- Changer de frame d'animation ---
+        frames = self.animations[self.current_anim]
+        now = pygame.time.get_ticks()
+        if now - self.last_update >= self.frame_duration_ms:
+            self.last_update = now
+            if self.frame_index < len(frames):
+                self.frame_index += 1
+
+        # --- Looping de l'animation --- 
+        if self.frame_index == len(frames) - 1:
+            self.frame_index = 0
+        
+        # --- Dessiner la frame d'animation ---
+        self.screen.blit(frames[self.frame_index], (self.x, self.y))
     
 if __name__ == "__main__":
-    
+    pass
