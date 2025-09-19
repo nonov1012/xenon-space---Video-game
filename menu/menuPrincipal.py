@@ -2,6 +2,8 @@ import pygame
 import sys
 from titreAnime import TitreAnime 
 
+
+
 pygame.init()
 
 # -------------------------------
@@ -9,6 +11,11 @@ pygame.init()
 # -------------------------------
 ecran = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Xenon Space")
+
+new_cursor = pygame.image.load('images/cursor.png')
+new_cursor = pygame.transform.scale(new_cursor,(40,40))
+
+pygame.mouse.set_visible(False)
 
 pygame.mixer.init()
 musique_menu = pygame.mixer.music.load('sounds/musics/menu_theme.mp3')
@@ -122,8 +129,7 @@ while en_cours:
         rect_texte = texte.get_rect(center=rect_zoom.center)
         ecran.blit(texte, rect_texte.topleft)
 
-
-
+    ecran.blit(new_cursor,souris)
     pygame.display.flip()
 
     # -------------------------------
