@@ -1,6 +1,7 @@
 import pygame
 import sys
-from classes.TitreAnime import TitreAnime 
+from classes.TitreAnime import TitreAnime
+from classes.Sounds import SoundManager
 
 
 
@@ -17,16 +18,10 @@ new_cursor = pygame.transform.scale(new_cursor,(40,40))
 
 pygame.mouse.set_visible(False)
 
-pygame.mixer.init()
-musique_menu = pygame.mixer.music.load('assets/sounds/musics/music_ingame.mp3')
-pygame.mixer.music.play(loops=-1)
-pygame.mixer.music.set_volume(0.2)
-
-
-son_hover = pygame.mixer.Sound("assets/sounds/menu/buttons/button_hover.mp3")
-son_click = pygame.mixer.Sound("assets/sounds/menu/buttons/button_pressed.mp3")
-son_hover.set_volume(0.3)
-son_click.set_volume(1)
+sm = SoundManager()
+sm.play_music("assets/sounds/musics/music_ingame.mp3")
+sm.load_sfx("son_hover", "assets/sounds/menu/buttons/button_hover.mp3")
+sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
 # -------------------------------
 # Icône et fond
@@ -110,7 +105,7 @@ while en_cours:
 
         # Jouer le son hover uniquement à l’entrée
         if est_survol and not hover_states[i]:
-            son_hover.play()
+            sm.play_sfx("son_hover")
         hover_states[i] = est_survol
 
         # Calcul du zoom progressif
@@ -142,7 +137,7 @@ while en_cours:
         if evenement.type == pygame.MOUSEBUTTONDOWN:
             for bouton_check, _ in boutons:
                 if bouton_check.collidepoint(evenement.pos):
-                    son_click.play()
+                    sm.play_sfx("son_click")
             if bouton_quitter.collidepoint(evenement.pos):
                 pygame.quit()
                 sys.exit()
