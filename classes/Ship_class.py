@@ -49,11 +49,11 @@ class Ship:
         self.aperçu_colonne = colonne
 
     # ------------ utilitaires ------------
-    def donner_dimensions(self, direction: str) -> Tuple[int, int]: 
-        """Retourne (largeur, hauteur) selon l'orientation.""" 
-        if direction in ("haut", "bas"): 
-            return self.taille 
-        elif direction in ("droite", "gauche"): 
+    def donner_dimensions(self, direction: str) -> Tuple[int, int]:
+        """Retourne (largeur, hauteur) selon l'orientation."""
+        if direction in ("haut", "bas"):
+            return self.taille
+        elif direction in ("droite", "gauche"):
             return (self.taille[1], self.taille[0])
 
     def _centre_depuis_coin(self, ligne_coin, colonne_coin, direction):
@@ -115,31 +115,40 @@ class Ship:
         return True
 
     # ------------ déplacement / attaque ------------
-    def positions_possibles_adjacentes(self, nombre_colonne, nombre_lignes):
-        largeur, hauteur = self.donner_dimensions(self.direction)
-        coin_ligne, coin_col = self.ligne, self.colonne
+    def positions_possibles_adjacentes(self, nombre_colonne, nombre_lignes, plateau, direction=None):
+        if direction is None:
+            direction = self.direction
+        largeur, hauteur = self.donner_dimensions(direction)
         positions=[]
         for dl in range(-self.port_deplacement,self.port_deplacement+1):
             for dc in range(-self.port_deplacement,self.port_deplacement+1):
                 if dl==0 and dc==0: continue
                 if abs(dl)+abs(dc)<=self.port_deplacement:
-                    nl, nc = coin_ligne+dl, coin_col+dc
+                    nl, nc = self.aperçu_ligne + dl, self.aperçu_colonne + dc
                     if 0<=nl<=nombre_lignes-hauteur and 0<=nc<=nombre_colonne-largeur:
-                        positions.append((nl,nc))
+                        collision = False
+                        for l in range(nl, nl+hauteur):
+                            for c in range(nc, nc+largeur):
+                                if plateau[l,c]!=0 and plateau[l,c]!=self.id:
+                                    collision=True
+                        if not collision:
+                            positions.append((nl,nc))
         return positions
 
-    def positions_possibles_attaque(self, nombre_colonne, nombre_lignes):
-        largeur, hauteur = self.donner_dimensions(self.direction)
-        coin_ligne, coin_col = self.ligne, self.colonne
+    def positions_possibles_attaque(self, nombre_colonne, nombre_lignes, direction=None):
+        if direction is None:
+            direction = self.direction
+        largeur, hauteur = self.donner_dimensions(direction)
         positions=[]
         for dl in range(-self.port_attaque,self.port_attaque+1):
             for dc in range(-self.port_attaque,self.port_attaque+1):
                 if dl==0 and dc==0: continue
                 if abs(dl)+abs(dc)<=self.port_attaque:
-                    nl, nc = coin_ligne+dl, coin_col+dc
+                    nl, nc = self.aperçu_ligne + dl, self.aperçu_colonne + dc
                     if 0<=nl<=nombre_lignes-hauteur and 0<=nc<=nombre_colonne-largeur:
                         positions.append((nl,nc))
         return positions
+
 
     def deplacement(self, case_cible, nombre_colonne, nombre_lignes, plateau, ships):
         if self.id is None: raise ValueError("Ship.id non défini")
@@ -159,7 +168,7 @@ class Ship:
                     return True
 
         # ---- déplacement ----
-        if case_cible not in self.positions_possibles_adjacentes(nombre_colonne,nombre_lignes):
+        if case_cible not in self.positions_possibles_adjacentes(nombre_colonne,nombre_lignes, plateau):
             return False
 
         ancienne_ligne, ancienne_colonne, ancienne_direction = self.ligne,self.colonne,self.direction
@@ -174,16 +183,37 @@ class Ship:
 
     # ------------ rotation aperçu ------------
     def rotation_aperçu(self, nombre_colonne, nombre_lignes):
-        ordre = ["haut","droite","bas" ,"gauche"]
+        ordre = ["haut","droite","bas","gauche"]
         idx = ordre.index(self.aperçu_direction) if self.aperçu_direction in ordre else 0
         nouvelle_direction = ordre[(idx+1)%len(ordre)]
         centre_l, centre_c = self._centre_depuis_coin(self.aperçu_ligne,self.aperçu_colonne,self.aperçu_direction)
         nouvelle_ligne, nouvelle_col = self._coin_depuis_centre(centre_l,centre_c,nouvelle_direction)
-        if 0<=nouvelle_ligne<=nombre_lignes-self.donner_dimensions(nouvelle_direction)[1] and \
-           0<=nouvelle_col<=nombre_colonne-self.donner_dimensions(nouvelle_direction)[0]:
+        largeur, hauteur = self.donner_dimensions(nouvelle_direction)
+        if 0<=nouvelle_ligne<=nombre_lignes-hauteur and 0<=nouvelle_col<=nombre_colonne-largeur:
             self.aperçu_direction = nouvelle_direction
             self.aperçu_ligne, self.aperçu_colonne = nouvelle_ligne, nouvelle_col
 
     def rotation_aperçu_si_possible(self, case_souris, nombre_colonne, nombre_lignes):
         self.aperçu_ligne,self.aperçu_colonne = case_souris
         self.rotation_aperçu(nombre_colonne,nombre_lignes)
+
+
+# ------------ Sous-classes ------------
+
+class CombatShip(Ship):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.peut_miner = False
+        self.peut_transporter = False
+
+class MinerShip(Ship):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.peut_miner = True
+        self.peut_transporter = False
+
+class TransportShip(Ship):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.peut_miner = False
+        self.peut_transporter = True
