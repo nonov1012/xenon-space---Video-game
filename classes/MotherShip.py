@@ -70,7 +70,7 @@ class MotherShip:
         self.gains = dict_tier.get("gains", 0)
         self.cout = dict_tier.get("cout_upgrade", 0)
 
-        sprites_path = os.path.join(IMG_PATH, "base")
+        sprites_path = os.path.join(IMG_PATH, "ships", "base")
 
         # Animation
         self.animator = Animator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y))
