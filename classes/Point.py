@@ -8,6 +8,8 @@ class Type(Enum):
     PLANETE = 1
     ATMOSPHERE = 2
     ASTEROIDE = 3
+    BASE = 4
+    VAISSEAU = 5
 
     def __str__(self):
         """Retourne le nom du type de sol."""
@@ -31,7 +33,6 @@ class Point:
         self._x: int = x
         self._y: int = y
         self.type: Type = type
-        self.remplit: bool = False  # Par défaut, un point n'est pas rempli
 
     @property
     def x(self) -> int:
