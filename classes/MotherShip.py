@@ -56,9 +56,9 @@ LEVELS: Dict[int, Dict[str, Any]] = {
 class MotherShip:
     """Représente la base d'un joueur avec niveaux, PV, et combat."""
 
-    def __init__(self, screen : pygame.Surface, point : Point, tier: int = 1):
-        self.largeur = 4
-        self.hauteur = 5
+    def __init__(self, screen : pygame.Surface, point : Point, tier: int = 1, show_health: bool = True, largeur: int = 4, hauteur: int = 5, color = (0, 255, 0)) -> None:
+        self.largeur = largeur
+        self.hauteur = hauteur
         self.tier = tier
 
         # Charger les stats du tier
@@ -73,7 +73,7 @@ class MotherShip:
         sprites_path = os.path.join(IMG_PATH, "ships", "base")
 
         # Animation
-        self.animator = ShipAnimator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y))
+        self.animator = ShipAnimator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y), show_health=show_health, color=color)
 
     # ---------- Niveaux ----------
     @property
@@ -137,21 +137,14 @@ class MotherShip:
     def __del__(self):
         print("Vaisseau mère détruit")
 
-def handle_events(B1):
-    """
-    Gère les événements clavier/souris et retourne False si on veut quitter.
-    """
-    
-    return True
-
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((400, 500))
+    screen = pygame.display.set_mode((4*TAILLE_CASE, 5*TAILLE_CASE))
     clock = pygame.time.Clock()
     pygame.display.set_caption("Test affichage Vaisseau mère")
 
     # Créer un objet à tester
-    B1 = MotherShip(screen, Point(0, 0))
+    B1 = MotherShip(screen, Point(0, 0), tier=1, show_health=True, largeur=4, hauteur=5)
     B1.animator.play("base")
     B1.animator.update_and_draw()
     B1.animator.play("engine")
@@ -174,6 +167,7 @@ def main():
                         B1.animator.play("weapons", reset=True)
 
             # Mettre à jour l'animation courante
+            B1.animator.erase()
             B1.animator.update_and_draw()
 
             if B1.dead():
