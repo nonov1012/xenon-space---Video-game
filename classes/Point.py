@@ -34,7 +34,6 @@ class Point:
         self._y: int = y
         self.type: Type = type
 
-
     @property
     def x(self) -> int:
         """Retourne la coordonnée x du point."""
