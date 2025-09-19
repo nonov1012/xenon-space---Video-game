@@ -15,4 +15,11 @@ Executer le fichier `main.py`
 - CAVEL Ugo
 - VANHOVE Tom
 
+<<<<<<< HEAD
 - [Deep-Fold](https://deep-fold.itch.io/pixel-planet-generator)
+=======
+- Deep-Fold (génération des planètes: https://deep-fold.itch.io/pixel-planet-generator)
+
+## Succes
+
+>>>>>>> 92d23f5 (Update README.md)
