@@ -135,7 +135,7 @@ class MotherShip:
         self.animator.update(self.PV_actuelle, self.PV_max)
 
     def __del__(self):
-        print("Base détruit")
+        print("Vaisseau mère détruit")
 
 def handle_events(B1):
     """
@@ -148,7 +148,7 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((400, 500))
     clock = pygame.time.Clock()
-    pygame.display.set_caption("Test affichage Base")
+    pygame.display.set_caption("Test affichage Vaisseau mère")
 
     # Créer un objet à tester
     B1 = MotherShip(screen, Point(0, 0))
