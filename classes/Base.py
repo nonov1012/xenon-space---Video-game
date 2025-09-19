@@ -2,10 +2,10 @@ from time import sleep
 from typing import Any, Dict, Optional
 import pygame
 import sys
-from Gif import load_gif_as_frames
-from Animator import Animator
+from classes.Animator import Animator
 import os
-from Point import Point
+from classes.Point import Point
+from blazyck import *
 
 # Exemple de configuration des niveaux (tiers).
 # Chaque clé est un tier. Les valeurs sont les attributs applicables à la base à ce niveau.
@@ -70,7 +70,7 @@ class Base:
         self.gains = dict_tier.get("gains", 0)
         self.cout = dict_tier.get("cout_upgrade", 0)
 
-        sprites_path = os.path.join(os.path.dirname(__file__),"../sprites/base/")
+        sprites_path = os.path.join(IMG_PATH, "base")
 
         # Animation
         self.animator = Animator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y))
