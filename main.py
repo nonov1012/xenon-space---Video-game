@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-from classes.Ship_class import CombatShip, MinerShip, TransportShip
+from classes.Ship_class import petit, moyen, lourd, Transport, foreuse
 
 # --- Paramètres du plateau ---
 TAILLE_CASE = 40
@@ -17,19 +17,34 @@ pygame.display.set_caption("Xenon Space - Déplacement/Attaque")
 plateau = np.zeros((NOMBRE_LIGNES, NOMBRE_COLONNES), dtype=int)
 
 # --- Image factice pour les vaisseaux ---
-img = pygame.image.load("assets/img/ships/Kla'ed - Battlecruiser - Base.PNG").convert_alpha()
+img_lourd = pygame.image.load("assets/img/ships/lourd/lourd.png").convert_alpha()
+img_moyen = pygame.image.load("assets/img/ships/moyen/moyen.png").convert_alpha()
+img_petit = pygame.image.load("assets/img/ships/petit/petit.png").convert_alpha()
+img_foreuse = pygame.image.load("assets/img/ships/foreuse/foreuse.png").convert_alpha()
+img_transport = pygame.image.load("assets/img/ships/transport/transport.png").convert_alpha()
+
 
 # --- Création de vaisseaux avec uid unique ---
 next_uid = 1
 ships = []
 
-s1 = CombatShip(200, 75, 3, 3, 325, 200, (1, 3), False, False, img, 1, ligne=2, colonne=2, uid=next_uid)
+s1 = moyen(200, 75, 3, 3, 325, 200, (3, 3), False, False, img_moyen, 1, ligne=2, colonne=2, uid=next_uid)
 next_uid += 1
-s2 = CombatShip(400, 175, 6, 4, 650, 390, (2, 3), False, False, img, 1, ligne=4, colonne=7, uid=next_uid)
+s2 = lourd(400, 175, 6, 4, 650, 390, (3, 4), False, False, img_lourd, 1, ligne=4, colonne=7, uid=next_uid)
+next_uid += 1
+s3 = petit(400, 175, 6, 4, 650, 390, (1, 1), False, False, img_petit, 1, ligne=5, colonne=5, uid=next_uid)
+next_uid += 1
+s4 = Transport(400, 175, 6, 4, 650, 390, (3, 4), False, False, img_transport, 1, ligne=6, colonne=2, uid=next_uid)
+next_uid += 1
+s5 = foreuse(400, 175, 6, 4, 650, 390, (2, 2), False, False, img_foreuse, 1, ligne=9, colonne=9, uid=next_uid)
 next_uid += 1
 
 ships.append(s1)
 ships.append(s2)
+ships.append(s3)
+ships.append(s4)
+ships.append(s5)
+
 
 # --- Ajouter sur le plateau ---
 for s in ships:

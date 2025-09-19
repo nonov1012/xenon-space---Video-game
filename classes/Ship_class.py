@@ -213,92 +213,26 @@ class Ship:
 class petit(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pv_max = 200
-        self.pv_actuel = self.pv_max
-        self.attaque = 75
-        self.port_attaque = 3
-        self.port_deplacement = 6
-        self.cout = 325
-        self.valeur_mort = self.pv_max*0.6
-        self.taille = tuple(1,1)
-        self.peut_miner = False
-        self.peut_transporter = False
-        self.cargaison = np.array([None, None, None], dtype=object)
-        # graphisme / niveau
-        self.image = ./assets
-        self.tier = 1
 
 class moyen(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pv_max = 400
-        self.pv_actuel = self.pv_max
-        self.attaque = 175
-        self.port_attaque = 4
-        self.port_deplacement = 4
-        self.cout = 650
-        self.valeur_mort = self.pv_max*0.6
-        self.taille = tuple(1,2)
-        self.peut_miner = False
-        self.peut_transporter = False
-        self.cargaison = np.array([None, None, None], dtype=object)
-        # graphisme / niveau
-        self.image = image
-        self.tier = 1
+
 
 class lourd(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pv_max = 750
-        self.pv_actuel = self.pv_max
-        self.attaque = 300
-        self.port_attaque = 6
-        self.port_deplacement = 3
-        self.cout = 1050
-        self.valeur_mort = self.pv_max*0.6
-        self.taille = tuple(2,3)
-        self.peut_miner = False
-        self.peut_transporter = False
-        self.cargaison = np.array([None, None, None], dtype=object)
-        # graphisme / niveau
-        self.image = image
-        self.tier = 4
+
 
 
 class foreuse(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pv_max = 300
-        self.pv_actuel = self.pv_max
-        self.attaque = 0
-        self.port_attaque = 0
-        self.port_deplacement = 6
-        self.cout = 400
-        self.valeur_mort = self.pv_max*0.6
-        self.taille = tuple(1*1)
-        self.peut_miner = True
-        self.peut_transporter = False
-        self.cargaison = np.array([None, None, None], dtype=object)
-        # graphisme / niveau
-        self.image = image
-        self.tier = 2
+
 
 
 class Transport(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pv_max = 600
-        self.pv_actuel = self.pv_max
-        self.attaque = 60
-        self.port_attaque = 6
-        self.port_deplacement = 6
-        self.cout = 500
-        self.valeur_mort = self.pv_max*0.6
-        self.taille = tuple(4, 3)
-        self.peut_miner = False
-        self.peut_transporter = True
-        self.cargaison = np.array([None, None, None], dtype=object)
-        # graphisme / niveau
-        self.image = image
-        self.tier = 3
+
 
