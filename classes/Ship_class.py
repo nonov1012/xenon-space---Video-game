@@ -225,7 +225,7 @@ class petit(Ship):
         self.peut_transporter = False
         self.cargaison = np.array([None, None, None], dtype=object)
         # graphisme / niveau
-        self.image = image
+        self.image = ./assets
         self.tier = 1
 
 class moyen(Ship):
