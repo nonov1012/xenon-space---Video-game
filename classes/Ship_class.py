@@ -120,43 +120,49 @@ class Ship:
             direction = self.direction
         largeur, hauteur = self.donner_dimensions(direction)
         positions=[]
-        for dl in range(-self.port_deplacement,self.port_deplacement+1):
-            for dc in range(-self.port_deplacement,self.port_deplacement+1):
-                if dl==0 and dc==0: continue
-                if abs(dl)+abs(dc)<=self.port_deplacement:
-                    nl, nc = self.aperçu_ligne + dl, self.aperçu_colonne + dc
-                    if 0<=nl<=nombre_lignes-hauteur and 0<=nc<=nombre_colonne-largeur:
+        for y in range(-self.port_deplacement,self.port_deplacement+1):
+            for i in range(-self.port_deplacement,self.port_deplacement+1):
+                if y==0 and i==0: 
+                    continue
+                if abs(y)+abs(i)<=self.port_deplacement:
+                    nl, nc = self.ligne + y, self.colonne + i   # ✅ position réelle
+                    if 0 <= nl <= nombre_lignes - hauteur and 0 <= nc <= nombre_colonne - largeur:
                         collision = False
                         for l in range(nl, nl+hauteur):
                             for c in range(nc, nc+largeur):
                                 if plateau[l,c]!=0 and plateau[l,c]!=self.id:
-                                    collision=True
+                                    collision = True
                         if not collision:
                             positions.append((nl,nc))
         return positions
 
+
     def positions_possibles_attaque(self, nombre_colonne, nombre_lignes, direction=None):
         if direction is None:
             direction = self.direction
-        largeur, hauteur = self.donner_dimensions(direction)
         positions=[]
-        for dl in range(-self.port_attaque,self.port_attaque+1):
-            for dc in range(-self.port_attaque,self.port_attaque+1):
-                if dl==0 and dc==0: continue
-                if abs(dl)+abs(dc)<=self.port_attaque:
-                    nl, nc = self.aperçu_ligne + dl, self.aperçu_colonne + dc
-                    if 0<=nl<=nombre_lignes-hauteur and 0<=nc<=nombre_colonne-largeur:
-                        positions.append((nl,nc))
+        for y in range(-self.port_attaque, self.port_attaque+1):
+            for i in range(-self.port_attaque, self.port_attaque+1):
+                if y == 0 and i == 0:
+                    continue
+                if abs(y) + abs(i) <= self.port_attaque:
+                    nl, nc = self.ligne + y, self.colonne + i   # calcul brut
+                    # ✅ on garde seulement si c’est encore dans la grille
+                    if 0 <= nl < nombre_lignes and 0 <= nc < nombre_colonne:
+                        positions.append((nl, nc))
         return positions
+
+
+
 
 
     def deplacement(self, case_cible, nombre_colonne, nombre_lignes, plateau, ships):
         if self.id is None: raise ValueError("Ship.id non défini")
         ligne, colonne = case_cible
-        cible_direction = self.aperçu_direction
+        cible_direction = self.aperçu_direction  # direction souhaitée après déplacement / rotation
 
-        # ---- attaque si possible ----
-        if case_cible in self.positions_possibles_attaque(nombre_colonne,nombre_lignes):
+        # ---- attaque si possible (avec la direction visée) ----
+        if case_cible in self.positions_possibles_attaque(nombre_colonne, nombre_lignes, direction=cible_direction):
             cible_id = plateau[ligne,colonne]
             if cible_id!=0 and cible_id!=self.id:
                 cible_ship = next((s for s in ships if s.id==int(cible_id)), None)
@@ -168,16 +174,20 @@ class Ship:
                     return True
 
         # ---- déplacement ----
-        if case_cible not in self.positions_possibles_adjacentes(nombre_colonne,nombre_lignes, plateau):
+        # accepter la cible seulement si elle est dans les positions valides pour la direction visée
+        if case_cible not in self.positions_possibles_adjacentes(nombre_colonne, nombre_lignes, plateau, direction=cible_direction):
             return False
 
         ancienne_ligne, ancienne_colonne, ancienne_direction = self.ligne,self.colonne,self.direction
+        # libérer l'ancienne occupation
         self.occuper_plateau(plateau,0,direction=ancienne_direction,ligne=ancienne_ligne,colonne=ancienne_colonne)
+        # vérifier collision en posant le vaisseau avec la nouvelle direction à la case cible
         if self.verifier_collision(plateau, ligne, colonne, cible_direction):
             self.ligne,self.colonne,self.direction = ligne,colonne,cible_direction
             self.occuper_plateau(plateau,int(self.id),direction=self.direction,ligne=self.ligne,colonne=self.colonne)
             return True
         else:
+            # remettre à l'ancienne position si échec
             self.occuper_plateau(plateau,int(self.id),direction=ancienne_direction,ligne=ancienne_ligne,colonne=ancienne_colonne)
             return False
 
@@ -200,20 +210,95 @@ class Ship:
 
 # ------------ Sous-classes ------------
 
-class CombatShip(Ship):
+class petit(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.pv_max = 200
+        self.pv_actuel = self.pv_max
+        self.attaque = 75
+        self.port_attaque = 3
+        self.port_deplacement = 6
+        self.cout = 325
+        self.valeur_mort = self.pv_max*0.6
+        self.taille = tuple(1,1)
         self.peut_miner = False
         self.peut_transporter = False
+        self.cargaison = np.array([None, None, None], dtype=object)
+        # graphisme / niveau
+        self.image = image
+        self.tier = 1
 
-class MinerShip(Ship):
+class moyen(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.pv_max = 400
+        self.pv_actuel = self.pv_max
+        self.attaque = 175
+        self.port_attaque = 4
+        self.port_deplacement = 4
+        self.cout = 650
+        self.valeur_mort = self.pv_max*0.6
+        self.taille = tuple(1,2)
+        self.peut_miner = False
+        self.peut_transporter = False
+        self.cargaison = np.array([None, None, None], dtype=object)
+        # graphisme / niveau
+        self.image = image
+        self.tier = 1
+
+class lourd(Ship):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pv_max = 750
+        self.pv_actuel = self.pv_max
+        self.attaque = 300
+        self.port_attaque = 6
+        self.port_deplacement = 3
+        self.cout = 1050
+        self.valeur_mort = self.pv_max*0.6
+        self.taille = tuple(2,3)
+        self.peut_miner = False
+        self.peut_transporter = False
+        self.cargaison = np.array([None, None, None], dtype=object)
+        # graphisme / niveau
+        self.image = image
+        self.tier = 4
+
+
+class foreuse(Ship):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pv_max = 300
+        self.pv_actuel = self.pv_max
+        self.attaque = 0
+        self.port_attaque = 0
+        self.port_deplacement = 6
+        self.cout = 400
+        self.valeur_mort = self.pv_max*0.6
+        self.taille = tuple(1*1)
         self.peut_miner = True
         self.peut_transporter = False
+        self.cargaison = np.array([None, None, None], dtype=object)
+        # graphisme / niveau
+        self.image = image
+        self.tier = 2
 
-class TransportShip(Ship):
+
+class Transport(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.pv_max = 600
+        self.pv_actuel = self.pv_max
+        self.attaque = 60
+        self.port_attaque = 6
+        self.port_deplacement = 6
+        self.cout = 500
+        self.valeur_mort = self.pv_max*0.6
+        self.taille = tuple(4, 3)
         self.peut_miner = False
         self.peut_transporter = True
+        self.cargaison = np.array([None, None, None], dtype=object)
+        # graphisme / niveau
+        self.image = image
+        self.tier = 3
+
