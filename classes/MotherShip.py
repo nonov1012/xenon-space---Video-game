@@ -2,7 +2,7 @@ from time import sleep
 from typing import Any, Dict, Optional
 import pygame
 import sys
-from classes.Animator import Animator
+from classes.ShipAnimator import ShipAnimator
 import os
 from classes.Point import Point
 from blazyck import *
@@ -73,7 +73,7 @@ class MotherShip:
         sprites_path = os.path.join(IMG_PATH, "ships", "base")
 
         # Animation
-        self.animator = Animator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y))
+        self.animator = ShipAnimator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y))
 
     # ---------- Niveaux ----------
     @property
