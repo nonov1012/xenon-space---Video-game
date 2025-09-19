@@ -18,7 +18,7 @@ class Player:
             return True
         return False
 
-    def get_money_gained(self) -> int:
+    def get_money_gained(self) -> int: #TODO
         """
         Calcule l'argent gagné à la fin d'un tour :
         - gains de la base
