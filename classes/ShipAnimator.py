@@ -41,7 +41,6 @@ class ShipAnimator(Animator):
         self.frame_index = 0
         self.last_update = 0
         self.frame_duration_ms = 1000 // max(1, default_fps)
-        self.angle = 0
 
         # booléen qui permet de savoir si on fait l'animation d'engine ou non
         self.idle : bool = True
@@ -101,13 +100,6 @@ class ShipAnimator(Animator):
         # Barre de vie
         if self.show_health:
             self.display_health()
-
-    def set_angle(self, angle: float):
-        """
-        Définit l'angle du vaisseau en degrés.
-        0° = orientation initiale de l'image.
-        """
-        self.angle = angle % 360
 
     def draw_image(self):
         """Dessine l'image statique si elle existe."""

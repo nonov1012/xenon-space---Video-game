@@ -33,7 +33,7 @@ def create_space_background(screen: pygame.Surface, planete_path: str, num_stars
         screen,
         planete_path,
         speed_range=(1, 2 * screen_ratio),
-        planet_size_range=(4, int(5 * screen_ratio)),
+        planet_size_range=(1, int(5 * screen_ratio)),
         prob_increment=1
     )
 

@@ -11,6 +11,7 @@ MAX_PLANETES_ANIMATIONS = 4 # Nombre d'animations de planètes différents
 BASE_DIR = os.path.dirname(__file__) # Chemain du dossier du projet
 IMG_PATH = os.path.join(BASE_DIR, "assets", "img")
 PLANETES_PATH = os.path.join(IMG_PATH, "planets")
+PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
 
 if __name__ == "__main__":
     print("\n" + IMG_PATH)
