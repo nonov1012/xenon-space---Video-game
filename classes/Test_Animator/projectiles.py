@@ -5,6 +5,7 @@ import sys
 from PIL import Image
 import numpy as np
 from classes.Animator import Animator
+from classes.ProjectileAnimator import ProjectileAnimator
 
 projectiles_data = {
     "bullet": (4, 16),
@@ -21,8 +22,8 @@ def main():
     pygame.display.set_caption("Test affichage Projectiles")
 
     # Créer un objet à tester
-    P1 = Animator(screen, PROJECTILES_PATH, (2, 4), (0, 0), default_fps=10, speed=5)
-    P1.play("big bullet", True, frame_size=projectiles_data["big bullet"])
+    P1 = ProjectileAnimator(screen, (1, 2), (0, 0), default_fps=10, speed=5, projectile_type="laser")
+    P1.play("ray", True, frame_size=projectiles_data["ray"])
     P1.update_and_draw()
 
     # --- Liste pour stocker les frames ---
