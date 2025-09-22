@@ -76,6 +76,12 @@ stars, planet_manager, B1 = create_space_background(screen, PLANETES_PATH, num_s
 # --- Initialisation succès ---
 achievements = AchievementManager()
 
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> b173d32 (Ajout du fichier Achievements.py)
 running = True
 while running:
     for event in pygame.event.get():
