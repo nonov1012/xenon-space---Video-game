@@ -8,6 +8,7 @@ from classes.Start_Animation.PlanetManager import PlanetManager
 from classes.MotherShip import MotherShip
 from classes.Point import Point
 from blazyck import *
+from classes.Achievements import AchievementManager 
 
 def create_space_background(screen: pygame.Surface, planete_path: str, num_stars=100, screen_ratio=1.0):
     """
@@ -71,6 +72,12 @@ screen_ratio = (screen_width * 100 / 600) / 100
 # Création du fond spatial et du vaisseau
 stars, planet_manager, B1 = create_space_background(screen, PLANETES_PATH, num_stars=100, screen_ratio=screen_ratio)
 
+# --- Initialisation succès ---
+achievements = AchievementManager()
+
+
+
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -88,3 +95,5 @@ while running:
     clock.tick(30)
 
 pygame.quit()
+
+print("Succès obtenus :", achievements.list_unlocked())
