@@ -16,8 +16,12 @@ from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH
 =======
 from classes.Start_Animation.StarField import StarField
 
+<<<<<<< HEAD
 from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH, TAILLE_CASE
 >>>>>>> 5a451cb (feat: case atmosphere)
+=======
+from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH, TAILLE_CASE, ASTEROIDES_PATH
+>>>>>>> 140d783 (feat: generation asteroides)
 
 from PIL import Image
 
@@ -56,7 +60,6 @@ class Map:
 
         # === Chargement des images de planètes ===
         self.planete_images = []
-        # imaginons que tu as planetes1.gif ... planetes5.gif par ex.
         for i in range(1, 6):
             path = os.path.join(PLANETES_PATH, f"planet{i}.gif")
             if os.path.exists(path):
@@ -198,12 +201,17 @@ if __name__ == "__main__":
     pygame.init()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     taille_case = 35
     
 =======
 >>>>>>> 5a451cb (feat: case atmosphere)
     screen = pygame.display.set_mode((NB_CASE_X * TAILLE_CASE, NB_CASE_Y * TAILLE_CASE))
     pygame.display.set_caption("Carte avec planètes carrées")
+=======
+    screen = pygame.display.set_mode((NB_CASE_X * TAILLE_CASE, NB_CASE_Y * TAILLE_CASE), pygame.SRCALPHA)
+    pygame.display.set_caption("Génération de la map aléatoire")
+>>>>>>> 140d783 (feat: generation asteroides)
     
     screen_width, screen_height = screen.get_size()
     num_stars=100
@@ -221,6 +229,7 @@ if __name__ == "__main__":
     
     map_obj = Map()
     map_obj.generer_planet(6)
+    map_obj.generer_asteroides(20)
 
 
     screen = pygame.display.set_mode((NB_CASE_X * TAILLE_CASE, NB_CASE_Y * TAILLE_CASE), pygame.SRCALPHA)
@@ -249,11 +258,15 @@ if __name__ == "__main__":
     # couleurs
     COLORS = {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 140d783 (feat: generation asteroides)
         Type.VIDE: (0, 0, 0, 10),               # noir
         Type.PLANETE: (0, 150, 255),            # bleu clair
         Type.ATMOSPHERE: (0, 255, 150, 125),    # vert clair
         Type.ASTEROIDE: (200, 200, 200),        # gris
         Type.BASE: (100, 100, 100),             # gris foncé
+<<<<<<< HEAD
 =======
         Type.VIDE: (0, 0, 0, 255),        # noir
         Type.PLANETE: (0, 150, 255), # bleu clair
@@ -261,6 +274,8 @@ if __name__ == "__main__":
         Type.ASTEROIDE: (200, 200, 200),  # gris
         Type.BASE: (100, 100, 100),  # gris foncé
 >>>>>>> 5a451cb (feat: case atmosphere)
+=======
+>>>>>>> 140d783 (feat: generation asteroides)
     }
 
     running = True
@@ -283,11 +298,16 @@ if __name__ == "__main__":
                 point = map_obj.grille[y][x]
                 rect = pygame.Rect(x * TAILLE_CASE, y * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if point.type != Type.VIDE:
                     pygame.draw.rect(screen, COLORS[point.type], rect)  # fond
 =======
                 pygame.draw.rect(screen, COLORS[point.type], rect)  # fond
 >>>>>>> 5a451cb (feat: case atmosphere)
+=======
+                if point.type != Type.VIDE:
+                    pygame.draw.rect(screen, COLORS[point.type], rect)  # fond
+>>>>>>> 140d783 (feat: generation asteroides)
                 pygame.draw.rect(screen, (40, 40, 40), rect, 1)  # contour
 
         Animator.update_all()
@@ -295,11 +315,17 @@ if __name__ == "__main__":
         for (px, py), img in map_obj.planete_img_map.items():
             screen.blit(img, (px * TAILLE_CASE, py * TAILLE_CASE))
 <<<<<<< HEAD
+<<<<<<< HEAD
             
         for (ax, ay), img in map_obj.asteroide_img_map.items():
             screen.blit(img, (ax * TAILLE_CASE, ay * TAILLE_CASE))
 =======
 >>>>>>> 5a451cb (feat: case atmosphere)
+=======
+            
+        for (ax, ay), img in map_obj.asteroide_img_map.items():
+            screen.blit(img, (ax * TAILLE_CASE, ay * TAILLE_CASE))
+>>>>>>> 140d783 (feat: generation asteroides)
 
         pygame.display.flip()
 
