@@ -5,10 +5,9 @@ import pygame
 import random
 from classes.Point import Point, Type
 
-from blazyck import NB_CASE_X, NB_CASE_Y, PATH_IMG_PLANETES
+from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH
 
 from PIL import Image
-import pygame
 
 def load_image(path):
     pil_img = Image.open(path).convert("RGBA")
@@ -46,7 +45,7 @@ class Map:
         self.planete_images = []
         # imaginons que tu as planetes1.gif ... planetes5.gif par ex.
         for i in range(1, 6):
-            path = os.path.join(PATH_IMG_PLANETES, f"planet{i}.gif")
+            path = os.path.join(PLANETES_PATH, f"planet{i}.gif")
             if os.path.exists(path):
                 try:
                     img = load_image(path)
@@ -57,7 +56,7 @@ class Map:
                 print(f"[!] Fichier introuvable : {path}")
 
         if not self.planete_images:
-            print("⚠️ Aucune image de planète trouvée ! Vérifie PATH_IMG_PLANETES.")
+            print("⚠️ Aucune image de planète trouvée ! Vérifie PLANETES_PATH.")
 
 
     def peut_placer(self, x, y, taille: int) -> bool:
