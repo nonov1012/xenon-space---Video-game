@@ -40,19 +40,6 @@ LEVELS: Dict[int, Dict[str, Any]] = {
     },
 }
 
-
-import os
-import pygame
-from typing import Any, Dict, Optional
-
-# ---------------- Exemple de configuration des niveaux ----------------
-LEVELS: Dict[int, Dict[str, Any]] = {
-    1: {"cout_upgrade": 1000, "PV_max": 500, "gains": 300, "atk": 0, "distance_atk": 0},
-    2: {"cout_upgrade": 2000, "PV_max": 800, "gains": 350, "atk": 0, "distance_atk": 0},
-    3: {"cout_upgrade": 6000, "PV_max": 1300, "gains": 400, "atk": 0, "distance_atk": 0},
-    4: {"cout_upgrade": None, "PV_max": 1700, "gains": 450, "atk": 100, "distance_atk": 3},
-}
-
 class MotherShip:
     """Représente la base d'un joueur avec niveaux, PV, et combat."""
 
