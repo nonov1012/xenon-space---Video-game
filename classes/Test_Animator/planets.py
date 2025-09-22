@@ -13,7 +13,7 @@ def main():
     pygame.display.set_caption("Test affichage Planètes")
 
     # Créer un objet à tester
-    P1 = Animator(screen, PLANETES_PATH, (5, 5), (-1, -1), default_fps=15)
+    P1 = Animator(screen, PLANETES_PATH, (5, 5), (0, 0), default_fps=15)
     P1.play("planet1", True)
     P1.update_and_draw()
 
