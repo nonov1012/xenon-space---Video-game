@@ -10,14 +10,19 @@ from PIL import Image, ImageSequence
 import numpy as np
 from typing import ClassVar
 
-def load_spritesheet(path: str, frame_width: int, frame_height: int) -> List[pygame.Surface]:
+def load_spritesheet(path: str, frame_width: int, frame_height: int) -> list[pygame.Surface]:
     sheet = pygame.image.load(path).convert_alpha()
     sheet_width, sheet_height = sheet.get_size()
     frames = []
-    for x in range(0, sheet_width, frame_width):
-        if x + frame_width <= sheet_width:
-            frame_surface = sheet.subsurface((x, 0, frame_width, frame_height)).copy()
-            frames.append(frame_surface)
+
+    # Parcours toutes les lignes et colonnes
+    for y in range(0, sheet_height, frame_height):
+        for x in range(0, sheet_width, frame_width):
+            # Assure que la frame reste dans la surface
+            if x + frame_width <= sheet_width and y + frame_height <= sheet_height:
+                frame_surface = sheet.subsurface((x, y, frame_width, frame_height)).copy()
+                frames.append(frame_surface)
+
     return frames
 
 class Animator:
