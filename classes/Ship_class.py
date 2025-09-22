@@ -1,6 +1,8 @@
 import pygame
 import numpy as np
 from typing import Tuple, List, Optional
+import heapq
+
 
 class Ship:
     def __init__(self,
@@ -234,5 +236,101 @@ class foreuse(Ship):
 class Transport(Ship):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.cargaison = []  # liste des vaisseaux stockés
+
+    def ajouter_cargo(self, ship: Ship, plateau) -> bool:
+        """Ajoute un vaisseau dans le transport si possible."""
+        if len(self.cargaison) >= 3:
+            return False
+
+        # Vérifier le type du vaisseau (seuls petit et moyen)
+        if not isinstance(ship, (petit, moyen)):
+            return False
+
+        # Vérifier la portée de déplacement : le vaisseau doit pouvoir atteindre le transport
+        positions_accessibles = ship.positions_possibles_adjacentes(
+            plateau.shape[1], plateau.shape[0], plateau
+        )
+        transport_positions = []
+        largeur, hauteur = self.donner_dimensions(self.direction)
+        for l in range(self.ligne, self.ligne + hauteur):
+            for c in range(self.colonne, self.colonne + largeur):
+                transport_positions.append((l, c))
+        if not any(pos in transport_positions for pos in positions_accessibles):
+            return False
+
+        # Retirer le vaisseau du plateau
+        ship.occuper_plateau(plateau, 0)
+
+        # Ajouter dans la cargaison
+        self.cargaison.append(ship)
+        return True
+
+
+    def retirer_cargo(self, index: int, ligne: int, colonne: int, plateau) -> bool:
+        """Débarque un vaisseau du transport sur le plateau."""
+        if 0 <= index < len(self.cargaison):
+            ship = self.cargaison.pop(index)
+            ship.ligne, ship.colonne = ligne, colonne
+            ship.direction = "haut"
+            ship.occuper_plateau(plateau, ship.id)
+            return True
+        return False
+
+    def _taille_vaisseau(self, ship: Ship) -> int:
+        if isinstance(ship, petit):
+            return 1
+        elif isinstance(ship, moyen):
+            return 2
+        else:
+            return 3
+
+    def subir_degats(self, degats, plateau=None):
+        """Si le transport meurt, tous les vaisseaux embarqués meurent."""
+        super().subir_degats(degats)
+        if self.est_mort() and plateau is not None:
+            for ship in self.cargaison:
+                ship.pv_actuel = 0
+                ship.occuper_plateau(plateau, 0)
+            self.cargaison.clear()
+    
+    def afficher_cargaison(self, fenetre, taille_case):
+        """Affiche les vaisseaux stockés avec images miniatures au-dessus du transport"""
+        for i, ship in enumerate(self.cargaison):
+            mini_img = pygame.transform.scale(ship.image, (20,20))
+            x = self.colonne * taille_case + i*22
+            y = self.ligne * taille_case - 22
+            fenetre.blit(mini_img, (x, y))
+
+
+    def positions_debarquement(self, ship_stocke, plateau, nombre_lignes, nombre_colonnes):
+        """Retourne les positions valides pour débarquer un vaisseau depuis ce transport."""
+        positions_valides = []
+        port = self.port_deplacement
+        for dy in range(-port, port+1):
+            for dx in range(-port, port+1):
+                if abs(dy) + abs(dx) > port:
+                    continue
+                nl = self.ligne + dy
+                nc = self.colonne + dx
+                largeur, hauteur = ship_stocke.donner_dimensions(ship_stocke.direction)
+
+                # Vérifier que tout le rectangle du vaisseau est dans la grille
+                if not (0 <= nl <= nombre_lignes - hauteur and 0 <= nc <= nombre_colonnes - largeur):
+                    continue
+
+                # Vérifier que toutes les cases sont libres
+                collision = False
+                for l in range(nl, nl+hauteur):
+                    for c in range(nc, nc+largeur):
+                        if plateau[l,c] != 0:
+                            collision = True
+                            break
+                    if collision:
+                        break
+
+                if not collision:
+                    positions_valides.append((nl,nc))
+        return positions_valides
 
 

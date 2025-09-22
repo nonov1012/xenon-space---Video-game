@@ -4,8 +4,9 @@ import pygame
 import sys
 from classes.Animator import Animator
 import os
-from classes.Point import Point
+from classes.Point_class import Point
 from blazyck import *
+from classes.Ship_class import Ship
 
 # Exemple de configuration des niveaux (tiers).
 # Chaque clé est un tier. Les valeurs sont les attributs applicables à la base à ce niveau.
@@ -53,7 +54,7 @@ LEVELS: Dict[int, Dict[str, Any]] = {
     4: {"cout_upgrade": None, "PV_max": 1700, "gains": 450, "atk": 100, "distance_atk": 3},
 }
 
-class MotherShip:
+class MotherShip(Ship):
     """Représente la base d'un joueur avec niveaux, PV, et combat."""
 
     def __init__(self, screen : pygame.Surface, point : Point, tier: int = 1):
