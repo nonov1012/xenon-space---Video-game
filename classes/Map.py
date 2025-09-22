@@ -78,7 +78,7 @@ class Map:
             print("⚠️ Aucune image de planète trouvée ! Vérifie PLANETES_PATH.")
 
 
-    def peut_placer(self, x, y, taille: int) -> bool:
+    def peut_placer_planete(self, x, y, taille: int) -> bool:
         """
         Vérifie si on peut placer une planète carrée de côté `taille`.
         Les planètes doivent être à 1 case des autres objets et ne pas toucher les bords.
@@ -91,6 +91,19 @@ class Map:
                 if self.grille[yy][xx].type != Type.VIDE:
                     return False
 
+        return True
+    
+    def peut_placer_asteroide(self, x, y, taille: int) -> bool:
+        """
+        Vérifie si on peut placer un astéroïde de taille 1x1 ou 2x2.
+        """
+        if x + taille > self.nb_cases_x or y + taille > self.nb_cases_y:
+            return False
+        
+        for yy in range(y, y + taille):
+            for xx in range(x, x + taille):
+                if self.grille[yy][xx].type != Type.VIDE:
+                    return False
         return True
 
     def placer_planete(self, x, y, taille: int) -> None:
@@ -120,18 +133,27 @@ class Map:
             # On stocke l’image à la position d’origine de la planète
             self.planete_img_map[(x, y)] = img_resized
     
-    def placer_asteroide(self, x, y) -> None:
+    def placer_asteroide(self, x, y, taille: int = 1) -> None:
         """
-        Place un astéroïde 1x1 à la position (x, y).
+        Place un astéroïde de taille 1x1 ou 2x2 à la position (x, y).
         """
-        if self.grille[y][x].type == Type.VIDE and self.asteroide_images:
-            chosen_img = random.choice(self.asteroide_images)
-            self.grille[y][x].type = Type.ASTEROIDE
-            self.asteroide_img_map[(x, y)] = chosen_img
+        if not self.asteroide_images:
+            return
+        
+        chosen_img = random.choice(self.asteroide_images)
+        img_resized = pygame.transform.scale(chosen_img, (TAILLE_CASE * taille, TAILLE_CASE * taille))
+
+        for yy in range(y, y + taille):
+            for xx in range(x, x + taille):
+                self.grille[yy][xx].type = Type.ASTEROIDE
+        
+        # On stocke une seule image pour tout le bloc
+        self.asteroide_img_map[(x, y)] = img_resized
+
 
     def generer_asteroides(self, nb_asteroides: int) -> None:
         """
-        Générer des astéroïdes 1x1 aléatoires.
+        Générer des astéroïdes aléatoires (1x1 ou 2x2).
         """
         essais = 0
         max_essais = 2000
@@ -139,15 +161,17 @@ class Map:
 
         while placed < nb_asteroides and essais < max_essais:
             essais += 1
-            x = random.randint(0, self.nb_cases_x - 1)
-            y = random.randint(0, self.nb_cases_y - 1)
+            taille = random.choice([1, 2])  # Taille aléatoire
+            x = random.randint(0, self.nb_cases_x - taille)
+            y = random.randint(0, self.nb_cases_y - taille)
 
-            if self.grille[y][x].type == Type.VIDE:
-                self.placer_asteroide(x, y)
+            if self.peut_placer_asteroide(x, y, taille):
+                self.placer_asteroide(x, y, taille)
                 placed += 1
 
         if placed < nb_asteroides:
             print(f"/!\\ Seulement {placed} astéroïdes placés sur {nb_asteroides} demandés")
+
 
 
     def generer_planet(self, nb_planet: int) -> None:
@@ -164,7 +188,7 @@ class Map:
             x = random.randint(1, self.nb_cases_x - taille - 1)
             y = random.randint(1, self.nb_cases_y - taille - 1)
 
-            if self.peut_placer(x, y, taille):
+            if self.peut_placer_planete(x, y, taille):
                 self.placer_planete(x, y, taille)
                 pid += 1
 
@@ -228,10 +252,11 @@ if __name__ == "__main__":
                     pygame.draw.rect(screen, COLORS[point.type], rect)  # fond
                 pygame.draw.rect(screen, (40, 40, 40), rect, 1)  # contour
 
-        # Dessin des images des planètes
+        # Dessin planètes
         for (px, py), img in map_obj.planete_img_map.items():
             screen.blit(img, (px * TAILLE_CASE, py * TAILLE_CASE))
             
+        # Dessin arsteroides
         for (ax, ay), img in map_obj.asteroide_img_map.items():
             screen.blit(img, (ax * TAILLE_CASE, ay * TAILLE_CASE))
 
