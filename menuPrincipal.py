@@ -1,6 +1,7 @@
 import pygame
 import sys
-import jouer  # ton fichier jouer.py
+import menuJouer
+import menuParam
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
 
@@ -23,7 +24,7 @@ sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
 # -------------------------------
 # Icône et fond
-# -------------------------------
+# -------------------------------+++++++++++++++++++
 icone = pygame.image.load("assets/img/menu/logo.png")
 pygame.display.set_icon(icone)
 
@@ -138,7 +139,9 @@ while en_cours:
                     sm.play_sfx("son_click")
             # Appelle le main de jouer.py
             if bouton_jouer.collidepoint(evenement.pos):
-                jouer.main(ecran) 
+                menuJouer.main(ecran) 
+            if bouton_param.collidepoint(evenement.pos):
+                menuParam.main(ecran)
             if bouton_quitter.collidepoint(evenement.pos):
                 pygame.quit()
                 sys.exit()
