@@ -37,6 +37,7 @@ def main(ecran):
     # -------------------------------
     largeur_ecran, hauteur_ecran = ecran.get_size()
     image_fond = pygame.image.load("assets/img/menu/fond_start.jpg").convert()
+    image_fond = pygame.transform.scale(image_fond, (largeur_ecran, hauteur_ecran))
 
     # -------------------------------
     # Image de base pour les boutons
