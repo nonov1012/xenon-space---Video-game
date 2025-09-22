@@ -7,9 +7,32 @@ class SoundManager:
         self.music_channel = pygame.mixer.Channel(0)
         self.sfx_channel = pygame.mixer.Channel(1)
         self.sounds = {}
+        self.master_volume = 100
         self.music_volume = 100
         self.sfx_volume = 100
-    
+        
+    # --- Gestion volumes globaux ---
+    def set_master_volume(self, volume):
+        """
+        Définit le volume global.
+        volume: int entre 0 et 100
+        """
+        self.master_volume = max(0, min(100, volume))  # clamp 0-100
+        self._apply_volumes()
+
+    def _apply_volumes(self):
+        """Applique le volume global sur musique + SFX"""
+        # Appliquer le volume master comme multiplicateur
+        effective_music_volume = (self.music_volume / 100) * (self.master_volume / 100)
+        effective_sfx_volume = (self.sfx_volume / 100) * (self.master_volume / 100)
+
+        self.music_channel.set_volume(effective_music_volume)
+        self.sfx_channel.set_volume(effective_sfx_volume)
+
+        # Met à jour aussi chaque SFX déjà chargé
+        for sound in self.sounds.values():
+            sound.set_volume(effective_sfx_volume)
+
     # --- Gestion musique ---
     def play_music(self, filepath, loops=-1):
         """Joue une musique en boucle (-1 = infini)"""
@@ -46,7 +69,6 @@ class SoundManager:
         volume: int entre 0 et 100
         """
         self.sfx_volume = volume
-        # applique volume à tous les SFX chargés
         for sound in self.sounds.values():
             sound.set_volume(volume / 100)
         self.sfx_channel.set_volume(volume / 100)
