@@ -4,6 +4,7 @@ import math
 from classes.Animator import Animator
 from blazyck import *
 
+
 class StarField:
     """
     Champ d'étoiles scintillantes avec mouvement vertical synchronisé.
