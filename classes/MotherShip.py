@@ -56,7 +56,7 @@ LEVELS: Dict[int, Dict[str, Any]] = {
 class MotherShip:
     """Représente la base d'un joueur avec niveaux, PV, et combat."""
 
-    def __init__(self, screen : pygame.Surface, point : Point, tier: int = 1, show_health: bool = True, largeur: int = 4, hauteur: int = 5, color = (0, 255, 0)) -> None:
+    def __init__(self, point : Point, tier: int = 1, show_health: bool = True, largeur: int = 4, hauteur: int = 5, color = (0, 255, 0)) -> None:
         self.largeur = largeur
         self.hauteur = hauteur
         self.tier = tier
@@ -73,7 +73,7 @@ class MotherShip:
         sprites_path = os.path.join(IMG_PATH, "ships", "base")
 
         # Animation
-        self.animator = ShipAnimator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y), show_health=show_health, color=color)
+        self.animator = ShipAnimator(sprites_path, (self.largeur, self.hauteur), (point.x, point.y), show_health=show_health, color=color)
 
     # ---------- Niveaux ----------
     @property

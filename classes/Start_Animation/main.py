@@ -47,13 +47,14 @@ def create_space_background(screen: pygame.Surface, planete_path: str, num_stars
     y = int(center_y - vaisseau_h / 2)
 
     B1 = MotherShip(
-        screen,
         Point(x, y),
         tier=1,
         show_health=False,
         largeur=4 * screen_ratio,
         hauteur=5 * screen_ratio
     )
+
+    Animator.set_screen(screen)
     B1.animator.set_angle(90)
     B1.animator.play("base")
     B1.animator.play("engine")
@@ -74,9 +75,6 @@ stars, planet_manager, B1 = create_space_background(screen, PLANETES_PATH, num_s
 
 # --- Initialisation succès ---
 achievements = AchievementManager()
-
-
-
 
 running = True
 while running:

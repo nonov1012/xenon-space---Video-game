@@ -7,7 +7,6 @@ from classes.Animator import Animator
 class ProjectileAnimator(Animator):
     def __init__(
         self,
-        screen: pygame.Surface,
         dimensions: Tuple[int, int],
         coord: Tuple[int, int],
         tile_size: int = TAILLE_CASE,
@@ -17,7 +16,7 @@ class ProjectileAnimator(Animator):
         projectile_type: str = "projectile",
         dissipate_speed: int = 5
     ):
-        super().__init__(screen, PROJECTILES_PATH, dimensions, coord, tile_size, default_fps, speed)
+        super().__init__(PROJECTILES_PATH, dimensions, coord, tile_size, default_fps, speed)
         self.movable = movable
         self.projectile_type = projectile_type
         if projectile_type == "laser":
@@ -37,7 +36,7 @@ class ProjectileAnimator(Animator):
                 return  # rien à effacer
 
             # On dessine par-dessus le laser actuel
-            temp_surface = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+            temp_surface = pygame.Surface(Animator.screen.get_size(), pygame.SRCALPHA)
 
             # Efface le cœur rouge
             pygame.draw.line(
@@ -48,7 +47,7 @@ class ProjectileAnimator(Animator):
                 getattr(self, "_laser_width", 0)
             )
 
-            self.screen.blit(temp_surface, (0, 0))
+            Animator.screen.blit(temp_surface, (0, 0))
         else:
             return super().erase(color)
 
@@ -91,7 +90,7 @@ class ProjectileAnimator(Animator):
 
         # Dessin du laser
         if self._laser_width > 0 or self._aura_width > 0:
-            temp_surface = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+            temp_surface = pygame.Surface(Animator.screen.get_size(), pygame.SRCALPHA)
 
             # Cœur rouge
             pygame.draw.line(
@@ -111,4 +110,4 @@ class ProjectileAnimator(Animator):
                 int(self._aura_width)
             )
 
-            self.screen.blit(temp_surface, (0, 0))
+            Animator.screen.blit(temp_surface, (0, 0))

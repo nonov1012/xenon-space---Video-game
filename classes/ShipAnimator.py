@@ -10,7 +10,6 @@ class ShipAnimator(Animator):
     """
     def __init__(
         self,
-        screen : pygame.Surface,
         path : str,
         dimensions : Tuple[int, int],   # (width_tiles, height_tiles)
         coord : Tuple[int, int],        # (x, y) en pixels
@@ -22,7 +21,7 @@ class ShipAnimator(Animator):
         show_health : bool = True,
         color : Tuple[int, int, int] = (255, 255, 255)
     ):
-        super().__init__(screen, path, dimensions, coord, tile_size, default_fps)
+        super().__init__(path, dimensions, coord, tile_size, default_fps)
 
         # Stat du vaisseau
         self.PV_actuelle = PV_actuelle
@@ -60,7 +59,7 @@ class ShipAnimator(Animator):
             if self.current_anim == "shield" and self.static_image:
                 rotated_img = pygame.transform.rotate(self.static_image, self.angle)
                 rect = rotated_img.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-                self.screen.blit(rotated_img, rect.topleft)
+                Animator.screen.blit(rotated_img, rect.topleft)
 
             frames = self.animations[self.current_anim]
             now = pygame.time.get_ticks()
@@ -74,14 +73,14 @@ class ShipAnimator(Animator):
             else:
                 rotated_frame = pygame.transform.rotate(frames[self.frame_index], self.angle)
                 rect = rotated_frame.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-                self.screen.blit(rotated_frame, rect.topleft)
+                Animator.screen.blit(rotated_frame, rect.topleft)
 
         else:
             # Image statique si aucune animation prioritaire
             if self.static_image:
                 rotated_img = pygame.transform.rotate(self.static_image, self.angle)
                 rect = rotated_img.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-                self.screen.blit(rotated_img, rect.topleft)
+                Animator.screen.blit(rotated_img, rect.topleft)
 
         # --- Dessiner le moteur ---
         if self.idle and "engine" in self.animations:
@@ -95,7 +94,7 @@ class ShipAnimator(Animator):
                 self._engine_index = (self._engine_index + 1) % len(frames)
             rotated_frame = pygame.transform.rotate(frames[self._engine_index], self.angle)
             rect = rotated_frame.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-            self.screen.blit(rotated_frame, rect.topleft)
+            Animator.screen.blit(rotated_frame, rect.topleft)
 
         # Barre de vie
         if self.show_health:
@@ -104,16 +103,16 @@ class ShipAnimator(Animator):
     def draw_image(self):
         """Dessine l'image statique si elle existe."""
         if self.static_image:
-            self.screen.blit(self.static_image, (self.x, self.y))
+            Animator.screen.blit(self.static_image, (self.x, self.y))
 
     def display_health(self):
         bar_w = int(self.pixel_w)
         bar_h = 10 * 100 / int(self.pixel_h)
         x = self.x
         y = self.y + self.pixel_h - bar_h
-        pygame.draw.rect(self.screen, (255, 0, 0), (x, y, bar_w, bar_h))
+        pygame.draw.rect(Animator.screen, (255, 0, 0), (x, y, bar_w, bar_h))
         cur_w = int(self.PV_actuelle * bar_w / self.PV_max) if self.PV_max > 0 else 0
-        pygame.draw.rect(self.screen, self.color, (x, y, cur_w, bar_h))
+        pygame.draw.rect(Animator.screen, self.color, (x, y, cur_w, bar_h))
 
     def disepear(self, duration_ms: int = 1000) -> bool:
         """
@@ -130,14 +129,14 @@ class ShipAnimator(Animator):
         # dessiner l'image ou animation courante
         if self.current_anim:
             frames = self.animations[self.current_anim]
-            self.screen.blit(frames[self.frame_index], (self.x, self.y))
+            Animator.screen.blit(frames[self.frame_index], (self.x, self.y))
         elif self.static_image:
-            self.screen.blit(self.static_image, (self.x, self.y))
+            Animator.screen.blit(self.static_image, (self.x, self.y))
 
         overlay = pygame.Surface((self.pixel_w, self.pixel_h))
         overlay.fill((0, 0, 0))
         overlay.set_alpha(alpha)
-        self.screen.blit(overlay, (self.x, self.y))
+        Animator.screen.blit(overlay, (self.x, self.y))
         
         return elapsed >= duration_ms
     

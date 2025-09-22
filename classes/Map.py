@@ -4,8 +4,9 @@ import os
 import pygame
 import random
 from classes.Point import Point, Type
+from classes.Animator import Animator
 
-from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH
+from blazyck import *
 
 from PIL import Image
 
@@ -79,21 +80,14 @@ class Map:
         Place une planète carrée de côté = taille.
         Associe une image aléatoire à cette planète.
         """
-        # Choisir une image aléatoire pour cette planète
-        if self.planete_images:
-            chosen_img = random.choice(self.planete_images)
-            # Redimensionner l’image pour coller à la taille
-            img_resized = pygame.transform.scale(chosen_img, (taille_case * taille, taille_case * taille))
-        else:
-            img_resized = None
+        Animator(PLANETES_PATH, (taille, taille), (x, y), default_fps=10, speed=0)
 
+        choix_planet = "planet" + str(random.randint(1, MAX_PLANETES_ANIMATIONS))
+        Animator.liste_animation[-1].play(choix_planet)
+        
         for yy in range(y, y + taille):
             for xx in range(x, x + taille):
                 self.grille[yy][xx].type = Type.PLANETE
-
-        if img_resized:
-            # On stocke l’image à la position d’origine de la planète
-            self.planete_img_map[(x, y)] = img_resized
 
 
     def generer_planet(self, nb_planet: int) -> None:
@@ -125,11 +119,14 @@ if __name__ == "__main__":
     pygame.init()
 
     taille_case = 35
+    
+    screen = pygame.display.set_mode((NB_CASE_X * TAILLE_CASE, NB_CASE_Y * TAILLE_CASE))
+    pygame.display.set_caption("Carte avec planètes carrées")
+
     map_obj = Map()
     map_obj.generer_planet(15)
 
-    screen = pygame.display.set_mode((map_obj.nb_cases_x * taille_case, map_obj.nb_cases_y * taille_case))
-    pygame.display.set_caption("Carte avec planètes carrées")
+    Animator.set_screen(screen)
 
     # couleurs
     COLORS = {
@@ -147,6 +144,7 @@ if __name__ == "__main__":
                 running = False
 
         screen.fill((0, 0, 0))
+        
 
         # Dessin de la grille
         for y in range(map_obj.nb_cases_y):
@@ -156,9 +154,7 @@ if __name__ == "__main__":
                 pygame.draw.rect(screen, COLORS[point.type], rect)  # fond
                 pygame.draw.rect(screen, (40, 40, 40), rect, 1)  # contour
 
-        # Dessin des images des planètes
-        for (px, py), img in map_obj.planete_img_map.items():
-            screen.blit(img, (px * taille_case, py * taille_case))
+        Animator.update_all()
 
         pygame.display.flip()
 

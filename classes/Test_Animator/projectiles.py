@@ -22,7 +22,8 @@ def main():
     pygame.display.set_caption("Test affichage Projectiles")
 
     # Créer un objet à tester
-    P1 = ProjectileAnimator(screen, (1, 2), (0, 0), default_fps=10, speed=5, projectile_type="laser")
+    ProjectileAnimator.set_screen(screen)
+    P1 = ProjectileAnimator((1, 2), (0, 0), default_fps=10, speed=5, projectile_type="laser")
     P1.play("ray", True, frame_size=projectiles_data["ray"])
     P1.update_and_draw()
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 import os
 import pygame
@@ -7,6 +8,7 @@ from classes.Gif import *
 import sys
 from PIL import Image, ImageSequence
 import numpy as np
+from typing import ClassVar
 
 def load_spritesheet(path: str, frame_width: int, frame_height: int) -> List[pygame.Surface]:
     sheet = pygame.image.load(path).convert_alpha()
@@ -19,12 +21,18 @@ def load_spritesheet(path: str, frame_width: int, frame_height: int) -> List[pyg
     return frames
 
 class Animator:
+    screen = None
+    liste_animation : list[Animator] = []
+
+    @staticmethod
+    def set_screen(screen: pygame.surface):
+        Animator.screen = screen
+
     """
     Gère l'image statique et plusieurs animations à partir de spritesheets.
     """
     def __init__(
         self,
-        screen: pygame.Surface,
         path: str,
         dimensions: Tuple[int, int],   # (width_tiles, height_tiles)
         coord: Tuple[int, int],        # (x, y) en pixels
@@ -32,7 +40,6 @@ class Animator:
         default_fps: int = 10,
         speed : int = 1
     ):
-        self.screen = screen
         self.path = path
         self.tile_size = tile_size
 
@@ -57,6 +64,8 @@ class Animator:
         self.vy = 0
         self.speed = speed
         self.active = False
+
+        Animator.liste_animation.append(self)
 
     def load_animation(self, name: str, filename: str, frame_size: Optional[Tuple[int, int]] = None):
         """
@@ -118,7 +127,7 @@ class Animator:
         # appliquer la rotation
         rotated_frame = pygame.transform.rotate(frame, -self.angle)
         rect = rotated_frame.get_rect(center=(self.x + self.pixel_w/2, self.y + self.pixel_h/2))
-        pygame.draw.rect(self.screen, color, rect)
+        pygame.draw.rect(Animator.screen, color, rect)
 
 
     def update_and_draw(self):
@@ -141,7 +150,7 @@ class Animator:
         # appliquer la rotation autour du centre
         rotated_frame = pygame.transform.rotate(frame, -self.angle)  # négatif si 0° = vers la droite
         rect = rotated_frame.get_rect(center=(self.x + self.pixel_w/2, self.y + self.pixel_h/2))
-        self.screen.blit(rotated_frame, rect.topleft)
+        Animator.screen.blit(rotated_frame, rect.topleft)
 
 
     def set_target(self, target: Tuple[int, int]):
@@ -200,3 +209,9 @@ class Animator:
         0° = orientation initiale de l'image.
         """
         self.angle = angle % 360
+
+    @staticmethod
+    def update_all():
+        for animation in Animator.liste_animation:
+            animation.erase()
+            animation.update_and_draw()
