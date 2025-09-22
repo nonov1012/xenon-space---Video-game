@@ -1,9 +1,9 @@
 import pygame
 import sys
+import menuJouer
+import menuParam
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
-
-
 
 pygame.init()
 
@@ -14,8 +14,7 @@ ecran = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Xenon Space")
 
 new_cursor = pygame.image.load('assets/img/menu/cursor.png')
-new_cursor = pygame.transform.scale(new_cursor,(40,40))
-
+new_cursor = pygame.transform.scale(new_cursor, (40, 40))
 pygame.mouse.set_visible(False)
 
 sm = SoundManager()
@@ -25,7 +24,7 @@ sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
 # -------------------------------
 # Icône et fond
-# -------------------------------
+# -------------------------------+++++++++++++++++++
 icone = pygame.image.load("assets/img/menu/logo.png")
 pygame.display.set_icon(icone)
 
@@ -124,7 +123,7 @@ while en_cours:
         rect_texte = texte.get_rect(center=rect_zoom.center)
         ecran.blit(texte, rect_texte.topleft)
 
-    ecran.blit(new_cursor,souris)
+    ecran.blit(new_cursor, souris)
     pygame.display.flip()
 
     # -------------------------------
@@ -138,6 +137,11 @@ while en_cours:
             for bouton_check, _ in boutons:
                 if bouton_check.collidepoint(evenement.pos):
                     sm.play_sfx("son_click")
+            # Appelle le main de jouer.py
+            if bouton_jouer.collidepoint(evenement.pos):
+                menuJouer.main(ecran) 
+            if bouton_param.collidepoint(evenement.pos):
+                menuParam.main(ecran)
             if bouton_quitter.collidepoint(evenement.pos):
                 pygame.quit()
                 sys.exit()
