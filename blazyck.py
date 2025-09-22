@@ -13,7 +13,7 @@ import os
 base_dir = os.path.dirname(__file__)
 
 # Construire le chemin relatif vers le dossier des images
-IMG_PATH = os.path.join(base_dir, "assets", "img", "ships")
+IMG_PATH = os.path.join(base_dir, "assets", "img")
 
 if __name__ == "__main__":
     print("\n" + IMG_PATH)
