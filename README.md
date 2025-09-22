@@ -16,6 +16,7 @@ Executer le fichier `main.py`
 - VANHOVE Tom
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 - [Deep-Fold](https://deep-fold.itch.io/pixel-planet-generator)
 =======
 - Deep-Fold (génération des planètes: https://deep-fold.itch.io/pixel-planet-generator)
@@ -23,3 +24,6 @@ Executer le fichier `main.py`
 ## Succes
 
 >>>>>>> 92d23f5 (Update README.md)
+=======
+- [Deep-Fold](https://deep-fold.itch.io/pixel-planet-generator)
+>>>>>>> f4967a1 (fix: readme)

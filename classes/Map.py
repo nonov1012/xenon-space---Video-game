@@ -7,7 +7,11 @@ from classes.Point import Point, Type
 from classes.Animator import Animator
 from classes.Start_Animation.StarField import StarField
 
+<<<<<<< HEAD
 from blazyck import *
+=======
+from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH
+>>>>>>> f4967a1 (fix: readme)
 
 from PIL import Image
 
