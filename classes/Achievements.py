@@ -4,12 +4,19 @@ class AchievementManager:
     def __init__(self, max_base_level=5):
         # succès disponibles
         self.achievements = {
-            "winner": "Gagner une partie",
-            "explorer": "Parcourir toutes les cases",
-            "Grand stratège": "Utiliser chaque type de vaisseau au moins une fois.",
-            "Base niveau max": "Atteindre le niveau maximum de la base.",
+            "Winner": "Gagner une partie",
+            "Explorer": "Parcourir toutes les cases",
+            "Great strategist": "Utiliser chaque type de vaisseau au moins une fois.",
+            "Base level maximum": "Atteindre le niveau maximum de la base.",
+            "Ship destroyer": "Détruire un certain nombre de vaisseaux ennemis.(10)",
+            "Unlocked 5 ships": "Débloquer 5 vaisseaux",
+            "Unlocked 10 ships": "Débloquer 10 vaisseaux",
         }
         self.unlocked = set()
+        
+        # Compteurs pour succès
+        self.enemy_ships_destroyed = 0
+        self.ships_unlocked = set()
 
         # Données nécessaires pour les succès
         self.ship_types_used = set()  
@@ -22,6 +29,24 @@ class AchievementManager:
         if achievement_id in self.achievements and achievement_id not in self.unlocked:
             self.unlocked.add(achievement_id)
             print(f"Succès débloqué : {self.achievements[achievement_id]}")
+            
+    def update_destroyed_ships(self, destroyed_this_turn):
+        """
+        Appelé à chaque tour pour mettre à jour le compteur de vaisseaux détruits
+        :param destroyed_this_turn: int, nombre de vaisseaux ennemis détruits ce tour
+        """
+        self.enemy_ships_destroyed += destroyed_this_turn
+        # Vérifie si le succès est débloqué
+        if self.enemy_ships_destroyed >= 10:
+            self.unlock("Ship destroyer")
+            
+    def unlocked_ship(self, ship_type):
+        """Appelé quand un vaisseau est débloqué pour vérifier 'Unlocked 5 ships'"""
+        self.ships_unlocked.add(ship_type)
+        if len(self.ships_unlocked) >= 5:
+            self.unlock("Unlocked 5 ships")
+        if len(self.ships_unlocked) >= 10:
+            self.unlock("Unlocked 10 ships")
 
     def update_ship_usage(self, ship):
         """Appelé quand un vaisseau est utilisé pour vérifier 'Grand stratège'"""
