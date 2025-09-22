@@ -4,8 +4,9 @@ import os
 import pygame
 import random
 from classes.Point import Point, Type
+from classes.Start_Animation.StarField import StarField
 
-from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH
+from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH, TAILLE_CASE
 
 from PIL import Image
 
@@ -83,13 +84,19 @@ class Map:
         if self.planete_images:
             chosen_img = random.choice(self.planete_images)
             # Redimensionner l’image pour coller à la taille
-            img_resized = pygame.transform.scale(chosen_img, (taille_case * taille, taille_case * taille))
+            img_resized = pygame.transform.scale(chosen_img, (TAILLE_CASE * taille, TAILLE_CASE * taille))
         else:
             img_resized = None
 
         for yy in range(y, y + taille):
             for xx in range(x, x + taille):
                 self.grille[yy][xx].type = Type.PLANETE
+        
+        for yy in range(y - 1, y + taille + 1):
+            for xx in range(x - 1, x + taille + 1):
+                if 0 <= xx < self.nb_cases_x and 0 <= yy < self.nb_cases_y:
+                    if self.grille[yy][xx].type == Type.VIDE:
+                        self.grille[yy][xx].type = Type.ATMOSPHERE
 
         if img_resized:
             # On stocke l’image à la position d’origine de la planète
@@ -124,18 +131,32 @@ class Map:
 if __name__ == "__main__":
     pygame.init()
 
-    taille_case = 35
-    map_obj = Map()
-    map_obj.generer_planet(15)
-
-    screen = pygame.display.set_mode((map_obj.nb_cases_x * taille_case, map_obj.nb_cases_y * taille_case))
+    screen = pygame.display.set_mode((NB_CASE_X * TAILLE_CASE, NB_CASE_Y * TAILLE_CASE))
     pygame.display.set_caption("Carte avec planètes carrées")
+    
+    screen_width, screen_height = screen.get_size()
+    num_stars=100
+    screen_ratio=1.0
+    stars = StarField(
+        screen_width,
+        screen_height,
+        num_stars=int(num_stars * screen_ratio),
+        min_radius=1,
+        max_radius=3,
+        min_distance=15,
+        size_distribution="small-biased",
+        move_amplitude=3
+    )    
+    
+    map_obj = Map()
+    map_obj.generer_planet(6)
+
 
     # couleurs
     COLORS = {
-        Type.VIDE: (0, 0, 0),        # noir
+        Type.VIDE: (0, 0, 0, 255),        # noir
         Type.PLANETE: (0, 150, 255), # bleu clair
-        Type.ATMOSPHERE: (0, 255, 150),
+        Type.ATMOSPHERE: (0, 255, 150, 125),
         Type.ASTEROIDE: (200, 200, 200),  # gris
         Type.BASE: (100, 100, 100),  # gris foncé
     }
@@ -147,18 +168,20 @@ if __name__ == "__main__":
                 running = False
 
         screen.fill((0, 0, 0))
+        stars.update()
+        stars.draw(screen)
 
         # Dessin de la grille
         for y in range(map_obj.nb_cases_y):
             for x in range(map_obj.nb_cases_x):
                 point = map_obj.grille[y][x]
-                rect = pygame.Rect(x * taille_case, y * taille_case, taille_case, taille_case)
+                rect = pygame.Rect(x * TAILLE_CASE, y * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
                 pygame.draw.rect(screen, COLORS[point.type], rect)  # fond
                 pygame.draw.rect(screen, (40, 40, 40), rect, 1)  # contour
 
         # Dessin des images des planètes
         for (px, py), img in map_obj.planete_img_map.items():
-            screen.blit(img, (px * taille_case, py * taille_case))
+            screen.blit(img, (px * TAILLE_CASE, py * TAILLE_CASE))
 
         pygame.display.flip()
 
