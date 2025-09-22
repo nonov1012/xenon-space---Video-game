@@ -63,7 +63,7 @@ def create_space_background(screen: pygame.Surface, planete_path: str, num_stars
 pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
-ecran = pygame.display.set_mode((screen_width, screen_height))
+ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 screen_ratio = (screen_width * 100 / 600) / 100
 

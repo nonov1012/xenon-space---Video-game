@@ -37,7 +37,7 @@ def main(ecran):
     # -------------------------------
     largeur_ecran, hauteur_ecran = ecran.get_size()
     image_fond = pygame.image.load("assets/img/menu/fond_start.jpg").convert()
-    stars, planet_manager, B1 = create_space_background(ecran, PLANETES_PATH, num_stars=100, screen_ratio=screen_ratio)
+    image_fond = pygame.transform.scale(image_fond, (largeur_ecran, hauteur_ecran))
 
     # -------------------------------
     # Image de base pour les boutons
