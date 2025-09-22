@@ -48,7 +48,8 @@ class Animator:
         self.pixel_h = dimensions[1] * tile_size
 
         # position
-        self.x, self.y = coord
+        self.x = coord[0] * tile_size
+        self.y = coord[1] * tile_size
 
         # animations
         self.animations: Dict[str, List[pygame.Surface]] = {}  # nom -> liste de frames
@@ -213,5 +214,9 @@ class Animator:
     @staticmethod
     def update_all():
         for animation in Animator.liste_animation:
-            animation.erase()
             animation.update_and_draw()
+
+    @staticmethod
+    def erase_all():
+        for animation in Animator.liste_animation:
+            animation.erase()
