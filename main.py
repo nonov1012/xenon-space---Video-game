@@ -1,7 +1,6 @@
 import pygame
 import numpy as np
 from classes.Ship_class import petit, moyen, lourd, Transport, foreuse
-from classes.MotherShip_class import MotherShip
 
 # --- Paramètres ---
 TAILLE_CASE = 40
@@ -45,7 +44,6 @@ next_uid += 1
 s5 = foreuse(400, 75, 3, 3, 325, 200, (2,2), False, False, img_foreuse, 1, ligne=9, colonne=9, uid=next_uid)
 next_uid += 1
 
-#B1 = MotherShip(400, 75, 3, 3, 325, 200, (2,2), False, False, img_foreuse, 1, ligne=12, colonne=12, uid=next_uid)
 
 ships.extend([s1, s2, s3, s4, s5, s6, s7, s8])
 

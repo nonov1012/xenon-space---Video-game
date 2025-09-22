@@ -240,31 +240,24 @@ class Transport(Ship):
 
     def ajouter_cargo(self, ship: Ship, plateau) -> bool:
         """Ajoute un vaisseau dans le transport si possible."""
-        if len(self.cargaison) >= 3:
-            return False
-
-        # Vérifier le type du vaisseau (seuls petit et moyen)
+        # Autoriser seulement petit ou moyen
         if not isinstance(ship, (petit, moyen)):
             return False
 
-        # Vérifier la portée de déplacement : le vaisseau doit pouvoir atteindre le transport
-        positions_accessibles = ship.positions_possibles_adjacentes(
-            plateau.shape[1], plateau.shape[0], plateau
-        )
-        transport_positions = []
-        largeur, hauteur = self.donner_dimensions(self.direction)
-        for l in range(self.ligne, self.ligne + hauteur):
-            for c in range(self.colonne, self.colonne + largeur):
-                transport_positions.append((l, c))
-        if not any(pos in transport_positions for pos in positions_accessibles):
+        if len(self.cargaison) >= 3:
             return False
 
-        # Retirer le vaisseau du plateau
+        taille_cargo = [self._taille_vaisseau(s) for s in self.cargaison] + [self._taille_vaisseau(ship)]
+        if sum(taille_cargo) > 3:
+            return False
+
+        # Retirer du plateau
         ship.occuper_plateau(plateau, 0)
 
         # Ajouter dans la cargaison
         self.cargaison.append(ship)
         return True
+
 
 
     def retirer_cargo(self, index: int, ligne: int, colonne: int, plateau) -> bool:
