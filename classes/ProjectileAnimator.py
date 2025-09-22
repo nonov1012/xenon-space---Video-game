@@ -5,18 +5,25 @@ from blazyck import *
 from classes.Animator import Animator
 
 class ProjectileAnimator(Animator):
+    projectiles_data = {
+        "bullet": (4, 16),
+        "big bullet": (8, 16),
+        "torpedo": (11, 32),
+        "wave": (64, 64),
+        "ray": (18, 38) # le sprite n'est pas utilisé :)
+    }
     def __init__(
         self,
         dimensions: Tuple[int, int],
         coord: Tuple[int, int],
-        tile_size: int = TAILLE_CASE,
         default_fps: int = 10,
         speed: int = 1,
         movable: bool = True,
         projectile_type: str = "projectile",
         dissipate_speed: int = 5
     ):
-        super().__init__(PROJECTILES_PATH, dimensions, coord, tile_size, default_fps, speed)
+        print(coord)
+        super().__init__(PROJECTILES_PATH, dimensions, coord, TAILLE_CASE, default_fps, speed)
         self.movable = movable
         self.projectile_type = projectile_type
         if projectile_type == "laser":

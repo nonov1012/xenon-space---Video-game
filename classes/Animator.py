@@ -70,6 +70,8 @@ class Animator:
         self.vy = 0
         self.speed = speed
         self.active = False
+        self.max_delta = 1
+        self.target_angle = 0
 
         Animator.liste_animation.append(self)
 
@@ -131,7 +133,7 @@ class Animator:
         # prendre la frame actuelle
         frame = self.animations[self.current_anim][self.frame_index]
         # appliquer la rotation
-        rotated_frame = pygame.transform.rotate(frame, -self.angle)
+        rotated_frame = pygame.transform.rotate(frame, self.angle)
         rect = rotated_frame.get_rect(center=(self.x + self.pixel_w/2, self.y + self.pixel_h/2))
         pygame.draw.rect(Animator.screen, color, rect)
 
@@ -142,6 +144,8 @@ class Animator:
         """
         # --- Mouvement ---
         self.move()
+        if self.angle != self.target_angle:
+            self.slow_set_angle()
 
         # --- Changer de frame d'animation ---
         frames = self.animations[self.current_anim]
@@ -164,8 +168,8 @@ class Animator:
         self.active = True
 
         # centre actuel du projectile / entité
-        cx = self.x + self.pixel_w / 2
-        cy = self.y + self.pixel_h / 2
+        cx = self.x + self.pixel_w // 2
+        cy = self.y + self.pixel_h // 2
 
         # vecteur direction vers la cible
         dx = self.target[0] - cx
@@ -181,8 +185,6 @@ class Animator:
 
         # --- Calculer l'angle pour que le haut regarde la cible ---
         self.angle = math.degrees(math.atan2(dy, dx)) + 90
-
-
 
     def move(self):
         """
@@ -215,6 +217,31 @@ class Animator:
         0° = orientation initiale de l'image.
         """
         self.angle = angle % 360
+
+    def slow_set_angle(self):
+        """
+        Fait tourner l'objet progressivement vers target_angle.
+        
+        :param target_angle: angle cible en degrés (0° = orientation initiale)
+        :param max_delta: rotation maximale par appel (en degrés)
+        """
+        # Normaliser l'angle cible
+        current = self.angle % 360
+
+        # Calculer la plus courte différence (en tenant compte du wrap-around)
+        diff = (self.target_angle - current + 540) % 360 - 180  # entre -180 et +180
+
+        # Limiter la rotation
+        if abs(diff) <= self.max_delta:
+            self.angle = self.target_angle
+        else:
+            self.angle += self.max_delta * (1 if diff > 0 else -1)
+
+        # Normaliser après rotation
+        self.angle %= 360
+
+    def set_target_angle(self, angle: float):
+        self.target_angle = angle % 360
 
     @staticmethod
     def update_all():

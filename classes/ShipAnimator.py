@@ -1,6 +1,8 @@
+import math
 import os
 import pygame
 from classes.Animator import Animator
+from classes.ProjectileAnimator import ProjectileAnimator
 from typing import Optional, Tuple, List, Dict
 from blazyck import *
 
@@ -50,26 +52,34 @@ class ShipAnimator(Animator):
         # couleur du contour de la barre de vie
         self.color = color
 
-    def update_and_draw(self):
+    def update_and_draw(self) -> bool:
         """
         Met à jour et dessine le vaisseau avec rotation selon self.angle.
+        Retourne True uniquement si l'animation courante (non engine) est terminée.
         """
-        # --- Dessiner l'animation prioritaire par-dessus ---
-        if self.current_anim and self.current_anim != "engine":
-            if self.current_anim == "shield" and self.static_image:
-                rotated_img = pygame.transform.rotate(self.static_image, self.angle)
-                rect = rotated_img.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-                Animator.screen.blit(rotated_img, rect.topleft)
+        self.finished = False
 
+        # --- Mouvement ---
+        self.move()
+        if hasattr(self, "target_angle") and self.angle != self.target_angle:
+            self.slow_set_angle()
+
+        # --- Animation prioritaire ---
+        if self.current_anim and self.current_anim != "engine":
             frames = self.animations[self.current_anim]
             now = pygame.time.get_ticks()
-            if now - self.last_update >= self.frame_duration_ms:
-                self.last_update = now
-                if self.frame_index < len(frames):
-                    self.frame_index += 1
+            if not hasattr(self, "_last_update"):
+                self._last_update = now
 
-            if self.frame_index == len(frames) - 1:
+            if now - self._last_update >= self.frame_duration_ms:
+                self._last_update = now
+                self.frame_index += 1
+
+            if self.frame_index >= len(frames):
+                # Animation terminée
                 self.current_anim = None
+                self.frame_index = 0
+                self.finished = True  # seulement ici
             else:
                 rotated_frame = pygame.transform.rotate(frames[self.frame_index], self.angle)
                 rect = rotated_frame.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
@@ -77,13 +87,13 @@ class ShipAnimator(Animator):
 
         else:
             # Image statique si aucune animation prioritaire
-            if self.static_image:
+            if hasattr(self, "static_image") and self.static_image:
                 rotated_img = pygame.transform.rotate(self.static_image, self.angle)
                 rect = rotated_img.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
                 Animator.screen.blit(rotated_img, rect.topleft)
 
-        # --- Dessiner le moteur ---
-        if self.idle and "engine" in self.animations:
+        # --- Dessiner le moteur (boucle infinie) ---
+        if hasattr(self, "idle") and self.idle and "engine" in self.animations:
             frames = self.animations["engine"]
             now = pygame.time.get_ticks()
             if not hasattr(self, "_engine_index"):
@@ -97,8 +107,11 @@ class ShipAnimator(Animator):
             Animator.screen.blit(rotated_frame, rect.topleft)
 
         # Barre de vie
-        if self.show_health:
+        if hasattr(self, "show_health") and self.show_health:
             self.display_health()
+
+        self.fire()
+
 
     def draw_image(self):
         """Dessine l'image statique si elle existe."""
@@ -155,3 +168,49 @@ class ShipAnimator(Animator):
 
         done = self.disepear(duration_ms=fade_duration)  # applique le fade
         return done
+    
+    def fire(self, projectile_type: str = None, target: Tuple[int, int] = None, is_fired: bool = False):
+        if is_fired:
+            self.play("weapons", reset=False)
+            self.projectile_type = projectile_type
+            self.target = target
+
+        if self.finished:
+            # --- Dimensions réelles de la frame du projectile ---
+            frame_w, frame_h = ProjectileAnimator.projectiles_data.get(projectile_type, (4, 16))
+
+            # --- Coordonnées du centre du vaisseau ---
+            center_x = self.x + self.pixel_w / 2
+            center_y = self.y + self.pixel_h / 2
+            print(self.x, self.y, self.pixel_w, self.pixel_h)
+            print(center_x, center_y)
+
+            # --- Calcul de la position devant le vaisseau selon l'angle ---
+            # Angle 0 = haut, rotation anti-horaire, projectile au devant du vaisseau
+            angle_rad = math.radians(self.angle)
+            distance = self.pixel_h / 2  # distance devant le nez
+            
+            # Calcul correct pour ton système de coordonnées
+            spawn_x = center_x - math.sin(angle_rad) * distance
+            spawn_y = center_y - math.cos(angle_rad) * distance
+
+            # --- Conversion en coordonnées grille ---
+            proj_x = spawn_x / TAILLE_CASE
+            proj_y = spawn_y / TAILLE_CASE
+            print(proj_x, proj_y)
+
+            # --- Instanciation du projectile ---
+            bullet = ProjectileAnimator(
+                (frame_w / TAILLE_CASE, frame_h / TAILLE_CASE),
+                (proj_x, proj_y),
+                projectile_type=self.projectile_type
+            )
+
+            # --- Animation du projectile (si pas laser) ---
+            if projectile_type != "laser":
+                bullet.play(self.projectile_type, True, frame_size=(frame_w, frame_h))
+
+            # --- Activation du projectile ---
+            bullet.set_target(self.target)
+
+            self.finished = False
