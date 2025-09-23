@@ -12,6 +12,7 @@ BASE_DIR = os.path.dirname(__file__) # Chemain du dossier du projet
 IMG_PATH = os.path.join(BASE_DIR, "assets", "img")
 PLANETES_PATH = os.path.join(IMG_PATH, "planets")
 PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
+ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
 
 if __name__ == "__main__":
     print("\n" + IMG_PATH)
