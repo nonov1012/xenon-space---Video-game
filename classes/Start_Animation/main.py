@@ -5,17 +5,19 @@ from PIL import Image
 from classes.Animator import Animator
 from classes.Start_Animation.StarField import StarField
 from classes.Start_Animation.PlanetManager import PlanetManager
+from classes.ShipAnimator import ShipAnimator
+from classes.PlanetAnimator import PlanetAnimator
 from classes.MotherShip import MotherShip
 from classes.Point import Point
 from blazyck import *
 from classes.Achievements import AchievementManager 
 
-def create_space_background(screen: pygame.Surface, planete_path: str, num_stars=100, screen_ratio=1.0):
+def create_space_background(num_stars=100, screen_ratio=1.0):
     """
     Initialise le fond spatial avec étoiles et planètes.
     Retourne : stars, planet_manager, B1 (vaisseau centré)
     """
-    screen_width, screen_height = screen.get_size()
+    screen_width, screen_height = Animator.screen.get_size()
 
     # --- Étoiles ---
     stars = StarField(
@@ -31,21 +33,20 @@ def create_space_background(screen: pygame.Surface, planete_path: str, num_stars
 
     # --- Gestionnaire de planètes ---
     planet_manager = PlanetManager(
-        screen,
-        planete_path,
-        speed_range=(1, 2 * screen_ratio),
+        speed_range=(1, int(2 * screen_ratio)),
         planet_size_range=(1, int(5 * screen_ratio)),
         prob_increment=1
     )
 
     # --- Vaisseau centré ---
-    center_x = screen_width // 2
-    center_y = screen_height // 2
-    vaisseau_w = 4 * TAILLE_CASE * screen_ratio
-    vaisseau_h = 5 * TAILLE_CASE * screen_ratio
+    center_x = (screen_width / TAILLE_CASE) / 2
+    center_y = (screen_height / TAILLE_CASE) / 2
+    vaisseau_w = 4 * screen_ratio
+    vaisseau_h = 5 * screen_ratio
     x = int(center_x - vaisseau_w / 2)
     y = int(center_y - vaisseau_h / 2)
 
+    print(x, y)
     B1 = MotherShip(
         Point(x, y),
         tier=1,
@@ -53,45 +54,50 @@ def create_space_background(screen: pygame.Surface, planete_path: str, num_stars
         largeur=4 * screen_ratio,
         hauteur=5 * screen_ratio
     )
+    print(B1.animator.x, B1.animator.y)
 
-    Animator.set_screen(screen)
     B1.animator.set_angle(90)
     B1.animator.play("base")
     B1.animator.play("engine")
 
     return stars, planet_manager, B1
 
-pygame.init()
-info = pygame.display.Info()
-screen_width = info.current_w
-screen_height = info.current_h
-screen = pygame.display.set_mode((screen_width, screen_height))
-clock = pygame.time.Clock()
+if __name__ == "__main__":
+    pygame.init()
+    info = pygame.display.Info()
+    screen_width = info.current_w
+    screen_height = info.current_h
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    clock = pygame.time.Clock()
 
-screen_ratio = (screen_width * 100 / 600) / 100
+    Animator.set_screen(screen)
 
-# Création du fond spatial et du vaisseau
-stars, planet_manager, B1 = create_space_background(screen, PLANETES_PATH, num_stars=100, screen_ratio=screen_ratio)
+    screen_ratio = (screen_width * 100 / 600) / 100
 
-# --- Initialisation succès ---
-achievements = AchievementManager()
+    # Création du fond spatial et du vaisseau
+    stars, planet_manager, B1 = create_space_background(num_stars=100, screen_ratio=screen_ratio)
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            running = False
-        if event.type == pygame.QUIT:
-            running = False
+    # --- Initialisation succès ---
+    achievements = AchievementManager()
 
-    screen.fill((0, 0, 0))
-    stars.update()
-    stars.draw(screen)
-    planet_manager.update_and_draw()
-    B1.animator.update_and_draw()
-    pygame.display.flip()
-    clock.tick(120)
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                running = False
+            if event.type == pygame.QUIT:
+                running = False
 
-pygame.quit()
+        screen.fill((0, 0, 0))
+        stars.update()
+        stars.draw(screen)
+        planet_manager.update_and_draw()
+        Animator.update_all()
+        PlanetAnimator.update_all()
+        ShipAnimator.update_all()
+        pygame.display.flip()
+        clock.tick(30)
 
-print("Succès obtenus :", achievements.list_unlocked())
+    pygame.quit()
+
+    print("Succès obtenus :", achievements.list_unlocked())

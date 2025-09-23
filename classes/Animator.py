@@ -27,7 +27,6 @@ def load_spritesheet(path: str, frame_width: int, frame_height: int) -> list[pyg
 
 class Animator:
     screen = None
-    liste_animation : list[Animator] = []
 
     @staticmethod
     def set_screen(screen: pygame.surface):
@@ -73,7 +72,11 @@ class Animator:
         self.max_delta = 1
         self.target_angle = 0
 
-        Animator.liste_animation.append(self)
+        # --- Clé : chaque sous-classe a sa propre liste ---
+        cls = self.__class__
+        if not hasattr(cls, "liste_animation"):
+            cls.liste_animation = []  # une liste par classe
+        cls.liste_animation.append(self)
 
     def load_animation(self, name: str, filename: str, frame_size: Optional[Tuple[int, int]] = None):
         """
@@ -162,8 +165,11 @@ class Animator:
         rect = rotated_frame.get_rect(center=(self.x + self.pixel_w/2, self.y + self.pixel_h/2))
         Animator.screen.blit(rotated_frame, rect.topleft)
 
+    def get_center(self):
+        return (self.x + self.pixel_w // 2, self.y + self.pixel_h // 2)
 
-    def set_target(self, target: Tuple[int, int]):
+
+    def set_target(self, target: Tuple[int, int], angle_targeted : bool = True):
         self.target = target
         self.active = True
 
@@ -183,8 +189,9 @@ class Animator:
             self.vx = dx / dist
             self.vy = dy / dist
 
-        # --- Calculer l'angle pour que le haut regarde la cible ---
-        self.angle = math.degrees(math.atan2(dy, dx)) + 90
+        if angle_targeted:
+            # --- Calculer l'angle pour que le haut regarde la cible ---
+            self.angle = math.degrees(math.atan2(dy, dx)) + 90
 
     def move(self):
         """
@@ -217,6 +224,7 @@ class Animator:
         0° = orientation initiale de l'image.
         """
         self.angle = angle % 360
+        self.target_angle = self.angle
 
     def slow_set_angle(self):
         """
@@ -243,12 +251,20 @@ class Animator:
     def set_target_angle(self, angle: float):
         self.target_angle = angle % 360
 
-    @staticmethod
-    def update_all():
-        for animation in Animator.liste_animation:
+    @classmethod
+    def update_all(cls):
+        """Met à jour toutes les animations de cette classe uniquement"""
+        for animation in getattr(cls, "liste_animation", []):
             animation.update_and_draw()
 
-    @staticmethod
-    def erase_all():
-        for animation in Animator.liste_animation:
+    @classmethod
+    def erase_all(cls):
+        """Efface toutes les animations de cette classe uniquement"""
+        for animation in getattr(cls, "liste_animation", []):
             animation.erase()
+
+    def remove_from_list(self):
+        """Retire l'objet de la liste de sa classe"""
+        cls = self.__class__
+        if hasattr(cls, "liste_animation") and self in cls.liste_animation:
+            cls.liste_animation.remove(self)

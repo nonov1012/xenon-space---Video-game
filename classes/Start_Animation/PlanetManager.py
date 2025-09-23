@@ -1,16 +1,16 @@
 import pygame
 import random
 from classes.Animator import Animator
+from classes.PlanetAnimator import PlanetAnimator
 from blazyck import *
 
 class PlanetManager:
     """
     Gère dynamiquement les planètes avec probabilité croissante.
     """
-    def __init__(self, screen, path, speed_range=(1, 3),
+    def __init__(self, speed_range=(1, 3),
                  planet_size_range=(20, 20), prob_increment=1):
-        self.screen = screen
-        self.path = path
+        self.path = PLANETES_PATH
         self.speed_range = speed_range
         self.planet_size_range = planet_size_range
         self.planets = []
@@ -26,13 +26,15 @@ class PlanetManager:
         h = w
 
         name = random.choice(self.planet_names)
-        x = random.randint(-w * TAILLE_CASE * 2, -w * TAILLE_CASE * 1)
-        y = random.randint(50, Animator.screen.get_height() - 50)
-        speed = random.uniform(*self.speed_range)
+        x = random.randint(-w * 2, -w * 1)
+        y = random.randint(0, (Animator.screen.get_height() - 50))
+        y = y / TAILLE_CASE
+        speed = random.randint(self.speed_range[0], self.speed_range[1])
 
-        planet = Animator(self.path, (w, h), (x, y), default_fps=5)
+        planet = PlanetAnimator((w, h), (x, y), default_fps=10, speed=speed)
         planet.play(name, True)
-        self.planets.append({"animator": planet, "speed": speed})
+        centre = planet.get_center()
+        planet.set_target((Animator.screen.get_width() + planet.pixel_w * 2, centre[1]), False)
 
         # Réinitialiser la probabilité après spawn
         self.spawn_prob = 1
@@ -50,15 +52,7 @@ class PlanetManager:
             self.spawn_planet()
 
         # --- Mettre à jour les planètes existantes ---
-        for planet_dict in self.planets[:]:
-            planet = planet_dict["animator"]
-            speed = planet_dict["speed"]
-
-            # Déplacer
-            planet.x += speed
-
+        for planet in PlanetAnimator.liste_animation:
             # Supprimer si hors écran
-            if planet.x > self.screen.get_width():
-                self.planets.remove(planet_dict)
-            else:
-                planet.update_and_draw()
+            if planet.x > Animator.screen.get_width() + planet.pixel_w + 100:
+                planet.remove_from_list()

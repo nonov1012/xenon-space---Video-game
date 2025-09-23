@@ -100,7 +100,6 @@ class Map:
         Place une planète carrée de côté = taille.
         Associe une image aléatoire à cette planète.
         """
-
         # Ajout de l'animation des planètes
         planet = PlanetAnimator((taille, taille), (x, y), speed=0, default_fps=10)
         planet.liste_animation[-1].play("planet" + str(random.randint(1, MAX_PLANETES_ANIMATIONS)), True)
@@ -250,10 +249,6 @@ if __name__ == "__main__":
         map_obj.generer_grille(screen, afficher_zones ,afficher_grille)
 
         Animator.update_all()
-
-        screen.fill((0, 0, 0))
-        stars.update()
-        stars.draw(screen)
             
         for (ax, ay), img in map_obj.asteroide_img_map.items():
             screen.blit(img, (ax * TAILLE_CASE, ay * TAILLE_CASE))
