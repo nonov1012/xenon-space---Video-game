@@ -4,6 +4,7 @@ import os
 import pygame
 import random
 from classes.Point import Point, Type
+from classes.ShipAnimator import ShipAnimator
 from classes.Start_Animation.StarField import StarField
 from classes.Animator import Animator
 from classes.PlanetAnimator import PlanetAnimator
@@ -95,7 +96,7 @@ class Map:
 
         return True
 
-    def placer_planete(self, x, y, taille: int, color_atmosphere=(0, 200, 255, 100)) -> None:
+    def placer_planete(self, x, y, taille: int, color_atmosphere=(0, 200, 255)) -> None:
         """
         Place une planète carrée de côté = taille.
         Associe une image aléatoire à cette planète.
@@ -229,7 +230,6 @@ if __name__ == "__main__":
     afficher_grille = False
     while running:
         screen.fill((0, 0, 0, 0))
-        Animator.erase_all()
 
         stars.update()
         stars.draw(screen)
@@ -249,6 +249,8 @@ if __name__ == "__main__":
         map_obj.generer_grille(screen, afficher_zones ,afficher_grille)
 
         Animator.update_all()
+        PlanetAnimator.update_all()
+        ShipAnimator.update_all()
             
         for (ax, ay), img in map_obj.asteroide_img_map.items():
             screen.blit(img, (ax * TAILLE_CASE, ay * TAILLE_CASE))
