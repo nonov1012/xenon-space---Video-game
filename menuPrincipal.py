@@ -3,6 +3,7 @@ import sys
 import menuJouer
 import menuParam
 import menuSucces
+import menuPause
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
 from classes.Start_Animation.StarField import StarField
@@ -11,6 +12,7 @@ from classes.MotherShip import MotherShip
 from classes.Point import Point
 from blazyck import *
 from classes.Achievements import AchievementManager 
+
 
 # -------------------------------
 # Creer le fond spatial (etoiles + planetes + vaisseau)
@@ -188,6 +190,11 @@ while en_cours:
     for evenement in pygame.event.get():
         if evenement.type == pygame.QUIT:
             en_cours = False
+        elif evenement.type == pygame.KEYDOWN:
+            if evenement.key == pygame.K_ESCAPE:
+                # Appelle le menu pause
+                pause_menu = menuPause.PauseMenu(ecran, sm)
+                pause_menu.run()
         elif evenement.type == pygame.MOUSEBUTTONDOWN:
             if bouton_jouer.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
@@ -202,3 +209,4 @@ while en_cours:
                 sm.play_sfx("son_click")
                 pygame.quit()
                 sys.exit()
+
