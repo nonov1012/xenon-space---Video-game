@@ -17,7 +17,7 @@ class PlanetAnimator(Animator):
 
     def draw_atmosphere(self, color_atmosphere=(0, 200, 255),
                         thickness_ratio: float = 0.12,
-                        layers: int = 80,
+                        layers: int = 20,
                         edge_alpha: int = 180):
         # Si déjà calculé, on ne le refait pas
         if self._atmosphere_surface is None:

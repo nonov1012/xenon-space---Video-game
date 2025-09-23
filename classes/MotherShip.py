@@ -155,7 +155,7 @@ def main():
                         B1.take_damage(100)
                         print(f"PV actuels : {B1.PV_actuelle}")
                     elif event.button == 1:  # clic gauche : arme
-                        B1.animator.fire("bullet", (100, 100), True)
+                        B1.animator.fire("laser", (500, 200), True, 5)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                     B1.animator.set_target_angle(B1.animator.target_angle + 90)
 
@@ -163,6 +163,8 @@ def main():
             screen.fill((0, 0, 0))
 
             Animator.update_all()
+            ShipAnimator.update_all()
+            ProjectileAnimator.update_all()
 
             if B1.dead():
                 # Joue l'animation de destruction + fade
