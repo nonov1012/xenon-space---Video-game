@@ -14,16 +14,6 @@ Executer le fichier `main.py`
 - DUPUIS BRIAN
 - CAVEL Ugo
 - VANHOVE Tom
-
-<<<<<<< HEAD
-<<<<<<< HEAD
 - [Deep-Fold](https://deep-fold.itch.io/pixel-planet-generator)
-=======
-- Deep-Fold (génération des planètes: https://deep-fold.itch.io/pixel-planet-generator)
 
 ## Succes
-
->>>>>>> 92d23f5 (Update README.md)
-=======
-- [Deep-Fold](https://deep-fold.itch.io/pixel-planet-generator)
->>>>>>> f4967a1 (fix: readme)
