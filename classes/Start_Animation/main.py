@@ -23,12 +23,12 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
     stars = StarField(
         screen_width,
         screen_height,
-        num_stars=int(num_stars * screen_ratio),
+        num_stars=num_stars,
         min_radius=1,
         max_radius=3,
-        min_distance=15,
         size_distribution="small-biased",
-        move_amplitude=3
+        move_amplitude=0,
+        move_horizontal=1
     )
 
     # --- Gestionnaire de planètes ---
@@ -46,7 +46,6 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
     x = int(center_x - vaisseau_w / 2)
     y = int(center_y - vaisseau_h / 2)
 
-    print(x, y)
     B1 = MotherShip(
         Point(x, y),
         tier=1,
@@ -54,7 +53,6 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
         largeur=4 * screen_ratio,
         hauteur=5 * screen_ratio
     )
-    print(B1.animator.x, B1.animator.y)
 
     B1.animator.set_angle(90)
     B1.animator.play("base")
@@ -88,8 +86,8 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
 
-        screen.fill((0, 0, 0))
         stars.update()
+        screen.fill((0, 0, 0))
         stars.draw(screen)
         planet_manager.update_and_draw()
         Animator.update_all()

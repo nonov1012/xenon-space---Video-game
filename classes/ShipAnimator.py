@@ -168,22 +168,23 @@ class ShipAnimator(Animator):
 
         done = self.disepear(duration_ms=fade_duration)  # applique le fade
         return done
+    def distance(self, target: Tuple[int, int]):
+        return math.sqrt((target[0] - self.x) ** 2 + (target[1] - self.y) ** 2)
     
-    def fire(self, projectile_type: str = None, target: Tuple[int, int] = None, is_fired: bool = False):
+    def fire(self, projectile_type: str = None, target: Tuple[int, int] = None, is_fired: bool = False, projectile_speed: int = None):
         if is_fired:
             self.play("weapons", reset=False)
             self.projectile_type = projectile_type
             self.target = target
+            self.projectile_speed = projectile_speed
 
         if self.finished:
             # --- Dimensions réelles de la frame du projectile ---
-            frame_w, frame_h = ProjectileAnimator.projectiles_data.get(projectile_type, (4, 16))
+            frame_w, frame_h = ProjectileAnimator.projectiles_data[self.projectile_type]
 
             # --- Coordonnées du centre du vaisseau ---
             center_x = self.x + self.pixel_w / 2
             center_y = self.y + self.pixel_h / 2
-            print(self.x, self.y, self.pixel_w, self.pixel_h)
-            print(center_x, center_y)
 
             # --- Calcul de la position devant le vaisseau selon l'angle ---
             # Angle 0 = haut, rotation anti-horaire, projectile au devant du vaisseau
@@ -197,18 +198,25 @@ class ShipAnimator(Animator):
             # --- Conversion en coordonnées grille ---
             proj_x = spawn_x / TAILLE_CASE
             proj_y = spawn_y / TAILLE_CASE
-            print(proj_x, proj_y)
-
-            # --- Instanciation du projectile ---
-            bullet = ProjectileAnimator(
-                (frame_w / TAILLE_CASE, frame_h / TAILLE_CASE),
-                (proj_x, proj_y),
-                projectile_type=self.projectile_type
-            )
 
             # --- Animation du projectile (si pas laser) ---
             if projectile_type != "laser":
+                bullet = ProjectileAnimator(
+                    (frame_w / TAILLE_CASE, frame_h / TAILLE_CASE),
+                    (proj_x, proj_y),
+                    projectile_type=self.projectile_type,
+                    speed=self.projectile_speed,
+                    duration_ms=int((self.distance(self.target) / self.projectile_speed) * (1000 / 10)),
+                )
                 bullet.play(self.projectile_type, True, frame_size=(frame_w, frame_h))
+            else:
+                bullet = ProjectileAnimator(
+                    (frame_w / TAILLE_CASE, frame_h / TAILLE_CASE),
+                    (proj_x, proj_y),
+                    projectile_type=self.projectile_type,
+                    speed=self.projectile_speed,
+                    duration_ms = 5 * 1000 
+                )
 
             # --- Activation du projectile ---
             bullet.set_target(self.target)

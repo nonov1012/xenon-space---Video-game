@@ -12,7 +12,7 @@ projectiles_data = {
     "big bullet": (8, 16),
     "torpedo": (11, 32),
     "wave": (64, 64),
-    "ray": (18, 38)
+    "laser": (18, 38)
 }
 
 def main():
@@ -24,7 +24,7 @@ def main():
     # Créer un objet à tester
     ProjectileAnimator.set_screen(screen)
     P1 = ProjectileAnimator((1, 2), (0, 0), default_fps=10, speed=5, projectile_type="laser")
-    P1.play("ray", True, frame_size=projectiles_data["ray"])
+    P1.play("laser", True, frame_size=projectiles_data["laser"])
     P1.update_and_draw()
 
     # --- Liste pour stocker les frames ---
@@ -37,11 +37,10 @@ def main():
                 running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
-
+        screen.fill((0, 0, 0))
         # --- Update & draw ---
-        P1.erase()
         P1.set_target(pygame.mouse.get_pos())
-        P1.update_and_draw()
+        ProjectileAnimator.update_all()
         pygame.display.flip()
         clock.tick(60)
 

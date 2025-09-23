@@ -34,7 +34,7 @@ class PlanetManager:
         planet = PlanetAnimator((w, h), (x, y), default_fps=10, speed=speed)
         planet.play(name, True)
         centre = planet.get_center()
-        planet.set_target((Animator.screen.get_width() + planet.pixel_w * 2, centre[1]), False)
+        planet.set_target((Animator.screen.get_width() + planet.pixel_w * 10, centre[1]), False)
 
         # Réinitialiser la probabilité après spawn
         self.spawn_prob = 1
