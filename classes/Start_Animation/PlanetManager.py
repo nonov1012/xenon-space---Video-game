@@ -27,10 +27,10 @@ class PlanetManager:
 
         name = random.choice(self.planet_names)
         x = random.randint(-w * TAILLE_CASE * 2, -w * TAILLE_CASE * 1)
-        y = random.randint(50, self.screen.get_height() - 50)
+        y = random.randint(50, Animator.screen.get_height() - 50)
         speed = random.uniform(*self.speed_range)
 
-        planet = Animator(self.screen, self.path, (w, h), (x, y), default_fps=5)
+        planet = Animator(self.path, (w, h), (x, y), default_fps=5)
         planet.play(name, True)
         self.planets.append({"animator": planet, "speed": speed})
 

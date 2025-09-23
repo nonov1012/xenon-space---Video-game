@@ -4,7 +4,7 @@ from classes.Gif import *
 import sys
 from PIL import Image
 import numpy as np
-from classes.Animator import Animator
+from classes.PlanetAnimator import PlanetAnimator
 
 def main():
     pygame.init()
@@ -13,7 +13,8 @@ def main():
     pygame.display.set_caption("Test affichage Planètes")
 
     # Créer un objet à tester
-    P1 = Animator(screen, PLANETES_PATH, (5, 5), (0, 0), default_fps=15)
+    PlanetAnimator.set_screen(screen)
+    P1 = PlanetAnimator((5, 5), (0, 0), default_fps=10)
     P1.play("planet1", True)
     P1.update_and_draw()
 
@@ -36,20 +37,9 @@ def main():
                     P1.play(animation, True)
 
         # --- Update & draw ---
-        P1.erase()
-        P1.update_and_draw()
+        PlanetAnimator.update_all()
         pygame.display.flip()
         clock.tick(60)
-
-        # --- Capturer la frame pour GIF ---
-        frame_array = pygame.surfarray.array3d(screen)
-        frame_array = np.transpose(frame_array, (1, 0, 2))
-        frame_image = Image.fromarray(frame_array)
-        frames.append(frame_image)
-
-    # --- Sauvegarder le GIF ---
-    if frames and False == True:
-        frames[0].save("capture.gif", save_all=True, append_images=frames[1:], duration=1000//60, loop=0)
 
     pygame.quit()
     sys.exit()

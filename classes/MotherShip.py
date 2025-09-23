@@ -3,6 +3,8 @@ from typing import Any, Dict, Optional
 import pygame
 import sys
 from classes.ShipAnimator import ShipAnimator
+from classes.ProjectileAnimator import ProjectileAnimator
+from classes.Animator import Animator
 import os
 from classes.Point import Point
 from blazyck import *
@@ -43,7 +45,7 @@ LEVELS: Dict[int, Dict[str, Any]] = {
 class MotherShip:
     """Représente la base d'un joueur avec niveaux, PV, et combat."""
 
-    def __init__(self, screen : pygame.Surface, point : Point, tier: int = 1, show_health: bool = True, largeur: int = 4, hauteur: int = 5, color = (0, 255, 0)) -> None:
+    def __init__(self, point : Point, tier: int = 1, show_health: bool = True, largeur: int = 4, hauteur: int = 5, color = (0, 255, 0)) -> None:
         self.largeur = largeur
         self.hauteur = hauteur
         self.tier = tier
@@ -60,7 +62,7 @@ class MotherShip:
         sprites_path = os.path.join(IMG_PATH, "ships", "base")
 
         # Animation
-        self.animator = ShipAnimator(screen, sprites_path, (self.largeur, self.hauteur), (point.x, point.y), show_health=show_health, color=color)
+        self.animator = ShipAnimator(sprites_path, (self.largeur, self.hauteur), (point.x, point.y), show_health=show_health, color=color)
 
     # ---------- Niveaux ----------
     @property
@@ -126,12 +128,14 @@ class MotherShip:
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((4*TAILLE_CASE, 5*TAILLE_CASE))
+    screen = pygame.display.set_mode((1000, 800))
     clock = pygame.time.Clock()
     pygame.display.set_caption("Test affichage Vaisseau mère")
 
+    Animator.set_screen(screen)
+
     # Créer un objet à tester
-    B1 = MotherShip(screen, Point(0, 0), tier=1, show_health=True, largeur=4, hauteur=5)
+    B1 = MotherShip(Point(0, 0), tier=1, show_health=True, largeur=4, hauteur=5)
     B1.animator.play("base")
     B1.animator.update_and_draw()
     B1.animator.play("engine")
@@ -151,11 +155,14 @@ def main():
                         B1.take_damage(100)
                         print(f"PV actuels : {B1.PV_actuelle}")
                     elif event.button == 1:  # clic gauche : arme
-                        B1.animator.play("weapons", reset=True)
+                        B1.animator.fire("bullet", (100, 100), True)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                    B1.animator.set_target_angle(B1.animator.target_angle + 90)
 
             # Mettre à jour l'animation courante
-            B1.animator.erase()
-            B1.animator.update_and_draw()
+            screen.fill((0, 0, 0))
+
+            Animator.update_all()
 
             if B1.dead():
                 # Joue l'animation de destruction + fade

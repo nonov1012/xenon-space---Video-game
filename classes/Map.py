@@ -5,8 +5,10 @@ import pygame
 import random
 from classes.Point import Point, Type
 from classes.Start_Animation.StarField import StarField
+from classes.Animator import Animator
+from classes.PlanetAnimator import PlanetAnimator
 
-from blazyck import NB_CASE_X, NB_CASE_Y, PLANETES_PATH, TAILLE_CASE, ASTEROIDES_PATH
+from blazyck import *
 
 from PIL import Image
 
@@ -93,32 +95,28 @@ class Map:
 
         return True
 
-    def placer_planete(self, x, y, taille: int) -> None:
+    def placer_planete(self, x, y, taille: int, color_atmosphere=(0, 200, 255, 100)) -> None:
         """
         Place une planète carrée de côté = taille.
         Associe une image aléatoire à cette planète.
         """
-        # Choisir une image aléatoire pour cette planète
-        if self.planete_images:
-            chosen_img = random.choice(self.planete_images)
-            # Redimensionner l’image pour coller à la taille
-            img_resized = pygame.transform.scale(chosen_img, (TAILLE_CASE * taille, TAILLE_CASE * taille))
-        else:
-            img_resized = None
 
-        for yy in range(y, y + taille):
-            for xx in range(x, x + taille):
-                self.grille[yy][xx].type = Type.PLANETE
-        
+        # Ajout de l'animation des planètes
+        planet = PlanetAnimator((taille, taille), (x, y), speed=0, default_fps=10)
+        planet.liste_animation[-1].play("planet" + str(random.randint(1, MAX_PLANETES_ANIMATIONS)), True)
+
+        planet.draw_atmosphere(color_atmosphere)
+
+        # Typage de la case et des case alentour
         for yy in range(y - 1, y + taille + 1):
             for xx in range(x - 1, x + taille + 1):
                 if 0 <= xx < self.nb_cases_x and 0 <= yy < self.nb_cases_y:
-                    if self.grille[yy][xx].type == Type.VIDE:
+                    # Si on est à l'intérieur de la planète
+                    if y <= yy < y + taille and x <= xx < x + taille:
+                        self.grille[yy][xx].type = Type.PLANETE
+                    # Sinon si c’est une bordure vide → atmosphère
+                    elif self.grille[yy][xx].type == Type.VIDE:
                         self.grille[yy][xx].type = Type.ATMOSPHERE
-
-        if img_resized:
-            # On stocke l’image à la position d’origine de la planète
-            self.planete_img_map[(x, y)] = img_resized
     
     def placer_asteroide(self, x, y) -> None:
         """
@@ -170,16 +168,37 @@ class Map:
 
         if pid <= nb_planet:
             print(f"/!\\ Seulement {pid-1} planètes placées sur {nb_planet} demandées")
-    
-    
+
+    def generer_grille(self, screen: pygame.Surface, afficher_zones: bool = False, afficher_grille: bool = True) -> None:
+        for y in range(self.nb_cases_y):
+            for x in range(self.nb_cases_x):
+                point = self.grille[y][x]
+                rect = pygame.Rect(x * TAILLE_CASE, y * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
+
+                # surface temporaire avec alpha
+                temp_surf = pygame.Surface((TAILLE_CASE, TAILLE_CASE), pygame.SRCALPHA)
+
+                # si affichage des zones → fond coloré
+                if afficher_zones:
+                    temp_surf.fill(COLORS[point.type])  # couleur semi-transparente
+                
+                # sinon affichage de la grille
+                if afficher_grille:
+                    pygame.draw.rect(temp_surf, (40, 40, 40), temp_surf.get_rect(), 1)
+
+                # blit sur l'écran
+                screen.blit(temp_surf, rect.topleft)
 
 
 # ==== Test de la classe ====
 if __name__ == "__main__":
     pygame.init()
+    clock = pygame.time.Clock()
 
     screen = pygame.display.set_mode((NB_CASE_X * TAILLE_CASE, NB_CASE_Y * TAILLE_CASE), pygame.SRCALPHA)
     pygame.display.set_caption("Génération de la map aléatoire")
+
+    Animator.set_screen(screen)
     
     screen_width, screen_height = screen.get_size()
     num_stars=100
@@ -191,50 +210,55 @@ if __name__ == "__main__":
         min_radius=1,
         max_radius=3,
         min_distance=15,
-        size_distribution="small-biased",
-        move_amplitude=3
+        move_amplitude=0
     )    
     
+    # couleurs
+    COLORS = {
+        Type.VIDE: (0, 0, 0, 0),                     # noir
+        Type.PLANETE: (255, 215, 0, 128),            # or
+        Type.ATMOSPHERE: (0, 200, 255, 128),         # bleu clair
+        Type.ASTEROIDE: (255, 215, 0, 128),          # or
+        Type.BASE: (100, 100, 125, 128),             # gris foncé
+    }
+
     map_obj = Map()
     map_obj.generer_planet(6)
     map_obj.generer_asteroides(20)
 
-
-    # couleurs
-    COLORS = {
-        Type.VIDE: (0, 0, 0, 10),               # noir
-        Type.PLANETE: (0, 150, 255),            # bleu clair
-        Type.ATMOSPHERE: (0, 255, 150, 125),    # vert clair
-        Type.ASTEROIDE: (200, 200, 200),        # gris
-        Type.BASE: (100, 100, 100),             # gris foncé
-    }
-
     running = True
+    afficher_grille = False
     while running:
+        screen.fill((0, 0, 0, 0))
+        Animator.erase_all()
+
+        stars.update()
+        stars.draw(screen)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_LCTRL:
+                afficher_grille = not afficher_grille
+
+        # Vérifie si LSHIFT est enfoncé
+        keys = pygame.key.get_pressed()
+        afficher_zones = keys[pygame.K_LSHIFT]
+
+        map_obj.generer_grille(screen, afficher_zones ,afficher_grille)
+
+        Animator.update_all()
 
         screen.fill((0, 0, 0))
         stars.update()
         stars.draw(screen)
-
-        # Dessin de la grille
-        for y in range(map_obj.nb_cases_y):
-            for x in range(map_obj.nb_cases_x):
-                point = map_obj.grille[y][x]
-                rect = pygame.Rect(x * TAILLE_CASE, y * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
-                if point.type != Type.VIDE:
-                    pygame.draw.rect(screen, COLORS[point.type], rect)  # fond
-                pygame.draw.rect(screen, (40, 40, 40), rect, 1)  # contour
-
-        # Dessin des images des planètes
-        for (px, py), img in map_obj.planete_img_map.items():
-            screen.blit(img, (px * TAILLE_CASE, py * TAILLE_CASE))
             
         for (ax, ay), img in map_obj.asteroide_img_map.items():
             screen.blit(img, (ax * TAILLE_CASE, ay * TAILLE_CASE))
 
+        clock.tick(60)
         pygame.display.flip()
 
     pygame.quit()

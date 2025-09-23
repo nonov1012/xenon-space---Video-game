@@ -1,11 +1,23 @@
 import os
+import pygame
+
+pygame.init()
+
+info = pygame.display.Info()
+screen_width = info.current_w
+screen_height = info.current_h
+
+pygame.quit()
 # Constantes
 
 # Taille de la map
 NB_CASE_X = 50 # Nombre de cases en largeur
 NB_CASE_Y = 30 # Nombre de cases en hauteur
-TAILLE_CASE = 35 # Taille d'une case en pixels
-MAX_PLANETES_ANIMATIONS = 4 # Nombre d'animations de planètes différents
+TAILLE_CASE = screen_height // 32 # Taille d'une case en pixels
+
+# Planètes
+MAX_PLANETES_ANIMATIONS = 6 # Nombre d'animations de planètes différents
+PLANETES_FRAME_SIZE = (75, 75) # Taille d'une frame de planètes
 
 # Chemain des fichiers
 BASE_DIR = os.path.dirname(__file__) # Chemain du dossier du projet
