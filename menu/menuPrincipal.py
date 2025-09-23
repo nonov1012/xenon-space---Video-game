@@ -2,10 +2,11 @@ import pygame
 import sys
 from classes.PlanetAnimator import PlanetAnimator
 from classes.ShipAnimator import ShipAnimator
-import menuJouer
-import menuParam
-import menuSucces
-import menuPause
+import menu.menuJouer
+import menu.menuParam
+import menu.menuSucces
+import menu.menuPause
+
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
 from classes.Start_Animation.StarField import StarField
@@ -24,6 +25,7 @@ pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
 ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+pygame.display.set_caption("Xénon Space")
 clock = pygame.time.Clock()
 
 Animator.set_screen(ecran) # initialisation de la classe Animator
@@ -162,13 +164,13 @@ while en_cours:
         elif evenement.type == pygame.MOUSEBUTTONDOWN:
             if bouton_jouer.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
-                menuJouer.main(ecran)
+                menu.menuJouer.draw(ecran)
             elif bouton_param.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
-                menuParam.main(ecran)
+                menu.menuParam.main(ecran)
             elif bouton_succes.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
-                menuSucces.main(ecran)
+                menu.menuSucces.main(ecran)
             elif bouton_quitter.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 pygame.quit()

@@ -1,6 +1,8 @@
 import pygame
 
-def main(ecran):
+from main import start_game
+
+def draw(ecran):
     """Interface de personnalisation avec onglets Classique/Avance"""
 
     # -------------------------------
@@ -214,6 +216,7 @@ def main(ecran):
                         if label == "JOUER":
                             print("JOUER avec parametres:", {k: v["valeur"] for k, v in parametres.items()},
                                   "Random:", random_active)
+                            start_game(ecran, parametres, random_active)
                         elif label == "RESET":
                             for k in parametres:
                                 parametres[k]["valeur"] = parametres[k]["min"]
