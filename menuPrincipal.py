@@ -2,6 +2,8 @@ import pygame
 import sys
 import menuJouer
 import menuParam
+import menuSucces
+import menuPause
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
 from classes.Start_Animation.StarField import StarField
@@ -11,8 +13,9 @@ from classes.Point import Point
 from blazyck import *
 from classes.Achievements import AchievementManager 
 
+
 # -------------------------------
-# Créer le fond spatial (étoiles + planètes + vaisseau)
+# Creer le fond spatial (etoiles + planetes + vaisseau)
 # -------------------------------
 def create_space_background(screen: pygame.Surface, planete_path: str, num_stars=100, screen_ratio=1.0):
     screen_width, screen_height = screen.get_size()
@@ -67,7 +70,7 @@ ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN
 clock = pygame.time.Clock()
 screen_ratio = (screen_width * 100 / 600) / 100
 
-# Curseur personnalisé
+# Curseur personnalise
 new_cursor = pygame.image.load('assets/img/menu/cursor.png')
 new_cursor = pygame.transform.scale(new_cursor, (40, 40))
 pygame.mouse.set_visible(False)
@@ -78,17 +81,17 @@ sm.play_music("assets/sounds/musics/music_ingame.mp3")
 sm.load_sfx("son_hover", "assets/sounds/menu/buttons/button_hover.mp3")
 sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
-# Icône
+# Icone
 icone = pygame.image.load("assets/img/menu/logo.png")
 pygame.display.set_icon(icone)
 
 # -------------------------------
-# Fond animé avec planètes et vaisseau
+# Fond anime avec planetes et vaisseau
 # -------------------------------
 stars, planet_manager, B1 = create_space_background(ecran, PLANETES_PATH, num_stars=100, screen_ratio=screen_ratio)
 
 # -------------------------------
-# Titre centré
+# Titre centre
 # -------------------------------
 police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 100)
 titre_position = (screen_width // 2, 200)
@@ -96,7 +99,7 @@ titre = TitreAnime("XENON-SPACE", police_titre, titre_position,
                    couleur_haut=(255,255,0), couleur_bas=(255,0,255))
 
 # -------------------------------
-# Boutons décalés à gauche
+# Boutons decales a gauche
 # -------------------------------
 blanc = (255,255,255)
 police = pygame.font.Font("assets/fonts/SpaceNova.otf", 25)
@@ -104,22 +107,22 @@ image_bouton = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alph
 image_bouton = pygame.transform.scale(image_bouton, (500,150))
 largeur_bouton, hauteur_bouton = image_bouton.get_size()
 
-decalage_boutons = -500  # boutons à gauche
+decalage_boutons = -500  # boutons a gauche
 x_bouton = screen_width // 2 - largeur_bouton // 2 + decalage_boutons
 y_bouton = screen_height // 2
 
 texte_jouer = police.render("Jouer", True, blanc)
-texte_param = police.render("Parametre", True, blanc)
+texte_param = police.render("Parametres", True, blanc)
 texte_succes = police.render("Succes", True, blanc)
 texte_quitter = police.render("Quitter", True, blanc)
-texte_credit = police.render("Credit", True, blanc)
+texte_credit = police.render("Credits", True, blanc)
 
 bouton_jouer   = pygame.Rect(x_bouton, y_bouton - 200, largeur_bouton, hauteur_bouton)
 bouton_param   = pygame.Rect(x_bouton, y_bouton - 100, largeur_bouton, hauteur_bouton)
 bouton_succes  = pygame.Rect(x_bouton, y_bouton , largeur_bouton, hauteur_bouton)
 bouton_quitter = pygame.Rect(x_bouton, y_bouton + 100, largeur_bouton, hauteur_bouton)
 
-# Bouton crédit reste à sa position originale
+# Bouton credit reste a sa position originale
 bouton_credit  = pygame.Rect(screen_width - largeur_bouton - 30,
                              screen_height - hauteur_bouton - 30,
                              largeur_bouton, hauteur_bouton)
@@ -135,7 +138,7 @@ en_cours = True
 while en_cours:
     souris = pygame.mouse.get_pos()
 
-    # --- Fond + planètes + vaisseau ---
+    # --- Fond + planetes + vaisseau ---
     ecran.fill((0,0,0))
     stars.update()
     stars.draw(ecran)
@@ -183,10 +186,15 @@ while en_cours:
     pygame.display.flip()
     clock.tick(30)
 
-    # --- Événements ---
+    # --- Evenements ---
     for evenement in pygame.event.get():
         if evenement.type == pygame.QUIT:
             en_cours = False
+        elif evenement.type == pygame.KEYDOWN:
+            if evenement.key == pygame.K_ESCAPE:
+                # Appelle le menu pause
+                pause_menu = menuPause.PauseMenu(ecran, sm)
+                pause_menu.run()
         elif evenement.type == pygame.MOUSEBUTTONDOWN:
             if bouton_jouer.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
@@ -194,7 +202,11 @@ while en_cours:
             elif bouton_param.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 menuParam.main(ecran)
+            elif bouton_succes.collidepoint(evenement.pos):
+                sm.play_sfx("son_click")
+                menuSucces.main(ecran)
             elif bouton_quitter.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 pygame.quit()
                 sys.exit()
+
