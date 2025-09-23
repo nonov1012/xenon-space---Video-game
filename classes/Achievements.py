@@ -1,8 +1,6 @@
 # achievements.py
 
 class AchievementManager:
-<<<<<<< HEAD
-<<<<<<< HEAD
     def __init__(self, max_base_level=5):
         # succès disponibles
         self.achievements = {
@@ -13,7 +11,6 @@ class AchievementManager:
             "Ship destroyer": "Détruire un certain nombre de vaisseaux ennemis.(10)",
             "Unlocked 5 ships": "Débloquer 5 vaisseaux",
             "Unlocked 10 ships": "Débloquer 10 vaisseaux",
-<<<<<<< HEAD
         }
         self.unlocked = set()
         
@@ -75,20 +72,13 @@ class AchievementManager:
         self.base_level = level
         if self.base_level >= self.max_base_level:
             self.unlock("Base niveau max")
-=======
-    def __init__(self):
-        # Liste de tous les succès possibles
-=======
     def __init__(self, max_base_level=5):
         # succès disponibles
->>>>>>> 7921cdc ( Ajout de succès)
         self.achievements = {
             "winner": "Gagner une partie",
             "explorer": "Parcourir toutes les cases",
             "Grand stratège": "Utiliser chaque type de vaisseau au moins une fois.",
             "Base niveau max": "Atteindre le niveau maximum de la base.",
-=======
->>>>>>> d6c9d70 (Ajout des succès debloquer vaisseaux et detruire)
         }
         self.unlocked = set()
         
@@ -103,18 +93,6 @@ class AchievementManager:
         self.max_base_level = max_base_level
 
     def unlock(self, achievement_id):
-<<<<<<< HEAD
-        """Débloque un succès si ce n'est pas déjà fait"""
-        if achievement_id in self.achievements:
-            if achievement_id not in self.unlocked:
-                self.unlocked.add(achievement_id)
-                print(f"Succès débloqué : {self.achievements[achievement_id]}")
-            else:
-                print(f"Succès déjà obtenu : {self.achievements[achievement_id]}")
-        else:
-            print(f"Succès inconnu : {achievement_id}")
->>>>>>> b173d32 (Ajout du fichier Achievements.py)
-=======
         """Débloque un succès si c'est pas déjà fait"""
         if achievement_id in self.achievements and achievement_id not in self.unlocked:
             self.unlocked.add(achievement_id)
@@ -162,7 +140,6 @@ class AchievementManager:
         self.base_level = level
         if self.base_level >= self.max_base_level:
             self.unlock("Base niveau max")
->>>>>>> 7921cdc ( Ajout de succès)
 
     def has(self, achievement_id):
         """Vérifie si un succès est déjà débloqué"""
@@ -176,10 +153,6 @@ class AchievementManager:
         """Retourne tous les succès (obtenus ou non)"""
         return self.achievements
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
 # Exemple d'utilisation
 if __name__ == "__main__":                  
     manager = AchievementManager()
@@ -188,7 +161,3 @@ if __name__ == "__main__":
     manager.unlock("winner")  # Tentative de débloquer à nouveau
     print("Succès obtenus :", manager.list_unlocked())
     print("Tous les succès :", manager.list_all())
->>>>>>> b173d32 (Ajout du fichier Achievements.py)
-=======
-
->>>>>>> 7921cdc ( Ajout de succès)
