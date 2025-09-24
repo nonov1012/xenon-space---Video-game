@@ -1,7 +1,8 @@
 import pygame
 import numpy as np
+import os
 from typing import Tuple, List, Optional
-import heapq
+from classes.Animator import Animator
 
 
 class Ship:
@@ -19,7 +20,9 @@ class Ship:
                  tier: int,
                  ligne: int = 0,
                  colonne: int = 0,
+                 screen: Optional[pygame.Surface] = None,
                  uid: Optional[int] = None):
+        
         # caractéristiques
         self.pv_max = pv_max
         self.pv_actuel = pv_max
@@ -49,6 +52,16 @@ class Ship:
         self.aperçu_direction = self.direction
         self.aperçu_ligne = ligne
         self.aperçu_colonne = colonne
+
+        self.screen = screen
+        self.animator = Animator(
+            screen=screen,
+            path=f"assets/img/Ships/{self.__class__.__name__.lower()}",
+            dimensions=self.taille,
+            coord=(self.colonne*40, self.ligne*40),  # TAILLE_CASE = 40
+            PV_actuelle=self.pv_actuel,
+            PV_max=self.pv_max
+        )
 
     # ------------ utilitaires ------------
     def donner_dimensions(self, direction: str) -> Tuple[int, int]:
@@ -88,6 +101,13 @@ class Ship:
 
         img = pygame.transform.scale(img, (w,h))
         surface.blit(img, (x,y))
+        self.update()
+        self.animator.update_and_draw()
+    
+    def update(self):
+        self.animator.update(self.pv_actuel, self.pv_max)
+
+        
 
     # ------------ combat ------------
     def attaquer(self, cible: "Ship"):
@@ -158,7 +178,7 @@ class Ship:
 
 
 
-    def deplacement(self, case_cible, nombre_colonne, nombre_lignes, plateau, ships):
+    def deplacement(self, case_cible, nombre_colonne, nombre_lignes, plateau, Ships):
         if self.id is None: raise ValueError("Ship.id non défini")
         ligne, colonne = case_cible
         cible_direction = self.aperçu_direction  # direction souhaitée après déplacement / rotation
@@ -167,12 +187,12 @@ class Ship:
         if case_cible in self.positions_possibles_attaque(nombre_colonne, nombre_lignes, direction=cible_direction):
             cible_id = plateau[ligne,colonne]
             if cible_id!=0 and cible_id!=self.id:
-                cible_ship = next((s for s in ships if s.id==int(cible_id)), None)
-                if cible_ship:
-                    self.attaquer(cible_ship)
-                    if cible_ship.est_mort():
-                        cible_ship.occuper_plateau(plateau,0)
-                        ships.remove(cible_ship)
+                cible_Ship = next((s for s in Ships if s.id==int(cible_id)), None)
+                if cible_Ship:
+                    self.attaquer(cible_Ship)
+                    if cible_Ship.est_mort():
+                        cible_Ship.occuper_plateau(plateau,0)
+                        Ships.remove(cible_Ship)
                     return True
 
         # ---- déplacement ----
@@ -212,50 +232,219 @@ class Ship:
 
 # ------------ Sous-classes ------------
 
+current_dir = os.path.dirname(__file__)
+IMG_DIRS = {
+    "petit": os.path.join(current_dir, "..", "assets", "img", "Ships", "petit"),
+    "moyen": os.path.join(current_dir, "..", "assets", "img", "Ships", "moyen"),
+    "lourd": os.path.join(current_dir, "..", "assets", "img", "Ships", "lourd"),
+    "foreuse": os.path.join(current_dir, "..", "assets", "img", "Ships", "foreuse"),
+    "transport": os.path.join(current_dir, "..", "assets", "img", "Ships", "transport"),
+}
+
+
+# ------------ Sous-Sous-classes ------------
+
+
 class petit(Ship):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, screen: pygame.Surface, position: tuple[int,int], *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.screen = screen
+        self.animator = Animator(
+            screen,
+            self.image,
+            self.taille,
+            (position[1]*32, position[0]*32),
+            tile_size=32
+        )
+        self.is_dead_anim_playing = False
+
+    def subir_degats(self, amount: int):
+        self.take_damage(amount)
+
+    def take_damage(self, amount: int):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
+        if self.pv_actuel > 0:
+            self.animator.play("shield")
+        else:
+            if not self.is_dead_anim_playing:
+                self.animator.play("destruction")
+                self.is_dead_anim_playing = True
+
+    def dead(self) -> bool:
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
+
+    def update(self):
+        self.animator.update(self.pv_actuel, self.pv_max)
+
+    def dessiner(self, surface, taille_case):
+        self.update()
+        self.animator.update_and_draw()
 
 class moyen(Ship):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, screen: pygame.Surface, position: tuple[int,int], *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.screen = screen
+        self.animator = Animator(
+            screen,
+            self.image,
+            self.taille,
+            (position[1]*32, position[0]*32),
+            tile_size=32
+        )
+        self.is_dead_anim_playing = False
+
+    def subir_degats(self, amount: int):
+        self.take_damage(amount)
+
+    def take_damage(self, amount: int):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
+        if self.pv_actuel > 0:
+            self.animator.play("shield")
+        else:
+            if not self.is_dead_anim_playing:
+                self.animator.play("destruction")
+                self.is_dead_anim_playing = True
+
+    def dead(self) -> bool:
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
+
+    def update(self):
+        self.animator.update(self.pv_actuel, self.pv_max)
+
+    def dessiner(self, surface, taille_case):
+        self.update()
+        self.animator.update_and_draw()
 
 
 class lourd(Ship):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, screen: pygame.Surface, position: tuple[int,int], *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.screen = screen
+        self.animator = Animator(
+            screen,
+            self.image,
+            self.taille,
+            (position[1]*32, position[0]*32),
+            tile_size=32
+        )
+        self.is_dead_anim_playing = False
+
+    def subir_degats(self, amount: int):
+        self.take_damage(amount)
+
+    def take_damage(self, amount: int):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
+        if self.pv_actuel > 0:
+            self.animator.play("shield")
+        else:
+            if not self.is_dead_anim_playing:
+                self.animator.play("destruction")
+                self.is_dead_anim_playing = True
+
+    def dead(self) -> bool:
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
+
+    def update(self):
+        self.animator.update(self.pv_actuel, self.pv_max)
+
+    def dessiner(self, surface, taille_case):
+        self.update()
+        self.animator.update_and_draw()
 
 
 
 class foreuse(Ship):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, screen: pygame.Surface, position: tuple[int,int], *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.screen = screen
+        self.animator = Animator(
+            screen,
+            self.image,
+            self.taille,
+            (position[1]*32, position[0]*32),
+            tile_size=32
+        )
+        self.is_dead_anim_playing = False
+
+    def subir_degats(self, amount: int):
+        self.take_damage(amount)
+
+    def take_damage(self, amount: int):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
+        if self.pv_actuel > 0:
+            self.animator.play("shield")
+        else:
+            if not self.is_dead_anim_playing:
+                self.animator.play("destruction")
+                self.is_dead_anim_playing = True
+
+    def dead(self) -> bool:
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
+
+    def update(self):
+        self.animator.update(self.pv_actuel, self.pv_max)
+
+    def dessiner(self, surface, taille_case):
+        self.update()
+        self.animator.update_and_draw()
 
 
 
 class Transport(Ship):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, screen: pygame.Surface, image_dir: str, position: tuple[int,int], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cargaison = []  # liste des vaisseaux stockés
+        self.screen = screen
+        self.animator = Animator(
+            screen,
+            image_dir,
+            self.taille,
+            (position[1]*32, position[0]*32),
+            tile_size=32
+        )
+        self.is_dead_anim_playing = False
 
-    def ajouter_cargo(self, ship: Ship, plateau) -> bool:
+    def subir_degats(self, amount: int):
+        self.take_damage(amount)
+
+    def take_damage(self, amount: int):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
+        if self.pv_actuel > 0:
+            self.animator.play("shield")
+        else:
+            if not self.is_dead_anim_playing:
+                self.animator.play("destruction")
+                self.is_dead_anim_playing = True
+
+    def dead(self) -> bool:
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
+
+    def update(self):
+        self.animator.update(self.pv_actuel, self.pv_max)
+
+    def dessiner(self, surface, taille_case):
+        self.update()
+        self.animator.update_and_draw()
+
+
+    def ajouter_cargo(self, Ship: Ship, plateau) -> bool:
         """Ajoute un vaisseau dans le transport si possible."""
         # Autoriser seulement petit ou moyen
-        if not isinstance(ship, (petit, moyen)):
+        if not isinstance(Ship, (petit, moyen)):
             return False
 
         if len(self.cargaison) >= 3:
             return False
 
-        taille_cargo = [self._taille_vaisseau(s) for s in self.cargaison] + [self._taille_vaisseau(ship)]
+        taille_cargo = [self._taille_vaisseau(s) for s in self.cargaison] + [self._taille_vaisseau(Ship)]
         if sum(taille_cargo) > 3:
             return False
 
         # Retirer du plateau
-        ship.occuper_plateau(plateau, 0)
+        Ship.occuper_plateau(plateau, 0)
 
         # Ajouter dans la cargaison
-        self.cargaison.append(ship)
+        self.cargaison.append(Ship)
         return True
 
 
@@ -263,17 +452,17 @@ class Transport(Ship):
     def retirer_cargo(self, index: int, ligne: int, colonne: int, plateau) -> bool:
         """Débarque un vaisseau du transport sur le plateau."""
         if 0 <= index < len(self.cargaison):
-            ship = self.cargaison.pop(index)
-            ship.ligne, ship.colonne = ligne, colonne
-            ship.direction = "haut"
-            ship.occuper_plateau(plateau, ship.id)
+            Ship = self.cargaison.pop(index)
+            Ship.ligne, Ship.colonne = ligne, colonne
+            Ship.direction = "haut"
+            Ship.occuper_plateau(plateau, Ship.id)
             return True
         return False
 
-    def _taille_vaisseau(self, ship: Ship) -> int:
-        if isinstance(ship, petit):
+    def _taille_vaisseau(self, Ship: Ship) -> int:
+        if isinstance(Ship, petit):
             return 1
-        elif isinstance(ship, moyen):
+        elif isinstance(Ship, moyen):
             return 2
         else:
             return 3
@@ -282,21 +471,21 @@ class Transport(Ship):
         """Si le transport meurt, tous les vaisseaux embarqués meurent."""
         super().subir_degats(degats)
         if self.est_mort() and plateau is not None:
-            for ship in self.cargaison:
-                ship.pv_actuel = 0
-                ship.occuper_plateau(plateau, 0)
+            for Ship in self.cargaison:
+                Ship.pv_actuel = 0
+                Ship.occuper_plateau(plateau, 0)
             self.cargaison.clear()
     
     def afficher_cargaison(self, fenetre, taille_case):
         """Affiche les vaisseaux stockés avec images miniatures au-dessus du transport"""
-        for i, ship in enumerate(self.cargaison):
-            mini_img = pygame.transform.scale(ship.image, (20,20))
+        for i, Ship in enumerate(self.cargaison):
+            mini_img = pygame.transform.scale(Ship.image, (20,20))
             x = self.colonne * taille_case + i*22
             y = self.ligne * taille_case - 22
             fenetre.blit(mini_img, (x, y))
 
 
-    def positions_debarquement(self, ship_stocke, plateau, nombre_lignes, nombre_colonnes):
+    def positions_debarquement(self, Ship_stocke, plateau, nombre_lignes, nombre_colonnes):
         """Retourne les positions valides pour débarquer un vaisseau depuis ce transport."""
         positions_valides = []
         port = self.port_deplacement
@@ -306,7 +495,7 @@ class Transport(Ship):
                     continue
                 nl = self.ligne + dy
                 nc = self.colonne + dx
-                largeur, hauteur = ship_stocke.donner_dimensions(ship_stocke.direction)
+                largeur, hauteur = Ship_stocke.donner_dimensions(Ship_stocke.direction)
 
                 # Vérifier que tout le rectangle du vaisseau est dans la grille
                 if not (0 <= nl <= nombre_lignes - hauteur and 0 <= nc <= nombre_colonnes - largeur):

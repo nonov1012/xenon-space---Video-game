@@ -14,16 +14,13 @@ def load_spritesheet(path: str, frame_width: int, frame_height: int) -> List[pyg
 
 
 class Animator:
-    """
-    Gère l'image statique et plusieurs animations à partir de spritesheets.
-    """
     def __init__(
         self,
         screen : pygame.Surface,
         path : str,
         dimensions : Tuple[int, int],   # (width_tiles, height_tiles)
         coord : Tuple[int, int],        # (x, y) en pixels
-        tile_size : int = 100,
+        tile_size : int = 35,
         default_fps : int = 10,
         PV_actuelle : int = 100,
         PV_max : int = 100 
@@ -32,14 +29,15 @@ class Animator:
         self.path = path
         self.tile_size = tile_size
 
-        # attribut de l'entité
-        self.pixel_w = dimensions[0] * tile_size
-        self.pixel_h = dimensions[1] * tile_size
+        # --- dimensions en nombre de cases ---
+        self.tile_w, self.tile_h = dimensions   # <<< ici
+        self.pixel_w = self.tile_w * tile_size
+        self.pixel_h = self.tile_h * tile_size
+
         self.PV_actuelle = PV_actuelle
         self.PV_max = PV_max
-
-        # position
         self.x, self.y = coord
+
 
         # image statique (chargée une seule fois)
         self.static_image = None
@@ -189,9 +187,13 @@ class Animator:
     def erase(self, color=(0,0,0)):
         """
         Efface l'image actuelle en remplissant la zone avec 'color'.
+        La taille est recalculée à chaque appel pour suivre la taille du vaisseau sur le plateau.
         """
-        rect = pygame.Rect(self.x, self.y, self.pixel_w, self.pixel_h)
+        w = self.tile_w * self.tile_size
+        h = self.tile_h * self.tile_size
+        rect = pygame.Rect(self.x, self.y, w, h)
         pygame.draw.rect(self.screen, color, rect)
+
 
     def play_with_fade(self, name: str, fade_duration: int = 1000, reset: bool = False):
         """
@@ -208,3 +210,9 @@ class Animator:
     def update(self, PV_actuelle : int, PV_max : int):
         self.PV_actuelle = PV_actuelle
         self.PV_max = PV_max
+    
+    def is_animation_finished(self, name: str) -> bool:
+        """Retourne True si l'animation spécifiée est terminée."""
+        if self.current_anim != name:
+            return True  # si l'animation n'est pas en cours, considérer comme finie
+        return self.frame_index >= len(self.animations.get(name, [])) - 1
