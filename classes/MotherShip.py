@@ -154,6 +154,7 @@ def main():
                     if event.button == 3:  # clic droit : dégâts
                         B1.take_damage(100)
                         print(f"PV actuels : {B1.PV_actuelle}")
+                        B1.animator.set_target(pygame.mouse.get_pos())
                     elif event.button == 1:  # clic gauche : arme
                         B1.animator.fire("laser", pygame.mouse.get_pos(), True, 10)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:

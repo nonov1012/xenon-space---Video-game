@@ -64,6 +64,12 @@ class ShipAnimator(Animator):
         if hasattr(self, "target_angle") and self.angle != self.target_angle:
             self.slow_set_angle()
 
+        # Image statique si aucune animation prioritaire
+        if hasattr(self, "static_image") and self.static_image:
+            rotated_img = pygame.transform.rotate(self.static_image, self.angle)
+            rect = rotated_img.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
+            Animator.screen.blit(rotated_img, rect.topleft)
+
         # --- Animation prioritaire ---
         if self.current_anim and self.current_anim != "engine":
             frames = self.animations[self.current_anim]
@@ -77,20 +83,14 @@ class ShipAnimator(Animator):
 
             if self.frame_index >= len(frames):
                 # Animation terminée
-                self.current_anim = None
                 self.frame_index = 0
-                self.finished = True  # seulement ici
+                if self.current_anim == "weapons":
+                    self.finished = True  # seulement ici
+                self.current_anim = None
             else:
                 rotated_frame = pygame.transform.rotate(frames[self.frame_index], self.angle)
                 rect = rotated_frame.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
                 Animator.screen.blit(rotated_frame, rect.topleft)
-
-        else:
-            # Image statique si aucune animation prioritaire
-            if hasattr(self, "static_image") and self.static_image:
-                rotated_img = pygame.transform.rotate(self.static_image, self.angle)
-                rect = rotated_img.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-                Animator.screen.blit(rotated_img, rect.topleft)
 
         # --- Dessiner le moteur (boucle infinie) ---
         if hasattr(self, "idle") and self.idle and "engine" in self.animations:
