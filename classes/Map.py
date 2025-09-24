@@ -209,7 +209,6 @@ if __name__ == "__main__":
         num_stars=int(num_stars * screen_ratio),
         min_radius=1,
         max_radius=3,
-        min_distance=15,
         move_amplitude=0
     )    
     
