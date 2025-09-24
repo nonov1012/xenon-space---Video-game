@@ -155,7 +155,7 @@ def main():
                         B1.take_damage(100)
                         print(f"PV actuels : {B1.PV_actuelle}")
                     elif event.button == 1:  # clic gauche : arme
-                        B1.animator.fire("laser", (500, 200), True, 5)
+                        B1.animator.fire("laser", pygame.mouse.get_pos(), True, 10)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                     B1.animator.set_target_angle(B1.animator.target_angle + 90)
 
