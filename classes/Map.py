@@ -48,7 +48,7 @@ class Map:
 
         # === Chargement des images de planètes ===
         self.planete_images = []
-        for i in range(1, 6):
+        for i in range(1, 8):
             path = os.path.join(PLANETES_PATH, f"planet{i}.gif")
             if os.path.exists(path):
                 try:
