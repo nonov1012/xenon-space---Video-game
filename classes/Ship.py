@@ -375,35 +375,6 @@ class Moyen(Ship):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Lourd(Ship):
     def __init__(self,
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
@@ -434,14 +405,6 @@ class Lourd(Ship):
         self.animator.y = self.ligne * taille_case
         self.animator.update_and_draw()
 
-        # Afficher barre de vie
-        x = self.colonne * taille_case
-        y = (self.ligne + self.taille[1]) * taille_case + 2
-        largeur_barre = self.taille[0] * taille_case
-        proportion = self.pv_actuel / self.pv_max
-        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
-        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
-
         if self.is_dead_anim_playing:
             self.dead_timer += 1  # incrémente chaque frame
 
@@ -450,7 +413,8 @@ class Lourd(Ship):
     # Attaque avec animation
     def attaquer(self, cible: "Ship"):
         super().attaquer(cible)  # utilise la fonction de la classe Ship
-        self.animator.play("weapons", reset=True)
+        cordonner = (cible.ligne, cible.colonne)
+        self.animator.fire("big bullet", cordonner, True, 5)
     
     # Prise de dégâts avec animation
     def subir_degats(self, degats):
@@ -467,42 +431,6 @@ class Lourd(Ship):
     def est_mort(self):
         # True après N frames de l'animation destruction
         return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
