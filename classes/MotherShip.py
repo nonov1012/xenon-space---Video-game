@@ -61,7 +61,7 @@ class MotherShip:
 
         sprites_path = os.path.join(IMG_PATH, "ships", "base")
 
-        # Animation
+        # Animation= ShipAnimator(sprites_path, (self.largeur, self.hauteur), (point.x
         self.animator = ShipAnimator(sprites_path, (self.largeur, self.hauteur), (point.x, point.y), show_health=show_health, color=color)
 
     # ---------- Niveaux ----------
