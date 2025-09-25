@@ -193,9 +193,6 @@ while fonctionne:
             # Libère les cases du plateau
             ship.occuper_plateau(plateau, 0)
 
-            # Supprime l’animation du vaisseau
-            ship.animator.remove_from_list()  # retirer de Animator global
-
             # Retirer le vaisseau de la liste
             ships.remove(ship)
             print(f"{ship.__class__.__name__} détruit")

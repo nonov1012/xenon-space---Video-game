@@ -3,6 +3,7 @@ from typing import Tuple, List, Optional
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point
+import threading
 
 # =======================
 # Classe Ship = Vaisseau
@@ -79,9 +80,18 @@ class Ship:
     def attaquer(self, cible: "Ship"):
         cible.subir_degats(self.attaque)
         largeur, hauteur = cible.donner_dimensions(cible.direction)
+
+        # Centre de la cible en pixels
         target_x = (cible.cordonner.y + largeur / 2) * TAILLE_CASE
         target_y = (cible.cordonner.x + hauteur / 2) * TAILLE_CASE
-        self.animator.fire("big bullet", (target_x, target_y), True, projectile_speed=4)
+
+        self.animator.fire(
+            projectile_type="torpedo",
+            target=(target_x +50, target_y +50),  # centre de la cible en pixels
+            is_fired=True,
+            projectile_speed=3
+        )
+
 
     def subir_degats(self, degats):
         self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
@@ -89,6 +99,8 @@ class Ship:
             self.animator.play("shield", reset=True)
         else:
             self.animator.play("destruction", reset=True)
+            t = threading.Timer(3.0, self.animator.remove_from_list)
+            t.start()
 
     def est_mort(self):
         return self.pv_actuel <= 0

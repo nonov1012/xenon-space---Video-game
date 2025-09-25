@@ -196,8 +196,8 @@ class ShipAnimator(Animator):
             spawn_y = center_y - math.cos(angle_rad) * distance
 
             # --- Conversion en coordonnées grille ---
-            proj_x = spawn_x / TAILLE_CASE
-            proj_y = spawn_y / TAILLE_CASE
+            proj_x = spawn_x
+            proj_y = spawn_y
 
             # --- Animation du projectile (si pas laser) ---
             if projectile_type != "laser":
