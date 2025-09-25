@@ -27,7 +27,6 @@ class DiscordRP:
             
         try:
             self.RPC.update(state=state, details=details, large_image=self.large_image, large_text=self.large_text, start=self.start_time)
-            print(f"[Discord RPC] Présence mise à jour")
             return True
         except Exception as e:
             print(f"[Discord RPC] Erreur mise à jour : {e}")

@@ -37,13 +37,13 @@ class Map:
         self.asteroide_img_map: dict[tuple[int, int], pygame.Surface] = {}
 
         # Zone de la base en haut a gauche (5x4)
-        for y in range(4):
-            for x in range(5):
+        for y in range(5):
+            for x in range(4):
                 self.grille[y][x].type = Type.BASE  # zone interdite
 
         # Zone de la base en bas a droite (5x4)
-        for y in range(self.nb_cases_y - 4, self.nb_cases_y):
-            for x in range(self.nb_cases_x - 5, self.nb_cases_x):
+        for y in range(self.nb_cases_y - 5, self.nb_cases_y):
+            for x in range(self.nb_cases_x - 4, self.nb_cases_x):
                 self.grille[y][x].type = Type.BASE  # zone interdite
 
         # === Chargement des images de planètes ===
@@ -55,9 +55,9 @@ class Map:
                     img = load_image(path)
                     self.planete_images.append(img)
                 except pygame.error as e:
-                    print(f"Erreur chargement {path} : {e}")
+                    print(f"[Map] Erreur chargement {path} : {e}")
             else:
-                print(f"[!] Fichier introuvable : {path}")
+                print(f"[Map] Fichier introuvable : {path}")
         
         # === Chargement des images d’astéroïdes ===
         self.asteroide_images = []
@@ -70,15 +70,15 @@ class Map:
                     img = pygame.transform.scale(img, (TAILLE_CASE, TAILLE_CASE))
                     self.asteroide_images.append(img)
                 except pygame.error as e:
-                    print(f"Erreur chargement {path} : {e}")
+                    print(f"[Map] Erreur chargement {path} : {e}")
             else:
-                print(f"[!] Fichier introuvable : {path}")
+                print(f"[Map] Fichier introuvable : {path}")
 
         if not self.asteroide_images:
-            print("⚠️ Aucune image d’astéroïde trouvée ! Vérifie ASTEROIDE_PATH.")
+            print("[Map] Aucune image d’astéroïde trouvée !")
 
         if not self.planete_images:
-            print("⚠️ Aucune image de planète trouvée ! Vérifie PLANETES_PATH.")
+            print("[Map] Aucune image de planète trouvée !")
 
 
     def peut_placer(self, x, y, taille: int) -> bool:
@@ -169,11 +169,11 @@ class Map:
         if pid <= nb_planet:
             print(f"/!\\ Seulement {pid-1} planètes placées sur {nb_planet} demandées")
 
-    def generer_grille(self, screen: pygame.Surface, offset_x: int = 0, afficher_zones: bool = False, afficher_grille: bool = True, colors: dict[Type, tuple[int, int, int, int]] = None) -> None:
+    def generer_grille(self, screen: pygame.Surface, afficher_zones: bool = False, afficher_grille: bool = True, colors: dict[Type, tuple[int, int, int, int]] = None) -> None:
         for y in range(self.nb_cases_y):
             for x in range(self.nb_cases_x):
                 point = self.grille[y][x]
-                rect = pygame.Rect(x * TAILLE_CASE + offset_x, y * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
+                rect = pygame.Rect(x * TAILLE_CASE + OFFSET_X, y * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
 
                 # surface temporaire avec alpha
                 temp_surf = pygame.Surface((TAILLE_CASE, TAILLE_CASE), pygame.SRCALPHA)

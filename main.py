@@ -38,11 +38,17 @@ from classes.Shop import Shop
 from classes.Player import Player
 from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
+from classes.Economie import Economie
 
 
 def start_game(ecran, parametres, random_active):
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 30)
+    
+    new_cursor = pygame.image.load('assets/img/menu/cursor.png')
+    new_cursor = pygame.transform.scale(new_cursor, (40, 40))
+    pygame.mouse.set_visible(False)
+    
     # Générer la map
     screen_width, screen_height = ecran.get_size()
     num_stars=100
@@ -65,7 +71,7 @@ def start_game(ecran, parametres, random_active):
     map_obj.generer_asteroides(parametres["Nombre d'asteroides"]["valeur"])
     
     # couleurs
-    COLORS = {
+    colors = {
         Type.VIDE: (0, 0, 0, 0),                     # noir
         Type.PLANETE: (255, 215, 0, 128),            # or
         Type.ATMOSPHERE: (0, 200, 255, 128),         # bleu clair
@@ -78,16 +84,25 @@ def start_game(ecran, parametres, random_active):
     discord.connect()
     
 
+    player = Player("TestPlayer", solde_initial=3000)
+    shop = Shop(player, font, ecran)
+
     # MotherShip
     B1 = MotherShip(Point(0 , 0), tier=1, show_health=True, largeur=4, hauteur=5)
     B1.animator.play("base")
     B1.animator.update_and_draw()
     B1.animator.play("engine")
+    B2 = MotherShip(Point(46 , 25), tier=1, show_health=True, largeur=4, hauteur=5)
+    B2.animator.play("base")
+    B2.animator.update_and_draw()
+    B2.animator.play("engine")
 
     afficher_grille = False
     running = True
     while running:
         discord.update("En jeu")
+        
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -109,7 +124,7 @@ def start_game(ecran, parametres, random_active):
         keys = pygame.key.get_pressed()
         afficher_zones = keys[pygame.K_LSHIFT]
 
-        map_obj.generer_grille(ecran, OFFSET_X, afficher_zones ,afficher_grille)
+        map_obj.generer_grille(ecran, afficher_zones ,afficher_grille, colors)
 
         Animator.update_all()
         PlanetAnimator.update_all()
@@ -119,8 +134,6 @@ def start_game(ecran, parametres, random_active):
         for (ax, ay), img in map_obj.asteroide_img_map.items():
             ecran.blit(img, (ax * TAILLE_CASE + OFFSET_X, ay * TAILLE_CASE))
         
-        player = Player("TestPlayer", solde_initial=3000)
-        shop = Shop(player, font, ecran)
         
         coins_text = font.render(f"Coins: {player.economie.solde}", True, (255, 255, 0))
         ecran.blit(coins_text, (10, 10))
@@ -128,6 +141,9 @@ def start_game(ecran, parametres, random_active):
         # Dessiner la boutique
         shop.draw()
         
+        
+        souris = pygame.mouse.get_pos()
+        ecran.blit(new_cursor, souris)
         
         clock.tick(60)
         pygame.display.flip()

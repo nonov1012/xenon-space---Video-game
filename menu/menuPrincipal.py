@@ -37,7 +37,7 @@ pygame.mouse.set_visible(False)
 
 # Sons
 sm = SoundManager()
-sm.play_music("assets/sounds/musics/music_ingame.mp3")
+# sm.play_music("assets/sounds/musics/music_ingame.mp3")
 sm.load_sfx("son_hover", "assets/sounds/menu/buttons/button_hover.mp3")
 sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
