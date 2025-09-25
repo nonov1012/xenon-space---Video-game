@@ -14,7 +14,7 @@ class Ship:
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
-                 BASE_IMG_DIR: str = None):
+                 path: str = None):
         
         # ---- Caractéristiques ----
         self.pv_max = pv_max
@@ -51,7 +51,7 @@ class Ship:
 
         # Initialisation de l’Animator
         pixel_coord = (colonne * TAILLE_CASE, ligne * TAILLE_CASE)
-        self.animator = ShipAnimator(BASE_IMG_DIR, taille, pixel_coord)
+        self.animator = ShipAnimator(path, taille, pixel_coord)
 
         # Charger les animations
         for anim in ["base", "engine", "shield", "destruction"]:
@@ -79,38 +79,6 @@ class Ship:
         largeur, hauteur = self.donner_dimensions(direction)
         return int(round(centre_l-(hauteur-1)/2)), int(round(centre_c-(largeur-1)/2))
 
-    # ------------ DESSIN ------------
-    def dessiner(self, surface, taille_case, preview=False):
-        """Dessine le vaisseau (avec animation) sur la surface pygame."""
-        # Position et orientation
-        if preview:
-            ligne, colonne, direction = self.aperçu_ligne, self.aperçu_colonne, self.aperçu_direction
-        else:
-            ligne, colonne, direction = self.ligne, self.colonne, self.direction
-
-        largeur, hauteur = self.donner_dimensions(direction)
-        x, y = colonne * taille_case, ligne * taille_case
-        w, h = largeur * taille_case, hauteur * taille_case
-
-        # Mise à jour de la position + dimensions
-        self.animator.x = x
-        self.animator.y = y
-        self.animator.pixel_w = w
-        self.animator.pixel_h = h
-
-        # Conversion direction → angle (ShipAnimator attend un angle en degrés)
-        if direction == "haut":
-            self.animator.angle = 0
-        elif direction == "droite":
-            self.animator.angle = -90
-        elif direction == "gauche":
-            self.animator.angle = 90
-        elif direction == "bas":
-            self.animator.angle = 180
-
-        # Mise à jour + dessin (ShipAnimator sait déjà utiliser l’angle et la taille)
-        self.animator.update_and_draw()
-
     # ------------ COMBAT ------------
     def attaquer(self, cible: "Ship"):
         """Inflige des dégâts à une cible."""
@@ -130,7 +98,7 @@ class Ship:
             self.animator.play("shield", reset=True)
         else:
             self.animator.play("destruction", reset=True)
-            self.dead_timer = 0
+
 
     def est_mort(self):
         """Retourne True si le vaisseau est détruit."""
@@ -196,7 +164,7 @@ class Ship:
                         positions.append((nl, nc))
         return positions
 
-    def deplacement(self, case_cible, nombre_colonne, nombre_lignes, plateau, Ships):
+    def deplacement(self, case_cible, nombre_colonne, nombre_lignes, plateau, Ships, taille_case):
         """Déplace le vaisseau ou attaque si une cible est dans la portée."""
         if self.id is None: raise ValueError("Ship.id non défini")
         ligne, colonne = case_cible
@@ -217,7 +185,7 @@ class Ship:
         # ---- Déplacement ----
         if case_cible not in self.positions_possibles_adjacentes(nombre_colonne, nombre_lignes, plateau, direction=cible_direction):
             return False
-
+        
         # Sauvegarde ancienne position
         ancienne_ligne, ancienne_colonne, ancienne_direction = self.ligne,self.colonne,self.direction
         self.occuper_plateau(plateau,0,direction=ancienne_direction,ligne=ancienne_ligne,colonne=ancienne_colonne)
@@ -226,6 +194,29 @@ class Ship:
         if self.verifier_collision(plateau, ligne, colonne, cible_direction):
             self.ligne,self.colonne,self.direction = ligne,colonne,cible_direction
             self.occuper_plateau(plateau,int(self.id),direction=self.direction,ligne=self.ligne,colonne=self.colonne)
+            largeur, hauteur = self.donner_dimensions(self.direction)
+            x, y = colonne * taille_case, ligne * taille_case
+            w, h = largeur * taille_case, hauteur * taille_case
+
+            # Mise à jour de la position + dimensions
+            self.animator.x = x
+            self.animator.y = y
+            self.animator.pixel_w = w
+            self.animator.pixel_h = h
+
+            # Conversion direction → angle (ShipAnimator attend un angle en degrés)
+            if cible_direction == "haut":
+                self.animator.target_angle = 0
+            elif cible_direction == "droite":
+                self.animator.target_angle = -90
+            elif cible_direction == "gauche":
+                self.animator.target_angle = 90
+            elif cible_direction == "bas":
+                self.animator.target_angle = 180
+
+            self.animator.update_and_draw()
+
+
             return True
         else:
             # Réoccupe ancienne position en cas d’échec
@@ -256,29 +247,6 @@ class Ship:
         self.rotation_aperçu(nombre_colonne,nombre_lignes)
 
 
-
-
-
-
-
-
-
-
-
-
-
-# ------------ Sous-classes ------------
-
-current_dir = os.path.dirname(__file__)
-IMG_DIRS = {
-    "petit": os.path.join(current_dir, "..", "assets", "img", "Ships", "petit"),
-    "moyen": os.path.join(current_dir, "..", "assets", "img", "Ships", "moyen"),
-    "lourd": os.path.join(current_dir, "..", "assets", "img", "Ships", "lourd"),
-    "foreuse": os.path.join(current_dir, "..", "assets", "img", "Ships", "foreuse"),
-    "transport": os.path.join(current_dir, "..", "assets", "img", "Ships", "transport"),
-}
-
-
 # ------------ Sous-Sous-classes ------------
 
 
@@ -288,22 +256,22 @@ class Petit(Ship):
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
-                 BASE_IMG_DIR: str = None):
+                 path: str = None):
         
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                  taille, peut_miner, peut_transporter, image,
-                 tier, ligne, colonne, id, BASE_IMG_DIR)
+                 tier, ligne, colonne, id, path)
 
 class Moyen(Ship):
     def __init__(self,
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
-                 BASE_IMG_DIR: str = None):
+                 path: str = None):
         
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                  taille, peut_miner, peut_transporter, image,
-                 tier, ligne, colonne, id, BASE_IMG_DIR)
+                 tier, ligne, colonne, id, path)
 
 
 class Lourd(Ship):
@@ -311,11 +279,11 @@ class Lourd(Ship):
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
-                 BASE_IMG_DIR: str = None):
+                 path: str = None):
         
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                  taille, peut_miner, peut_transporter, image,
-                 tier, ligne, colonne, id, BASE_IMG_DIR)
+                 tier, ligne, colonne, id, path)
 
 
 
@@ -325,11 +293,11 @@ class Foreuse(Ship):
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
-                 BASE_IMG_DIR: str = None):
+                 path: str = None):
         
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                  taille, peut_miner, peut_transporter, image,
-                 tier, ligne, colonne, id, BASE_IMG_DIR)
+                 tier, ligne, colonne, id, path)
 
 
 
@@ -339,11 +307,11 @@ class Transport(Ship):
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
-                 BASE_IMG_DIR: str = None):
+                 path: str = None):
         
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                  taille, peut_miner, peut_transporter, image,
-                 tier, ligne, colonne, id, BASE_IMG_DIR)
+                 tier, ligne, colonne, id, path)
         self.cargaison = []  # liste des vaisseaux stockés
 
     def ajouter_cargo(self, Ship: Ship, plateau) -> bool:
