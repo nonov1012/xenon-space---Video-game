@@ -3,6 +3,8 @@ import numpy as np
 import os
 from typing import Tuple, List, Optional
 from classes.Animator import Animator
+from classes.ShipAnimator import ShipAnimator
+
 
 
 class Ship:
@@ -20,7 +22,6 @@ class Ship:
                  tier: int,
                  ligne: int = 0,
                  colonne: int = 0,
-                 screen: Optional[pygame.Surface] = None,
                  uid: Optional[int] = None):
         
         # caractéristiques
@@ -52,16 +53,6 @@ class Ship:
         self.aperçu_direction = self.direction
         self.aperçu_ligne = ligne
         self.aperçu_colonne = colonne
-
-        self.screen = screen
-        self.animator = Animator(
-            screen=screen,
-            path=f"assets/img/Ships/{self.__class__.__name__.lower()}",
-            dimensions=self.taille,
-            coord=(self.colonne*40, self.ligne*40),  # TAILLE_CASE = 40
-            PV_actuelle=self.pv_actuel,
-            PV_max=self.pv_max
-        )
 
     # ------------ utilitaires ------------
     def donner_dimensions(self, direction: str) -> Tuple[int, int]:
@@ -101,11 +92,6 @@ class Ship:
 
         img = pygame.transform.scale(img, (w,h))
         surface.blit(img, (x,y))
-        self.update()
-        self.animator.update_and_draw()
-    
-    def update(self):
-        self.animator.update(self.pv_actuel, self.pv_max)
 
         
 
@@ -174,10 +160,6 @@ class Ship:
                         positions.append((nl, nc))
         return positions
 
-
-
-
-
     def deplacement(self, case_cible, nombre_colonne, nombre_lignes, plateau, Ships):
         if self.id is None: raise ValueError("Ship.id non défini")
         ligne, colonne = case_cible
@@ -245,192 +227,343 @@ IMG_DIRS = {
 # ------------ Sous-Sous-classes ------------
 
 
-class petit(Ship):
-    def __init__(self, screen: pygame.Surface, position: tuple[int,int], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.screen = screen
-        self.animator = Animator(
-            screen,
-            self.image,
-            self.taille,
-            (position[1]*32, position[0]*32),
-            tile_size=32
-        )
+
+class Petit(Ship):
+    def __init__(self,
+                 pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
+                 taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
+                 tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
+                 BASE_IMG_DIR: str = None):
+        
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
+                         valeur_mort, taille, peut_miner, peut_transporter,
+                         image, tier, ligne, colonne, id)
+
+        # Initialisation de l’Animator
+        pixel_coord = (colonne * 32, ligne * 32)
+        self.animator = Animator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
+
+        # Charger les animations
+        for anim in ["base", "engine", "shield", "destruction", "weapons"]:
+            self.animator.load_animation(anim, f"{anim}.png")
+
+        self.animator.play("base")
         self.is_dead_anim_playing = False
+        self.is_weapon_anim_playing = False
 
-    def subir_degats(self, amount: int):
-        self.take_damage(amount)
-
-    def take_damage(self, amount: int):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
-        if self.pv_actuel > 0:
-            self.animator.play("shield")
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction")
-                self.is_dead_anim_playing = True
-
-    def dead(self) -> bool:
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
-
-    def update(self):
-        self.animator.update(self.pv_actuel, self.pv_max)
-
+    # Dessin + barre de vie
     def dessiner(self, surface, taille_case):
-        self.update()
+        # Mettre à jour la position de l’Animator
+        self.animator.x = self.colonne * taille_case
+        self.animator.y = self.ligne * taille_case
         self.animator.update_and_draw()
 
-class moyen(Ship):
-    def __init__(self, screen: pygame.Surface, position: tuple[int,int], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.screen = screen
-        self.animator = Animator(
-            screen,
-            self.image,
-            self.taille,
-            (position[1]*32, position[0]*32),
-            tile_size=32
-        )
-        self.is_dead_anim_playing = False
+        # Afficher barre de vie
+        x = self.colonne * taille_case
+        y = (self.ligne + self.taille[1]) * taille_case + 2
+        largeur_barre = self.taille[0] * taille_case
+        proportion = self.pv_actuel / self.pv_max
+        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
+        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
 
-    def subir_degats(self, amount: int):
-        self.take_damage(amount)
+        if self.is_dead_anim_playing:
+            self.dead_timer += 1  # incrémente chaque frame
 
-    def take_damage(self, amount: int):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
-        if self.pv_actuel > 0:
-            self.animator.play("shield")
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction")
-                self.is_dead_anim_playing = True
-
-    def dead(self) -> bool:
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
-
-    def update(self):
-        self.animator.update(self.pv_actuel, self.pv_max)
-
-    def dessiner(self, surface, taille_case):
-        self.update()
         self.animator.update_and_draw()
 
-
-class lourd(Ship):
-    def __init__(self, screen: pygame.Surface, position: tuple[int,int], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.screen = screen
-        self.animator = Animator(
-            screen,
-            self.image,
-            self.taille,
-            (position[1]*32, position[0]*32),
-            tile_size=32
-        )
-        self.is_dead_anim_playing = False
-
-    def subir_degats(self, amount: int):
-        self.take_damage(amount)
-
-    def take_damage(self, amount: int):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
+    # Attaque avec animation
+    def attaquer(self, cible: "Ship"):
+        super().attaquer(cible)  # utilise la fonction de la classe Ship
+        self.animator.play("weapons", reset=True)
+    
+    # Prise de dégâts avec animation
+    def subir_degats(self, degats):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
         if self.pv_actuel > 0:
-            self.animator.play("shield")
+            self.animator.play("shield", reset=True)
         else:
             if not self.is_dead_anim_playing:
-                self.animator.play("destruction")
+                self.animator.play("destruction", reset=True)
                 self.is_dead_anim_playing = True
+                self.dead_timer = 0
 
-    def dead(self) -> bool:
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
+    # Vérifier si le vaisseau est mort
+    def est_mort(self):
+        # True après N frames de l'animation destruction
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
 
-    def update(self):
-        self.animator.update(self.pv_actuel, self.pv_max)
 
+class Moyen(Ship):
+    def __init__(self,
+                 pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
+                 taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
+                 tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
+                 BASE_IMG_DIR: str = None):
+        
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
+                         valeur_mort, taille, peut_miner, peut_transporter,
+                         image, tier, ligne, colonne, id)
+
+        # Initialisation de l’Animator
+        pixel_coord = (colonne * 32, ligne * 32)
+        self.animator = Animator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
+
+        # Charger les animations
+        for anim in ["base", "engine", "shield", "destruction", "weapons"]:
+            self.animator.load_animation(anim, f"{anim}.png")
+
+        self.animator.play("base")
+        self.is_dead_anim_playing = False
+        self.is_weapon_anim_playing = False
+
+    # Dessin + barre de vie
     def dessiner(self, surface, taille_case):
-        self.update()
+        # Mettre à jour la position de l’Animator
+        self.animator.x = self.colonne * taille_case
+        self.animator.y = self.ligne * taille_case
         self.animator.update_and_draw()
 
+        # Afficher barre de vie
+        x = self.colonne * taille_case
+        y = (self.ligne + self.taille[1]) * taille_case + 2
+        largeur_barre = self.taille[0] * taille_case
+        proportion = self.pv_actuel / self.pv_max
+        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
+        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
 
+        if self.is_dead_anim_playing:
+            self.dead_timer += 1  # incrémente chaque frame
 
-class foreuse(Ship):
-    def __init__(self, screen: pygame.Surface, position: tuple[int,int], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.screen = screen
-        self.animator = Animator(
-            screen,
-            self.image,
-            self.taille,
-            (position[1]*32, position[0]*32),
-            tile_size=32
-        )
-        self.is_dead_anim_playing = False
+        self.animator.update_and_draw()
 
-    def subir_degats(self, amount: int):
-        self.take_damage(amount)
-
-    def take_damage(self, amount: int):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
+    # Attaque avec animation
+    def attaquer(self, cible: "Ship"):
+        super().attaquer(cible)  # utilise la fonction de la classe Ship
+        self.animator.play("weapons", reset=True)
+    
+    # Prise de dégâts avec animation
+    def subir_degats(self, degats):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
         if self.pv_actuel > 0:
-            self.animator.play("shield")
+            self.animator.play("shield", reset=True)
         else:
             if not self.is_dead_anim_playing:
-                self.animator.play("destruction")
+                self.animator.play("destruction", reset=True)
                 self.is_dead_anim_playing = True
+                self.dead_timer = 0
 
-    def dead(self) -> bool:
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
+    # Vérifier si le vaisseau est mort
+    def est_mort(self):
+        # True après N frames de l'animation destruction
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
 
-    def update(self):
-        self.animator.update(self.pv_actuel, self.pv_max)
 
+
+
+
+
+class Lourd(Ship):
+    def __init__(self,
+                 pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
+                 taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
+                 tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
+                 BASE_IMG_DIR: str = None):
+        
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
+                         valeur_mort, taille, peut_miner, peut_transporter,
+                         image, tier, ligne, colonne, id)
+
+        # Initialisation de l’Animator
+        pixel_coord = (colonne * 32, ligne * 32)
+        self.animator = ShipAnimator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
+
+        # Charger les animations
+        for anim in ["base", "engine", "shield", "destruction", "weapons"]:
+            self.animator.load_animation(anim, f"{anim}.png")
+
+        self.animator.play("base")
+        self.is_dead_anim_playing = False
+        self.is_weapon_anim_playing = False
+
+    # Dessin + barre de vie
     def dessiner(self, surface, taille_case):
-        self.update()
+        # Mettre à jour la position de l’Animator
+        self.animator.x = self.colonne * taille_case
+        self.animator.y = self.ligne * taille_case
         self.animator.update_and_draw()
+
+        # Afficher barre de vie
+        x = self.colonne * taille_case
+        y = (self.ligne + self.taille[1]) * taille_case + 2
+        largeur_barre = self.taille[0] * taille_case
+        proportion = self.pv_actuel / self.pv_max
+        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
+        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
+
+        if self.is_dead_anim_playing:
+            self.dead_timer += 1  # incrémente chaque frame
+
+        self.animator.update_and_draw()
+
+    # Attaque avec animation
+    def attaquer(self, cible: "Ship"):
+        super().attaquer(cible)  # utilise la fonction de la classe Ship
+        self.animator.play("weapons", reset=True)
+    
+    # Prise de dégâts avec animation
+    def subir_degats(self, degats):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
+        if self.pv_actuel > 0:
+            self.animator.play("shield", reset=True)
+        else:
+            if not self.is_dead_anim_playing:
+                self.animator.play("destruction", reset=True)
+                self.is_dead_anim_playing = True
+                self.dead_timer = 0
+
+    # Vérifier si le vaisseau est mort
+    def est_mort(self):
+        # True après N frames de l'animation destruction
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
+
+
+
+
+class Foreuse(Ship):
+    def __init__(self,
+                 pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
+                 taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
+                 tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
+                 BASE_IMG_DIR: str = None):
+        
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
+                         valeur_mort, taille, peut_miner, peut_transporter,
+                         image, tier, ligne, colonne, id)
+
+        # Initialisation de l’Animator
+        pixel_coord = (colonne * 32, ligne * 32)
+        self.animator = Animator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
+
+        # Charger les animations
+        for anim in ["base", "engine", "destruction"]:
+            self.animator.load_animation(anim, f"{anim}.png")
+
+        self.animator.play("base")
+        self.is_dead_anim_playing = False
+        self.is_weapon_anim_playing = False
+
+    # Dessin + barre de vie
+    def dessiner(self, surface, taille_case):
+        # Mettre à jour la position de l’Animator
+        self.animator.x = self.colonne * taille_case
+        self.animator.y = self.ligne * taille_case
+        self.animator.update_and_draw()
+
+        # Afficher barre de vie
+        x = self.colonne * taille_case
+        y = (self.ligne + self.taille[1]) * taille_case + 2
+        largeur_barre = self.taille[0] * taille_case
+        proportion = self.pv_actuel / self.pv_max
+        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
+        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
+
+        if self.is_dead_anim_playing:
+            self.dead_timer += 1  # incrémente chaque frame
+
+        self.animator.update_and_draw()
+
+    # Attaque avec animation
+    def attaquer(self, cible: "Ship"):
+        pass
+    
+    # Prise de dégâts avec animation
+    def subir_degats(self, degats):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
+        if self.pv_actuel > 0:
+            self.animator.play("base", reset=True)
+        else:
+            if not self.is_dead_anim_playing:
+                self.animator.play("destruction", reset=True)
+                self.is_dead_anim_playing = True
+                self.dead_timer = 0
+
+
+    # Vérifier si le vaisseau est mort
+    def est_mort(self):
+        # True après N frames de l'animation destruction
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
+
 
 
 
 class Transport(Ship):
-    def __init__(self, screen: pygame.Surface, image_dir: str, position: tuple[int,int], *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self,
+                 pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
+                 taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
+                 tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
+                 BASE_IMG_DIR: str = None):
+        
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
+                         valeur_mort, taille, peut_miner, peut_transporter,
+                         image, tier, ligne, colonne, id)
         self.cargaison = []  # liste des vaisseaux stockés
-        self.screen = screen
-        self.animator = Animator(
-            screen,
-            image_dir,
-            self.taille,
-            (position[1]*32, position[0]*32),
-            tile_size=32
-        )
+        # Initialisation de l’Animator
+        pixel_coord = (colonne * 32, ligne * 32)
+        self.animator = Animator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
+
+        # Charger les animations
+        for anim in ["base", "engine", "shield", "destruction", "weapons"]:
+            self.animator.load_animation(anim, f"{anim}.png")
+
+        self.animator.play("base")
         self.is_dead_anim_playing = False
+        self.is_weapon_anim_playing = False
 
-    def subir_degats(self, amount: int):
-        self.take_damage(amount)
-
-    def take_damage(self, amount: int):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
-        if self.pv_actuel > 0:
-            self.animator.play("shield")
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction")
-                self.is_dead_anim_playing = True
-
-    def dead(self) -> bool:
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.animator.is_animation_finished("destruction")
-
-    def update(self):
-        self.animator.update(self.pv_actuel, self.pv_max)
-
+    # Dessin + barre de vie
     def dessiner(self, surface, taille_case):
-        self.update()
+        # Mettre à jour la position de l’Animator
+        self.animator.x = self.colonne * taille_case
+        self.animator.y = self.ligne * taille_case
         self.animator.update_and_draw()
 
+        # Afficher barre de vie
+        x = self.colonne * taille_case
+        y = (self.ligne + self.taille[1]) * taille_case + 2
+        largeur_barre = self.taille[0] * taille_case
+        proportion = self.pv_actuel / self.pv_max
+        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
+        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
+
+        if self.is_dead_anim_playing:
+            self.dead_timer += 1  # incrémente chaque frame
+
+        self.animator.update_and_draw()
+
+    # Attaque avec animation
+    def attaquer(self, cible: "Ship"):
+        super().attaquer(cible)  # utilise la fonction de la classe Ship
+        self.animator.play("weapons", reset=True)
+    
+    # Prise de dégâts avec animation
+    def subir_degats(self, degats):
+        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
+        if self.pv_actuel > 0:
+            self.animator.play("shield", reset=True)
+        else:
+            if not self.is_dead_anim_playing:
+                self.animator.play("destruction", reset=True)
+                self.is_dead_anim_playing = True
+                self.dead_timer = 0
+
+    # Vérifier si le vaisseau est mort
+    def est_mort(self):
+        # True après N frames de l'animation destruction
+        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
 
     def ajouter_cargo(self, Ship: Ship, plateau) -> bool:
         """Ajoute un vaisseau dans le transport si possible."""
         # Autoriser seulement petit ou moyen
-        if not isinstance(Ship, (petit, moyen)):
+        if not isinstance(Ship, (Petit, Moyen)):
             return False
 
         if len(self.cargaison) >= 3:
@@ -460,22 +593,13 @@ class Transport(Ship):
         return False
 
     def _taille_vaisseau(self, Ship: Ship) -> int:
-        if isinstance(Ship, petit):
+        if isinstance(Ship, Petit):
             return 1
-        elif isinstance(Ship, moyen):
+        elif isinstance(Ship, Moyen):
             return 2
         else:
             return 3
 
-    def subir_degats(self, degats, plateau=None):
-        """Si le transport meurt, tous les vaisseaux embarqués meurent."""
-        super().subir_degats(degats)
-        if self.est_mort() and plateau is not None:
-            for Ship in self.cargaison:
-                Ship.pv_actuel = 0
-                Ship.occuper_plateau(plateau, 0)
-            self.cargaison.clear()
-    
     def afficher_cargaison(self, fenetre, taille_case):
         """Affiche les vaisseaux stockés avec images miniatures au-dessus du transport"""
         for i, Ship in enumerate(self.cargaison):
@@ -488,7 +612,8 @@ class Transport(Ship):
     def positions_debarquement(self, Ship_stocke, plateau, nombre_lignes, nombre_colonnes):
         """Retourne les positions valides pour débarquer un vaisseau depuis ce transport."""
         positions_valides = []
-        port = self.port_deplacement
+        port = Ship_stocke.port_deplacement  # utiliser la portée du vaisseau stocké
+
         for dy in range(-port, port+1):
             for dx in range(-port, port+1):
                 if abs(dy) + abs(dx) > port:
@@ -505,14 +630,15 @@ class Transport(Ship):
                 collision = False
                 for l in range(nl, nl+hauteur):
                     for c in range(nc, nc+largeur):
-                        if plateau[l,c] != 0:
+                        if plateau[l, c] != 0:
                             collision = True
                             break
                     if collision:
                         break
 
                 if not collision:
-                    positions_valides.append((nl,nc))
+                    positions_valides.append((nl, nc))
+
         return positions_valides
 
 

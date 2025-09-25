@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-from classes.Ship import petit, moyen, lourd, Transport, foreuse
+from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
 from classes.MotherShip import MotherShip
 from classes.Animator import *
 
@@ -15,80 +15,83 @@ pygame.init()
 fenetre = pygame.display.set_mode((LARGEUR, HAUTEUR))
 pygame.display.set_caption("Xenon Space - Déplacement/Attaque")
 
+# Définir l’écran pour Animator
+Animator.set_screen(fenetre)
+
+
 # --- Plateau ---
 plateau = np.zeros((NOMBRE_LIGNES, NOMBRE_COLONNES), dtype=int)
 
-# --- Images ---
-img_lourd = pygame.image.load("assets/img/ships/lourd/base.png").convert_alpha()
+# --- Images / dossiers ---
+img_Lourd = pygame.image.load("assets/img/ships/lourd/base.png").convert_alpha()
 img_moyen = pygame.image.load("assets/img/ships/moyen/base.png").convert_alpha()
 img_petit = pygame.image.load("assets/img/ships/petit/base.png").convert_alpha()
 img_foreuse = pygame.image.load("assets/img/ships/foreuse/base.png").convert_alpha()
 img_transport = pygame.image.load("assets/img/ships/transport/base.png").convert_alpha()
 
+# dossiers pour Animator
+img_base = "assets/img/ships/base"
+img_lourd_dir = "assets/img/ships/lourd"
+img_moyen_dir = "assets/img/ships/moyen"
+img_petit_dir = "assets/img/ships/petit"
+img_foreuse_dir = "assets/img/ships/foreuse"
+img_transport_dir = "assets/img/ships/transport"
+
+
+
+
 # --- Création vaisseaux ---
 next_uid = 1
 ships = []
 
-# Vaisseaux classiques
+sl1 = Lourd(pv_max=500, attaque=300, port_attaque=6, port_deplacement=3, cout=800,
+            valeur_mort=800*0.6, taille=(3,3), peut_miner=False, peut_transporter=False,
+            image=img_Lourd, tier=4, ligne=8, colonne=8, id=next_uid, BASE_IMG_DIR=img_lourd_dir)
+next_uid += 1
+ships.append(sl1)
 
-# --- Création vaisseaux ---
-next_uid = 1
-ships = []
+sl2 = Lourd(pv_max=500, attaque=300, port_attaque=6, port_deplacement=3, cout=800,
+            valeur_mort=800*0.6, taille=(3,3), peut_miner=False, peut_transporter=False,
+            image=img_Lourd, tier=4, ligne=12, colonne=12, id=next_uid, BASE_IMG_DIR=img_lourd_dir)
+next_uid += 1
+ships.append(sl2)
 
+sm1 = Moyen(pv_max=900, attaque=250, port_attaque=5, port_deplacement=5, cout=800,
+            valeur_mort=800*0.6, taille=(2,2), peut_miner=False, peut_transporter=False,
+            image=img_moyen, tier=1, ligne=12, colonne=1, id=next_uid, BASE_IMG_DIR=img_moyen_dir)
+next_uid += 1
+ships.append(sm1)
 
-# Vaisseaux classiques
-s2 = lourd(
-    screen=fenetre, position=(4,7),
-    pv_max=400, attaque=175, port_attaque=6, port_deplacement=4, cout=650, valeur_mort=390, taille=(3,4),
-    peut_miner=False, peut_transporter=False, image = img_lourd, tier=1, uid=next_uid
-); next_uid += 1
+st1 = Transport(pv_max=1200, attaque=150, port_attaque=4, port_deplacement=8, cout=800,
+            valeur_mort=800*0.6, taille=(3,4), peut_miner=False, peut_transporter=True,
+            image=img_transport, tier=1, ligne=7, colonne=7, id=next_uid, BASE_IMG_DIR=img_transport_dir)
+next_uid += 1
+ships.append(st1)
 
-s3 = petit(
-    screen=fenetre, position=(5,5),
-    pv_max=400, attaque=75, port_attaque=8, port_deplacement=3, cout=325, valeur_mort=200, taille=(1,1),
-    peut_miner=False, peut_transporter=False, image="assets/img/ships/petit/petit.png", tier=1, uid=next_uid
-); next_uid += 1
+sp1 = Petit(pv_max=300, attaque=100, port_attaque=3, port_deplacement=6, cout=800,
+            valeur_mort=800*0.6, taille=(1,1), peut_miner=False, peut_transporter=False,
+            image=img_petit, tier=1, ligne=12, colonne=10, id=next_uid, BASE_IMG_DIR=img_petit_dir)
+next_uid += 1
+ships.append(sp1)
 
-s6 = petit(
-    screen=fenetre, position=(6,5),
-    pv_max=400, attaque=75, port_attaque=8, port_deplacement=3, cout=325, valeur_mort=200, taille=(1,1),
-    peut_miner=False, peut_transporter=False, image="assets/img/ships/petit/petit.png", tier=1, uid=next_uid
-); next_uid += 1
-
-s7 = petit(
-    screen=fenetre, position=(7,5),
-    pv_max=400, attaque=75, port_attaque=8, port_deplacement=3, cout=325, valeur_mort=200, taille=(1,1),
-    peut_miner=False, peut_transporter=False, image="assets/img/ships/petit/petit.png", tier=1, uid=next_uid
-); next_uid += 1
-
-s8 = petit(
-    screen=fenetre, position=(8,5),
-    pv_max=400, attaque=75, port_attaque=8, port_deplacement=3, cout=325, valeur_mort=200, taille=(1,1),
-    peut_miner=False, peut_transporter=False, image="assets/img/ships/petit/petit.png", tier=1, uid=next_uid
-); next_uid += 1
-
-s4 = Transport(
-    screen=fenetre, position=(6,2),
-    pv_max=400, attaque=75, port_attaque=3, port_deplacement=3, cout=325, valeur_mort=200, taille=(3,5),
-    peut_miner=False, peut_transporter=True, image="assets/img/ships/foreuse/foreuse.png", tier=1, uid=next_uid
-); next_uid += 1
-
-s5 = foreuse(
-    screen=fenetre, position=(9,9),
-    pv_max=400, attaque=75, port_attaque=3, port_deplacement=3, cout=325, valeur_mort=200, taille=(2,2), 
-    peut_miner=False, peut_transporter=False, image="assets/img/ships/foreuse/foreuse.png", tier=1, uid=next_uid
-); next_uid += 1
-
+sf1 = Foreuse(pv_max=500, attaque=0, port_attaque=0, port_deplacement=3, cout=800,
+            valeur_mort=800*0.6, taille=(2,2), peut_miner=True, peut_transporter=False,
+            image=img_foreuse, tier=1, ligne=16, colonne=16, id=next_uid, BASE_IMG_DIR=img_foreuse_dir)
+next_uid += 1
+ships.append(sf1)
 
 # MotherShip
-b2 = MotherShip(fenetre, position=(0,0), tier=2, uid=next_uid)
+b2 = MotherShip(fenetre, position=(0, 0), tier=1, largeur=4, hauteur=5, uid=next_uid, BASE_IMG_DIR=img_base)
 next_uid += 1
 ships.append(b2)
 
+
 # --- Placer vaisseaux sur le plateau ---
-for s in [ s2, s3, s4, s5, s6, s7, s8, b2]:
+# Placer vaisseaux sur le plateau 
+for s in ships:
+    # s.id doit être défini . utiliser int(s.id) si nécessaire.
     s.occuper_plateau(plateau, int(s.id))
-    ships.append(s)
+
 
 # --- Variables de sélection ---
 selection_ship = None
@@ -175,13 +178,16 @@ while fonctionne:
             pygame.draw.rect(fenetre, couleur, (colonne*TAILLE_CASE, ligne*TAILLE_CASE, TAILLE_CASE, TAILLE_CASE))
 
     # --- Mettre à jour et dessiner les vaisseaux ---
-    for ship in ships[:]:
-        ship.update()  # met à jour animations, PV, etc.
+    for ship in ships[:]: 
         ship.dessiner(fenetre, TAILLE_CASE)
-        if hasattr(ship, "dead") and ship.dead():
+
+        # Vérifier si le vaisseau est mort et que l'animation est terminée
+        if hasattr(ship, "est_mort") and ship.est_mort():
             ship.occuper_plateau(plateau, 0)
             ships.remove(ship)
             print(f"{ship.__class__.__name__} détruit")
+
+
 
     # --- Affichage cargaison transport ---
     if selection_ship and isinstance(selection_ship, Transport):
