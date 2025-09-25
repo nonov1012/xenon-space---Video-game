@@ -185,3 +185,58 @@ class MotherShip(Ship):
     def __del__(self):
         print("Vaisseau mère détruit")
 
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((1000, 800))
+    clock = pygame.time.Clock()
+    pygame.display.set_caption("Test affichage Vaisseau mère")
+
+    Animator.set_screen(screen)
+
+    # Créer un objet à tester
+    B1 = MotherShip(Point(0, 0), tier=1, show_health=True, largeur=4, hauteur=5)
+    B1.animator.play("base")
+    B1.animator.update_and_draw()
+    B1.animator.play("engine")
+
+    running = True
+    while running:
+        if 'B1' not in locals(): 
+            running = False
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 3:  # clic droit : dégâts
+                        B1.take_damage(100)
+                        print(f"PV actuels : {B1.PV_actuelle}")
+                        B1.animator.set_target(pygame.mouse.get_pos())
+                    elif event.button == 1:  # clic gauche : arme
+                        B1.animator.fire("laser", pygame.mouse.get_pos(), True, 10)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                    B1.animator.set_target_angle(B1.animator.target_angle + 90)
+
+            # Mettre à jour l'animation courante
+            screen.fill((0, 0, 0))
+
+            Animator.update_all()
+            ShipAnimator.update_all()
+            ProjectileAnimator.update_all()
+
+            if B1.dead():
+                # Joue l'animation de destruction + fade
+                if B1.animator.play_with_fade("destruction", fade_duration=1000):
+                    del B1
+
+        pygame.display.flip()
+        clock.tick(60)
+
+    pygame.quit()
+    sys.exit()
+
+
+if __name__ == "__main__":
+    main()

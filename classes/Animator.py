@@ -182,7 +182,8 @@ class Animator:
         return (self.x + self.pixel_w // 2, self.y + self.pixel_h // 2)
 
 
-    def set_target(self, target: Tuple[int, int], angle_targeted : bool = True):
+    
+    def set_target(self, target: Tuple[int, int], angle_targeted: bool = True, image_facing: str = "up"):
         self.target = target
         self.active = True
 
@@ -190,21 +191,45 @@ class Animator:
         cx = self.x + self.pixel_w // 2
         cy = self.y + self.pixel_h // 2
 
-        # vecteur direction vers la cible
+        # vecteur direction vers la cible (coordonnées écran)
         dx = self.target[0] - cx
         dy = self.target[1] - cy
         dist = math.hypot(dx, dy)
 
         if dist == 0:
-            self.vx, self.vy = 0, 0
+            self.vx, self.vy = 0.0, 0.0
             return
         else:
             self.vx = dx / dist
             self.vy = dy / dist
 
+        
+        # === IMPORTANT ===
+        # math.atan2 attend un système où y positif = vers le haut.
+        # Sur l'écran y positif = vers le bas, donc on inverse dy: -dy.
+        # angle_to_target (en degrés) : 0 = droite, + = sens trigo (CCW).
+        angle_to_target = math.degrees(math.atan2(-dy, dx))
+
+        # offset selon l'orientation "par défaut" de l'image :
+        # - "right" : l'image regarde vers la droite (est standard pour atan2)
+        # - "up"    : l'image regarde vers le haut (typiquement icône "haut")
+        # - "left"  : image regarde vers la gauche
+        # - "down"  : image regarde vers le bas
+        offsets = {
+            "right": 0.0,
+            "up": -90.0,
+            "left": 180.0,
+            "down": 90.0
+        }
+        offset = offsets.get(image_facing, 0.0)
+
+        # angle final normalisé en [0,360)
+        angle = (angle_to_target + offset) % 360.0
         if angle_targeted:
-            # --- Calculer l'angle pour que le haut regarde la cible ---
-            self.angle = math.degrees(math.atan2(dy, dx)) + 90
+            self.target_angle = angle
+        else:
+            self.angle = angle
+            self.target_angle = angle
 
     def move(self):
         """
