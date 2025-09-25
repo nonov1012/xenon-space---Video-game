@@ -78,17 +78,11 @@ def start_game(ecran, parametres, random_active):
     discord.connect()
     
 
-    # Calcul du décalage vertical
-    grid_width = NB_CASE_X * TAILLE_CASE
-    offset_x = (screen_width - grid_width) // 2
-    
-    
     # MotherShip
     B1 = MotherShip(Point(0 , 0), tier=1, show_health=True, largeur=4, hauteur=5)
     B1.animator.play("base")
     B1.animator.update_and_draw()
     B1.animator.play("engine")
-    B1.animator.x += offset_x
 
     afficher_grille = False
     running = True
@@ -115,7 +109,7 @@ def start_game(ecran, parametres, random_active):
         keys = pygame.key.get_pressed()
         afficher_zones = keys[pygame.K_LSHIFT]
 
-        map_obj.generer_grille(ecran, offset_x, afficher_zones ,afficher_grille)
+        map_obj.generer_grille(ecran, OFFSET_X, afficher_zones ,afficher_grille)
 
         Animator.update_all()
         PlanetAnimator.update_all()
@@ -123,7 +117,7 @@ def start_game(ecran, parametres, random_active):
 
         # Dessin des images (planètes + astéroïdes)
         for (ax, ay), img in map_obj.asteroide_img_map.items():
-            ecran.blit(img, (ax * TAILLE_CASE + offset_x, ay * TAILLE_CASE))
+            ecran.blit(img, (ax * TAILLE_CASE + OFFSET_X, ay * TAILLE_CASE))
         
         player = Player("TestPlayer", solde_initial=3000)
         shop = Shop(player, font, ecran)

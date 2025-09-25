@@ -7,6 +7,8 @@ info = pygame.display.Info()
 screen_width = info.current_w
 screen_height = info.current_h
 
+
+
 pygame.quit()
 # Constantes
 
@@ -14,6 +16,9 @@ pygame.quit()
 NB_CASE_X = 50 # Nombre de cases en largeur
 NB_CASE_Y = 30 # Nombre de cases en hauteur
 TAILLE_CASE = screen_height // 32 # Taille d'une case en pixels
+
+GRID_WIDTH = NB_CASE_X * TAILLE_CASE
+OFFSET_X = (screen_width - GRID_WIDTH) // 2
 
 # Planètes
 MAX_PLANETES_ANIMATIONS = 6 # Nombre d'animations de planètes différents

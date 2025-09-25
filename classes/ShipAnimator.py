@@ -51,6 +51,8 @@ class ShipAnimator(Animator):
 
         # couleur du contour de la barre de vie
         self.color = color
+        
+        self.x += OFFSET_X
 
     def update_and_draw(self) -> bool:
         """
