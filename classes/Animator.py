@@ -42,7 +42,8 @@ class Animator:
         coord: Tuple[int, int],        # (x, y) en pixels
         tile_size: int = TAILLE_CASE,
         default_fps: int = 10,
-        speed : int = 1):
+        speed : int = 1
+        ):
         self.path = path
         self.tile_size = tile_size
 
@@ -53,13 +54,12 @@ class Animator:
         # position
         self.x = coord[0] * tile_size
         self.y = coord[1] * tile_size
+
+        print(TAILLE_CASE)
         # --- dimensions en nombre de cases ---
         self.tile_w, self.tile_h = dimensions   # <<< ici
         self.pixel_w = self.tile_w * tile_size
         self.pixel_h = self.tile_h * tile_size
-
-        self.x, self.y = coord
-
 
         # image statique (chargée une seule fois)
         self.static_image = None

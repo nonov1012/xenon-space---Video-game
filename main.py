@@ -6,6 +6,23 @@ from classes.ShipAnimator import ShipAnimator
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Point import Point
 
+def set_prevision_for_ship(ship, case, direction):
+    largeur, hauteur = ship.donner_dimensions(direction)
+    ship.prevision.pixel_w = largeur * TAILLE_CASE
+    ship.prevision.pixel_h = hauteur * TAILLE_CASE
+    ship.prevision.x = case[1] * TAILLE_CASE
+    ship.prevision.y = case[0] * TAILLE_CASE
+
+    if direction == "haut":
+        ship.prevision.target_angle = 0
+    elif direction == "droite":
+        ship.prevision.target_angle = -90
+    elif direction == "gauche":
+        ship.prevision.target_angle = 90
+    elif direction == "bas":
+        ship.prevision.target_angle = 180
+
+
 # --- Paramètres ---
 TAILLE_CASE = 32
 NOMBRE_LIGNES = 20
@@ -47,6 +64,8 @@ sl1 = Lourd(pv_max=500, attaque=300, port_attaque=6, port_deplacement=3, cout=80
             valeur_mort=int(800*0.6), taille=(3,3), peut_miner=False, peut_transporter=False,
             image=img_Lourd, tier=4, cordonner=sl1point, id=next_uid, path=img_lourd_dir)
 next_uid += 1
+print(sl1.animator.x)
+print(TAILLE_CASE)
 ships.append(sl1)
 
 # Lourd 2
@@ -209,25 +228,40 @@ while fonctionne:
     # --- Preview déplacement / débarquement ---
     if selection_ship:
         if interface_transport_active and selection_cargo:
+            # Cases possibles pour débarquer
             positions_possibles = selection_ship.positions_debarquement(
-                selection_cargo, plateau, NOMBRE_LIGNES, NOMBRE_COLONNES)
+                selection_cargo, plateau, NOMBRE_LIGNES, NOMBRE_COLONNES
+            )
             for ligne, colonne in positions_possibles:
-                pygame.draw.rect(fenetre, (255,255,0), (colonne*TAILLE_CASE, ligne*TAILLE_CASE, TAILLE_CASE, TAILLE_CASE), 3)
+                pygame.draw.rect(fenetre, (255,255,0),
+                                (colonne*TAILLE_CASE, ligne*TAILLE_CASE, TAILLE_CASE, TAILLE_CASE), 3)
+
+            # Afficher prévision du cargo seulement si la souris est sur une case valide
             if case_souris in positions_possibles:
-                largeur, hauteur = selection_cargo.donner_dimensions(selection_cargo.direction)
-                surf = pygame.transform.scale(selection_cargo.image, (largeur*TAILLE_CASE, hauteur*TAILLE_CASE))
-                surf.set_alpha(150)
-                fenetre.blit(surf, (case_souris[1]*TAILLE_CASE, case_souris[0]*TAILLE_CASE))
+                selection_cargo.prevision.alpha = 100
+                set_prevision_for_ship(selection_cargo, case_souris, selection_cargo.direction)
+                selection_cargo.prevision.update_and_draw()
+            else:
+                # Par défaut, on colle la préview du cargo au transport
+                set_prevision_for_ship(selection_cargo, (selection_ship.cordonner.x, selection_ship.cordonner.y), selection_ship.direction)
+
         else:
+            # Cases possibles pour déplacement
             positions_possibles = selection_ship.positions_possibles_adjacentes(
-                NOMBRE_COLONNES, NOMBRE_LIGNES, plateau, direction=selection_ship.aperçu_direction)
+                NOMBRE_COLONNES, NOMBRE_LIGNES, plateau, direction=selection_ship.aperçu_direction
+            )
             for ligne, colonne in positions_possibles:
-                pygame.draw.rect(fenetre, (255,255,0), (colonne*TAILLE_CASE, ligne*TAILLE_CASE, TAILLE_CASE, TAILLE_CASE), 3)
+                pygame.draw.rect(fenetre, (255,255,0),
+                                (colonne*TAILLE_CASE, ligne*TAILLE_CASE, TAILLE_CASE, TAILLE_CASE), 3)
+
+            # Afficher prévision seulement si souris est sur une case valide
             if case_souris in positions_possibles:
-                largeur, hauteur = selection_ship.donner_dimensions(selection_ship.aperçu_direction)
-                surf = pygame.transform.scale(selection_ship.image, (largeur*TAILLE_CASE, hauteur*TAILLE_CASE))
-                surf.set_alpha(150)
-                fenetre.blit(surf, (case_souris[1]*TAILLE_CASE, case_souris[0]*TAILLE_CASE))
+                selection_ship.prevision.alpha = 100
+                set_prevision_for_ship(selection_ship, case_souris, selection_ship.aperçu_direction)
+                selection_ship.prevision.update_and_draw()
+            else:
+                # ⚠️ ici il faut utiliser selection_ship, pas selection_cargo !
+                set_prevision_for_ship(selection_ship, (selection_ship.cordonner.x, selection_ship.cordonner.y), selection_ship.direction)
 
     # --- Preview attaque ---
     if selection_ship and not interface_transport_active:

@@ -50,15 +50,18 @@ class Ship:
         self.aperçu_cordonner = Point(cordonner.x, cordonner.y)
 
         # Initialisation de l’Animator
-        pixel_coord = (cordonner.y * TAILLE_CASE, cordonner.x * TAILLE_CASE)
-        self.animator = ShipAnimator(path, taille, pixel_coord)
+        pixel_coord = (cordonner.y, cordonner.x)
+        print(pixel_coord)
+        self.animator = ShipAnimator(path, taille, pixel_coord, PV_max=pv_max, PV_actuelle=pv_max)
+        self.prevision = ShipAnimator(path, taille, pixel_coord, show_health=False, alpha=100)
 
         # Charger les animations
         for anim in ["base", "engine", "shield", "destruction"]:
             self.animator.load_animation(anim, f"{anim}.png")
+            self.prevision.load_animation(anim, f"{anim}.png")
 
         self.animator.play("base")
-
+        self.prevision.play("base")
 
     # ------------ UTILITAIRES ------------
     def donner_dimensions(self, direction: str) -> Tuple[int, int]:
@@ -95,12 +98,14 @@ class Ship:
 
     def subir_degats(self, degats):
         self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
+        self.animator.PV_actuelle = self.pv_actuel
         if self.pv_actuel > 0:
             self.animator.play("shield", reset=True)
         else:
+            self.prevision.remove_from_list()
+            self.animator.idle = False
             self.animator.play("destruction", reset=True)
-            t = threading.Timer(3.0, self.animator.remove_from_list)
-            t.start()
+            self.animator.alive = False
 
     def est_mort(self):
         return self.pv_actuel <= 0
@@ -201,10 +206,20 @@ class Ship:
             self.animator.pixel_w = w
             self.animator.pixel_h = h
 
-            if cible_direction == "haut": self.animator.target_angle = 0
-            elif cible_direction == "droite": self.animator.target_angle = -90
-            elif cible_direction == "gauche": self.animator.target_angle = 90
-            elif cible_direction == "bas": self.animator.target_angle = 180
+            self.prevision.angle = self.animator.angle
+            self.prevision.alpha = 0
+            if cible_direction == "haut": 
+                self.animator.target_angle = 0
+                self.prevision.target_angle = 0
+            elif cible_direction == "droite": 
+                self.animator.target_angle = -90
+                self.prevision.target_angle = -90
+            elif cible_direction == "gauche": 
+                self.animator.target_angle = 90
+                self.prevision.target_angle = 90
+            elif cible_direction == "bas": 
+                self.animator.target_angle = 180
+                self.prevision.target_angle = 180
 
             self.animator.update_and_draw()
             return True
@@ -221,13 +236,34 @@ class Ship:
         centre_l, centre_c = self._centre_depuis_coin(self.aperçu_cordonner.x, self.aperçu_cordonner.y, self.aperçu_direction)
         nouvelle_ligne, nouvelle_col = self._coin_depuis_centre(centre_l, centre_c, nouvelle_direction)
         largeur, hauteur = self.donner_dimensions(nouvelle_direction)
+        x, y = self.aperçu_cordonner.y * TAILLE_CASE, self.aperçu_cordonner.x * TAILLE_CASE
+        w, h = largeur * TAILLE_CASE, hauteur * TAILLE_CASE
+
+        self.prevision.x = x
+        self.prevision.y = y
+        self.prevision.pixel_w = w
+        self.prevision.pixel_h = h
 
         if 0 <= nouvelle_ligne <= nombre_lignes - hauteur and 0 <= nouvelle_col <= nombre_colonne - largeur:
+            if nouvelle_direction == "haut": 
+                self.prevision.angle = 0
+                self.prevision.target_angle = 0
+            elif nouvelle_direction == "droite": 
+                self.prevision.angle = -90
+                self.prevision.target_angle = -90
+            elif nouvelle_direction == "gauche": 
+                self.prevision.angle = 90
+                self.prevision.target_angle = 90
+            elif nouvelle_direction == "bas": 
+                self.prevision.angle = 180
+                self.prevision.target_angle = 180
             self.aperçu_direction = nouvelle_direction
             self.aperçu_cordonner.deplacer(nouvelle_ligne, nouvelle_col)
 
     def rotation_aperçu_si_possible(self, case_souris, nombre_colonne, nombre_lignes):
         self.aperçu_cordonner.deplacer(*case_souris)
+        self.prevision.x = case_souris[1] * TAILLE_CASE
+        self.prevision.y = case_souris[0] * TAILLE_CASE
         self.rotation_aperçu(nombre_colonne, nombre_lignes)
 
 

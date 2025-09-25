@@ -21,7 +21,8 @@ class ShipAnimator(Animator):
         PV_max : int = 100,
         angle : int = 0,
         show_health : bool = True,
-        color : Tuple[int, int, int] = (0, 255, 0)
+        color : Tuple[int, int, int] = (0, 255, 0),
+        alpha : int = 255
     ):
         super().__init__(path, dimensions, coord, tile_size, default_fps)
 
@@ -51,11 +52,14 @@ class ShipAnimator(Animator):
 
         # couleur du contour de la barre de vie
         self.color = color
+        self.alpha = alpha
+        self.alive = True
 
     def update_and_draw(self) -> bool:
         """
         Met à jour et dessine le vaisseau avec rotation selon self.angle.
         Retourne True uniquement si l'animation courante (non engine) est terminée.
+        Paramètre alpha : transparence (0 = invisible, 255 = opaque).
         """
         self.finished = False
 
@@ -64,11 +68,18 @@ class ShipAnimator(Animator):
         if hasattr(self, "target_angle") and self.angle != self.target_angle:
             self.slow_set_angle()
 
-        # Image statique si aucune animation prioritaire
-        if hasattr(self, "static_image") and self.static_image:
+        # Fonction interne pour blitter avec alpha
+        def blit_with_alpha(surface, pos):
+            if self.alpha < 255:
+                surface = surface.copy()
+                surface.set_alpha(self.alpha)
+            Animator.screen.blit(surface, pos)
+
+        # --- Image statique si aucune animation prioritaire ---
+        if hasattr(self, "static_image") and self.static_image and not self.current_anim:
             rotated_img = pygame.transform.rotate(self.static_image, self.angle)
-            rect = rotated_img.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-            Animator.screen.blit(rotated_img, rect.topleft)
+            rect = rotated_img.get_rect(center=(self.x + self.pixel_w // 2, self.y + self.pixel_h // 2))
+            blit_with_alpha(rotated_img, rect.topleft)
 
         # --- Animation prioritaire ---
         if self.current_anim and self.current_anim != "engine":
@@ -89,8 +100,8 @@ class ShipAnimator(Animator):
                 self.current_anim = None
             else:
                 rotated_frame = pygame.transform.rotate(frames[self.frame_index], self.angle)
-                rect = rotated_frame.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-                Animator.screen.blit(rotated_frame, rect.topleft)
+                rect = rotated_frame.get_rect(center=(self.x + self.pixel_w // 2, self.y + self.pixel_h // 2))
+                blit_with_alpha(rotated_frame, rect.topleft)
 
         # --- Dessiner le moteur (boucle infinie) ---
         if hasattr(self, "idle") and self.idle and "engine" in self.animations:
@@ -103,14 +114,17 @@ class ShipAnimator(Animator):
                 self._engine_last = now
                 self._engine_index = (self._engine_index + 1) % len(frames)
             rotated_frame = pygame.transform.rotate(frames[self._engine_index], self.angle)
-            rect = rotated_frame.get_rect(center=(self.x + self.pixel_w//2, self.y + self.pixel_h//2))
-            Animator.screen.blit(rotated_frame, rect.topleft)
+            rect = rotated_frame.get_rect(center=(self.x + self.pixel_w // 2, self.y + self.pixel_h // 2))
+            blit_with_alpha(rotated_frame, rect.topleft)
 
         # Barre de vie
         if hasattr(self, "show_health") and self.show_health:
             self.display_health()
 
         self.fire()
+
+        return self.finished
+
 
 
     def draw_image(self):
@@ -137,21 +151,24 @@ class ShipAnimator(Animator):
 
         now = pygame.time.get_ticks()
         elapsed = now - self._disappear_start
-        alpha = min(255, int(255 * (elapsed / duration_ms)))
+        alpha = max(0, 255 - int(255 * (elapsed / duration_ms)))  # part de 255 → 0
 
-        # dessiner l'image ou animation courante
+        # --- Choisir l’image courante ---
         if self.current_anim:
             frames = self.animations[self.current_anim]
-            Animator.screen.blit(frames[self.frame_index], (self.x, self.y))
+            base_surface = frames[self.frame_index]
         elif self.static_image:
-            Animator.screen.blit(self.static_image, (self.x, self.y))
+            base_surface = self.static_image
+        else:
+            return elapsed >= duration_ms
 
-        overlay = pygame.Surface((self.pixel_w, self.pixel_h))
-        overlay.fill((0, 0, 0))
-        overlay.set_alpha(alpha)
-        Animator.screen.blit(overlay, (self.x, self.y))
-        
+        # --- Appliquer l'alpha directement ---
+        temp = base_surface.copy()
+        temp.set_alpha(alpha)
+        Animator.screen.blit(temp, (self.x, self.y))
+
         return elapsed >= duration_ms
+
     
     def update(self, PV_actuelle : int, PV_max : int):
         self.PV_actuelle = PV_actuelle
@@ -222,3 +239,13 @@ class ShipAnimator(Animator):
             bullet.set_target(self.target)
 
             self.finished = False
+
+    @classmethod
+    def update_all(cls):
+        """Met à jour toutes les animations de cette classe uniquement"""
+        for animation in getattr(cls, "liste_animation", []):
+            if animation.alive:
+                animation.update_and_draw()
+            else:
+                if animation.play_with_fade("destruction"):
+                    animation.remove_from_list()
