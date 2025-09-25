@@ -51,7 +51,6 @@ class Ship:
 
         # Initialisation de l’Animator
         pixel_coord = (cordonner.y, cordonner.x)
-        print(pixel_coord)
         self.animator = ShipAnimator(path, taille, pixel_coord, PV_max=pv_max, PV_actuelle=pv_max)
         self.prevision = ShipAnimator(path, taille, pixel_coord, show_health=False, alpha=100)
 

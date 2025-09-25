@@ -64,8 +64,6 @@ sl1 = Lourd(pv_max=500, attaque=300, port_attaque=6, port_deplacement=3, cout=80
             valeur_mort=int(800*0.6), taille=(3,3), peut_miner=False, peut_transporter=False,
             image=img_Lourd, tier=4, cordonner=sl1point, id=next_uid, path=img_lourd_dir)
 next_uid += 1
-print(sl1.animator.x)
-print(TAILLE_CASE)
 ships.append(sl1)
 
 # Lourd 2
