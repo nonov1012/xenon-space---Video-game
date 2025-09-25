@@ -135,7 +135,7 @@ def main():
     Animator.set_screen(screen)
 
     # Créer un objet à tester
-    B1 = MotherShip(Point(0, 0), tier=1, show_health=True, largeur=4, hauteur=5)
+    B1 = MotherShip(Point(1, 0), tier=1, show_health=True, largeur=4, hauteur=5)
     B1.animator.play("base")
     B1.animator.update_and_draw()
     B1.animator.play("engine")

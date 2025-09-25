@@ -36,9 +36,13 @@ from classes.PlanetAnimator import PlanetAnimator
 from classes.ShipAnimator import ShipAnimator
 from classes.Shop import Shop
 from classes.Player import Player
+from classes.MotherShip import MotherShip
+from classes.ProjectileAnimator import ProjectileAnimator
+
 
 def start_game(ecran, parametres, random_active):
     clock = pygame.time.Clock()
+    font = pygame.font.Font(None, 30)
     # Générer la map
     screen_width, screen_height = ecran.get_size()
     num_stars=100
@@ -77,6 +81,14 @@ def start_game(ecran, parametres, random_active):
     # Calcul du décalage vertical
     grid_width = NB_CASE_X * TAILLE_CASE
     offset_x = (screen_width - grid_width) // 2
+    
+    
+    # MotherShip
+    B1 = MotherShip(Point(0 , 0), tier=1, show_health=True, largeur=4, hauteur=5)
+    B1.animator.play("base")
+    B1.animator.update_and_draw()
+    B1.animator.play("engine")
+    B1.animator.x += offset_x
 
     afficher_grille = False
     running = True
@@ -91,6 +103,8 @@ def start_game(ecran, parametres, random_active):
                 menuPause.run()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_LCTRL:
                 afficher_grille = not afficher_grille
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                shop.handle_click(event.pos)
 
         ecran.fill((0, 0, 0, 0))
         
@@ -111,7 +125,14 @@ def start_game(ecran, parametres, random_active):
         for (ax, ay), img in map_obj.asteroide_img_map.items():
             ecran.blit(img, (ax * TAILLE_CASE + offset_x, ay * TAILLE_CASE))
         
+        player = Player("TestPlayer", solde_initial=3000)
+        shop = Shop(player, font, ecran)
         
+        coins_text = font.render(f"Coins: {player.economie.solde}", True, (255, 255, 0))
+        ecran.blit(coins_text, (10, 10))
+
+        # Dessiner la boutique
+        shop.draw()
         
         
         clock.tick(60)

@@ -159,7 +159,7 @@ while en_cours:
         elif evenement.type == pygame.KEYDOWN:
             if evenement.key == pygame.K_ESCAPE:
                 # Appelle le menu pause
-                pause_menu = menuPause.PauseMenu(ecran, sm)
+                pause_menu = menu.menuPause.PauseMenu(ecran, sm)
                 pause_menu.run()
         elif evenement.type == pygame.MOUSEBUTTONDOWN:
             if bouton_jouer.collidepoint(evenement.pos):
