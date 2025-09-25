@@ -43,7 +43,7 @@ class Animator:
         tile_size: int = TAILLE_CASE,
         default_fps: int = 10,
         speed : int = 1
-    ):
+        ):
         self.path = path
         self.tile_size = tile_size
 
@@ -54,6 +54,19 @@ class Animator:
         # position
         self.x = coord[0] * tile_size
         self.y = coord[1] * tile_size
+
+        print(TAILLE_CASE)
+        # --- dimensions en nombre de cases ---
+        self.tile_w, self.tile_h = dimensions   # <<< ici
+        self.pixel_w = self.tile_w * tile_size
+        self.pixel_h = self.tile_h * tile_size
+
+        # image statique (chargée une seule fois)
+        self.static_image = None
+        base_path = os.path.join(self.path, "base.png")
+        if os.path.isfile(base_path):
+            img = pygame.image.load(base_path).convert_alpha()
+            self.static_image = pygame.transform.scale(img, (self.pixel_w, self.pixel_h))
 
         # animations
         self.animations: Dict[str, List[pygame.Surface]] = {}  # nom -> liste de frames
