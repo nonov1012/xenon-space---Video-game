@@ -49,7 +49,7 @@ sl1 = Lourd(pv_max=500, attaque=300, port_attaque=6, port_deplacement=3, cout=80
             image=img_Lourd, tier=4, ligne=8, colonne=8, id=next_uid, BASE_IMG_DIR=img_lourd_dir)
 next_uid += 1
 ships.append(sl1)
-
+"""
 sl2 = Lourd(pv_max=500, attaque=300, port_attaque=6, port_deplacement=3, cout=800,
             valeur_mort=800*0.6, taille=(3,3), peut_miner=False, peut_transporter=False,
             image=img_Lourd, tier=4, ligne=12, colonne=12, id=next_uid, BASE_IMG_DIR=img_lourd_dir)
@@ -84,7 +84,7 @@ ships.append(sf1)
 b2 = MotherShip(fenetre, position=(0, 0), tier=1, largeur=4, hauteur=5, uid=next_uid, BASE_IMG_DIR=img_base)
 next_uid += 1
 ships.append(b2)
-
+"""
 
 # --- Placer vaisseaux sur le plateau ---
 # Placer vaisseaux sur le plateau 

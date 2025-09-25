@@ -4,6 +4,7 @@ import os
 from typing import Tuple, List, Optional
 from classes.Animator import Animator
 from classes.ShipAnimator import ShipAnimator
+from blazyck import *
 
 
 
@@ -362,6 +363,47 @@ class Moyen(Ship):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Lourd(Ship):
     def __init__(self,
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
@@ -374,11 +416,11 @@ class Lourd(Ship):
                          image, tier, ligne, colonne, id)
 
         # Initialisation de l’Animator
-        pixel_coord = (colonne * 32, ligne * 32)
-        self.animator = ShipAnimator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
+        pixel_coord = (colonne * TAILLE_CASE, ligne * TAILLE_CASE)
+        self.animator = ShipAnimator(BASE_IMG_DIR, taille, pixel_coord)
 
         # Charger les animations
-        for anim in ["base", "engine", "shield", "destruction", "weapons"]:
+        for anim in ["base", "engine", "shield", "destruction"]:
             self.animator.load_animation(anim, f"{anim}.png")
 
         self.animator.play("base")
@@ -425,6 +467,43 @@ class Lourd(Ship):
     def est_mort(self):
         # True après N frames de l'animation destruction
         return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
