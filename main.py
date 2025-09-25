@@ -57,7 +57,7 @@ sl2 = Lourd(pv_max=500, attaque=300, port_attaque=6, port_deplacement=3, cout=80
             image=img_Lourd, tier=4, ligne=12, colonne=12, id=next_uid, BASE_IMG_DIR=img_lourd_dir)
 next_uid += 1
 ships.append(sl2)
-"""
+
 sm1 = Moyen(pv_max=900, attaque=250, port_attaque=5, port_deplacement=5, cout=800,
             valeur_mort=800*0.6, taille=(2,2), peut_miner=False, peut_transporter=False,
             image=img_moyen, tier=1, ligne=12, colonne=1, id=next_uid, BASE_IMG_DIR=img_moyen_dir)
@@ -82,8 +82,9 @@ sf1 = Foreuse(pv_max=500, attaque=0, port_attaque=0, port_deplacement=3, cout=80
 next_uid += 1
 ships.append(sf1)
 
+"""
 # MotherShip
-b2 = MotherShip(fenetre, position=(0, 0), tier=1, largeur=4, hauteur=5, uid=next_uid, BASE_IMG_DIR=img_base)
+b2 = MotherShip(fenetre, position=(0, 0), tier=1, largeur=4, hauteur=5, id=next_uid, BASE_IMG_DIR=img_base)
 next_uid += 1
 ships.append(b2)
 """
@@ -222,7 +223,6 @@ while fonctionne:
         positions_attaque = selection_ship.positions_possibles_attaque(NOMBRE_COLONNES, NOMBRE_LIGNES, direction=selection_ship.aperçu_direction)
         for ligne, colonne in positions_attaque:
             pygame.draw.rect(fenetre, (255,100,100), (colonne*TAILLE_CASE, ligne*TAILLE_CASE, TAILLE_CASE, TAILLE_CASE), 2)
-    fenetre.fill((0,0,0))
     ShipAnimator.update_all()
     ProjectileAnimator.update_all()
     pygame.display.flip()

@@ -2,30 +2,21 @@ import pygame
 import numpy as np
 import os
 from typing import Tuple, List, Optional
-from classes.Animator import Animator
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 
-
+# =======================
+# Classe Ship = Vaisseau
+# =======================
 
 class Ship:
     def __init__(self,
-                 pv_max: int,
-                 attaque: int,
-                 port_attaque: int,
-                 port_deplacement: int,
-                 cout: int,
-                 valeur_mort: int,
-                 taille: Tuple[int, int],
-                 peut_miner: bool,
-                 peut_transporter: bool,
-                 image: pygame.Surface,
-                 tier: int,
-                 ligne: int = 0,
-                 colonne: int = 0,
-                 uid: Optional[int] = None):
+                 pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
+                 taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
+                 tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
+                 BASE_IMG_DIR: str = None):
         
-        # caractéristiques
+        # ---- Caractéristiques ----
         self.pv_max = pv_max
         self.pv_actuel = pv_max
         self.attaque = attaque
@@ -36,78 +27,119 @@ class Ship:
         self.taille = tuple(taille)
         self.peut_miner = peut_miner
         self.peut_transporter = peut_transporter
+
+        # Inventaire de transport (3 slots)
         self.cargaison = np.array([None, None, None], dtype=object)
 
-        # graphisme / niveau
+        # ---- Graphisme & niveau ----
         self.image = image
         self.tier = tier
 
-        # id stable
-        self.id = uid
+        # ---- Identifiant stable ----
+        self.id = id
 
-        # position réelle
+        # ---- Position réelle ----
         self.ligne = ligne
         self.colonne = colonne
-        self.direction = "haut"
+        self.direction = "haut"  # direction par défaut
 
-        # aperçu (preview)
+        # ---- Aperçu (preview avant placement / action) ----
         self.aperçu_direction = self.direction
         self.aperçu_ligne = ligne
         self.aperçu_colonne = colonne
 
-    # ------------ utilitaires ------------
+
+        # Initialisation de l’Animator
+        pixel_coord = (colonne * TAILLE_CASE, ligne * TAILLE_CASE)
+        self.animator = ShipAnimator(BASE_IMG_DIR, taille, pixel_coord)
+
+        # Charger les animations
+        for anim in ["base", "engine", "shield", "destruction"]:
+            self.animator.load_animation(anim, f"{anim}.png")
+
+        self.animator.play("base")
+
+
+    # ------------ UTILITAIRES ------------
     def donner_dimensions(self, direction: str) -> Tuple[int, int]:
-        """Retourne (largeur, hauteur) selon l'orientation."""
+        """Retourne (largeur, hauteur) selon l’orientation du vaisseau."""
         if direction in ("haut", "bas"):
             return self.taille
         elif direction in ("droite", "gauche"):
+            # Inverser largeur/hauteur quand le vaisseau est couché
             return (self.taille[1], self.taille[0])
 
     def _centre_depuis_coin(self, ligne_coin, colonne_coin, direction):
+        """Calcule les coordonnées du centre à partir du coin supérieur gauche."""
         largeur, hauteur = self.donner_dimensions(direction)
         return ligne_coin + (hauteur-1)/2, colonne_coin + (largeur-1)/2
 
     def _coin_depuis_centre(self, centre_l, centre_c, direction):
+        """Calcule le coin supérieur gauche à partir du centre du vaisseau."""
         largeur, hauteur = self.donner_dimensions(direction)
         return int(round(centre_l-(hauteur-1)/2)), int(round(centre_c-(largeur-1)/2))
 
-    # ------------ dessin ------------
+    # ------------ DESSIN ------------
     def dessiner(self, surface, taille_case, preview=False):
+        """Dessine le vaisseau (avec animation) sur la surface pygame."""
+        # Position et orientation
         if preview:
             ligne, colonne, direction = self.aperçu_ligne, self.aperçu_colonne, self.aperçu_direction
         else:
             ligne, colonne, direction = self.ligne, self.colonne, self.direction
 
         largeur, hauteur = self.donner_dimensions(direction)
-        x, y = colonne*taille_case, ligne*taille_case
-        w, h = largeur*taille_case, hauteur*taille_case
+        x, y = colonne * taille_case, ligne * taille_case
+        w, h = largeur * taille_case, hauteur * taille_case
 
-        if direction=="haut":
-            img = self.image
-        elif direction=="droite":
-            img = pygame.transform.rotate(self.image, -90)
-        elif direction=="gauche":
-            img = pygame.transform.rotate(self.image, 90)
-        elif direction=="bas":
-            img = pygame.transform.rotate(self.image, 180)
+        # Mise à jour de la position + dimensions
+        self.animator.x = x
+        self.animator.y = y
+        self.animator.pixel_w = w
+        self.animator.pixel_h = h
 
-        img = pygame.transform.scale(img, (w,h))
-        surface.blit(img, (x,y))
+        # Conversion direction → angle (ShipAnimator attend un angle en degrés)
+        if direction == "haut":
+            self.animator.angle = 0
+        elif direction == "droite":
+            self.animator.angle = -90
+        elif direction == "gauche":
+            self.animator.angle = 90
+        elif direction == "bas":
+            self.animator.angle = 180
 
-        
+        # Mise à jour + dessin (ShipAnimator sait déjà utiliser l’angle et la taille)
+        self.animator.update_and_draw()
 
-    # ------------ combat ------------
+    # ------------ COMBAT ------------
     def attaquer(self, cible: "Ship"):
+        """Inflige des dégâts à une cible."""
         cible.subir_degats(self.attaque)
+        largeur, hauteur = cible.donner_dimensions(cible.direction)
+        target_x = (cible.colonne + largeur / 2) * TAILLE_CASE
+        target_y = (cible.ligne + hauteur / 2) * TAILLE_CASE
+
+        # Lancer le projectile
+        self.animator.fire("big bullet", (target_x, target_y), True, projectile_speed=4)
+
 
     def subir_degats(self, degats):
-        self.pv_actuel -= degats
+        """Réduit les PV suite à des dégâts subis."""
+        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
+        if self.pv_actuel > 0:
+            self.animator.play("shield", reset=True)
+        else:
+            self.animator.play("destruction", reset=True)
+            self.dead_timer = 0
 
     def est_mort(self):
+        """Retourne True si le vaisseau est détruit."""
         return self.pv_actuel <= 0
 
-    # ------------ plateau numpy ------------
+
+    # ------------ INTERACTION AVEC LE PLATEAU (numpy) ------------
     def occuper_plateau(self, plateau, valeur, direction=None, ligne=None, colonne=None):
+        """Occupe des cases du plateau avec une valeur (ex: id du vaisseau)."""
         if direction is None: direction=self.direction
         if ligne is None: ligne=self.ligne
         if colonne is None: colonne=self.colonne
@@ -117,14 +149,17 @@ class Ship:
                 plateau[l,c]=valeur
 
     def verifier_collision(self, plateau, ligne, colonne, direction):
+        """Vérifie si le vaisseau peut se placer sans collision."""
         largeur, hauteur = self.donner_dimensions(direction)
         for l in range(ligne, ligne+hauteur):
             for c in range(colonne, colonne+largeur):
                 if plateau[l,c]!=0: return False
         return True
 
-    # ------------ déplacement / attaque ------------
+
+    # ------------ DÉPLACEMENT / ATTAQUE ------------
     def positions_possibles_adjacentes(self, nombre_colonne, nombre_lignes, plateau, direction=None):
+        """Retourne les cases atteignables par déplacement (en tenant compte des collisions)."""
         if direction is None:
             direction = self.direction
         largeur, hauteur = self.donner_dimensions(direction)
@@ -133,8 +168,9 @@ class Ship:
             for i in range(-self.port_deplacement,self.port_deplacement+1):
                 if y==0 and i==0: 
                     continue
+                # distance de Manhattan
                 if abs(y)+abs(i)<=self.port_deplacement:
-                    nl, nc = self.ligne + y, self.colonne + i   # ✅ position réelle
+                    nl, nc = self.ligne + y, self.colonne + i
                     if 0 <= nl <= nombre_lignes - hauteur and 0 <= nc <= nombre_colonne - largeur:
                         collision = False
                         for l in range(nl, nl+hauteur):
@@ -145,8 +181,8 @@ class Ship:
                             positions.append((nl,nc))
         return positions
 
-
     def positions_possibles_attaque(self, nombre_colonne, nombre_lignes, direction=None):
+        """Retourne les cases attaquables (en tenant compte de la portée)."""
         if direction is None:
             direction = self.direction
         positions=[]
@@ -155,18 +191,18 @@ class Ship:
                 if y == 0 and i == 0:
                     continue
                 if abs(y) + abs(i) <= self.port_attaque:
-                    nl, nc = self.ligne + y, self.colonne + i   # calcul brut
-                    # ✅ on garde seulement si c’est encore dans la grille
+                    nl, nc = self.ligne + y, self.colonne + i
                     if 0 <= nl < nombre_lignes and 0 <= nc < nombre_colonne:
                         positions.append((nl, nc))
         return positions
 
     def deplacement(self, case_cible, nombre_colonne, nombre_lignes, plateau, Ships):
+        """Déplace le vaisseau ou attaque si une cible est dans la portée."""
         if self.id is None: raise ValueError("Ship.id non défini")
         ligne, colonne = case_cible
-        cible_direction = self.aperçu_direction  # direction souhaitée après déplacement / rotation
+        cible_direction = self.aperçu_direction  # orientation visée
 
-        # ---- attaque si possible (avec la direction visée) ----
+        # ---- Attaque si possible ----
         if case_cible in self.positions_possibles_attaque(nombre_colonne, nombre_lignes, direction=cible_direction):
             cible_id = plateau[ligne,colonne]
             if cible_id!=0 and cible_id!=self.id:
@@ -178,39 +214,57 @@ class Ship:
                         Ships.remove(cible_Ship)
                     return True
 
-        # ---- déplacement ----
-        # accepter la cible seulement si elle est dans les positions valides pour la direction visée
+        # ---- Déplacement ----
         if case_cible not in self.positions_possibles_adjacentes(nombre_colonne, nombre_lignes, plateau, direction=cible_direction):
             return False
 
+        # Sauvegarde ancienne position
         ancienne_ligne, ancienne_colonne, ancienne_direction = self.ligne,self.colonne,self.direction
-        # libérer l'ancienne occupation
         self.occuper_plateau(plateau,0,direction=ancienne_direction,ligne=ancienne_ligne,colonne=ancienne_colonne)
-        # vérifier collision en posant le vaisseau avec la nouvelle direction à la case cible
+
+        # Vérifie si pas de collision à la nouvelle position
         if self.verifier_collision(plateau, ligne, colonne, cible_direction):
             self.ligne,self.colonne,self.direction = ligne,colonne,cible_direction
             self.occuper_plateau(plateau,int(self.id),direction=self.direction,ligne=self.ligne,colonne=self.colonne)
             return True
         else:
-            # remettre à l'ancienne position si échec
+            # Réoccupe ancienne position en cas d’échec
             self.occuper_plateau(plateau,int(self.id),direction=ancienne_direction,ligne=ancienne_ligne,colonne=ancienne_colonne)
             return False
 
-    # ------------ rotation aperçu ------------
+
+    # ------------ ROTATION (aperçu) ------------
     def rotation_aperçu(self, nombre_colonne, nombre_lignes):
+        """Tourne l’aperçu du vaisseau (cycle haut → droite → bas → gauche)."""
         ordre = ["haut","droite","bas","gauche"]
         idx = ordre.index(self.aperçu_direction) if self.aperçu_direction in ordre else 0
         nouvelle_direction = ordre[(idx+1)%len(ordre)]
+
+        # Recalcule la position à partir du centre
         centre_l, centre_c = self._centre_depuis_coin(self.aperçu_ligne,self.aperçu_colonne,self.aperçu_direction)
         nouvelle_ligne, nouvelle_col = self._coin_depuis_centre(centre_l,centre_c,nouvelle_direction)
         largeur, hauteur = self.donner_dimensions(nouvelle_direction)
+
+        # Valide la rotation si toujours dans les limites de la grille
         if 0<=nouvelle_ligne<=nombre_lignes-hauteur and 0<=nouvelle_col<=nombre_colonne-largeur:
             self.aperçu_direction = nouvelle_direction
             self.aperçu_ligne, self.aperçu_colonne = nouvelle_ligne, nouvelle_col
 
     def rotation_aperçu_si_possible(self, case_souris, nombre_colonne, nombre_lignes):
+        """Positionne l’aperçu sur une case donnée puis tente une rotation."""
         self.aperçu_ligne,self.aperçu_colonne = case_souris
         self.rotation_aperçu(nombre_colonne,nombre_lignes)
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ------------ Sous-classes ------------
@@ -236,63 +290,9 @@ class Petit(Ship):
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
                  BASE_IMG_DIR: str = None):
         
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         valeur_mort, taille, peut_miner, peut_transporter,
-                         image, tier, ligne, colonne, id)
-
-        # Initialisation de l’Animator
-        pixel_coord = (colonne * 32, ligne * 32)
-        self.animator = Animator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
-
-        # Charger les animations
-        for anim in ["base", "engine", "shield", "destruction", "weapons"]:
-            self.animator.load_animation(anim, f"{anim}.png")
-
-        self.animator.play("base")
-        self.is_dead_anim_playing = False
-        self.is_weapon_anim_playing = False
-
-    # Dessin + barre de vie
-    def dessiner(self, surface, taille_case):
-        # Mettre à jour la position de l’Animator
-        self.animator.x = self.colonne * taille_case
-        self.animator.y = self.ligne * taille_case
-        self.animator.update_and_draw()
-
-        # Afficher barre de vie
-        x = self.colonne * taille_case
-        y = (self.ligne + self.taille[1]) * taille_case + 2
-        largeur_barre = self.taille[0] * taille_case
-        proportion = self.pv_actuel / self.pv_max
-        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
-        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
-
-        if self.is_dead_anim_playing:
-            self.dead_timer += 1  # incrémente chaque frame
-
-        self.animator.update_and_draw()
-
-    # Attaque avec animation
-    def attaquer(self, cible: "Ship"):
-        super().attaquer(cible)  # utilise la fonction de la classe Ship
-        self.animator.play("weapons", reset=True)
-    
-    # Prise de dégâts avec animation
-    def subir_degats(self, degats):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
-        if self.pv_actuel > 0:
-            self.animator.play("shield", reset=True)
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction", reset=True)
-                self.is_dead_anim_playing = True
-                self.dead_timer = 0
-
-    # Vérifier si le vaisseau est mort
-    def est_mort(self):
-        # True après N frames de l'animation destruction
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
-
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+                 taille, peut_miner, peut_transporter, image,
+                 tier, ligne, colonne, id, BASE_IMG_DIR)
 
 class Moyen(Ship):
     def __init__(self,
@@ -301,78 +301,9 @@ class Moyen(Ship):
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
                  BASE_IMG_DIR: str = None):
         
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         valeur_mort, taille, peut_miner, peut_transporter,
-                         image, tier, ligne, colonne, id)
-
-        # Initialisation de l’Animator
-        pixel_coord = (colonne * 32, ligne * 32)
-        self.animator = Animator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
-
-        # Charger les animations
-        for anim in ["base", "engine", "shield", "destruction", "weapons"]:
-            self.animator.load_animation(anim, f"{anim}.png")
-
-        self.animator.play("base")
-        self.is_dead_anim_playing = False
-        self.is_weapon_anim_playing = False
-
-    # Dessin + barre de vie
-    def dessiner(self, surface, taille_case):
-        # Mettre à jour la position de l’Animator
-        self.animator.x = self.colonne * taille_case
-        self.animator.y = self.ligne * taille_case
-        self.animator.update_and_draw()
-
-        # Afficher barre de vie
-        x = self.colonne * taille_case
-        y = (self.ligne + self.taille[1]) * taille_case + 2
-        largeur_barre = self.taille[0] * taille_case
-        proportion = self.pv_actuel / self.pv_max
-        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
-        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
-
-        if self.is_dead_anim_playing:
-            self.dead_timer += 1  # incrémente chaque frame
-
-        self.animator.update_and_draw()
-
-    # Attaque avec animation
-    def attaquer(self, cible: "Ship"):
-        super().attaquer(cible)  # utilise la fonction de la classe Ship
-        self.animator.play("weapons", reset=True)
-    
-    # Prise de dégâts avec animation
-    def subir_degats(self, degats):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
-        if self.pv_actuel > 0:
-            self.animator.play("shield", reset=True)
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction", reset=True)
-                self.is_dead_anim_playing = True
-                self.dead_timer = 0
-
-    # Vérifier si le vaisseau est mort
-    def est_mort(self):
-        # True après N frames de l'animation destruction
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+                 taille, peut_miner, peut_transporter, image,
+                 tier, ligne, colonne, id, BASE_IMG_DIR)
 
 
 class Lourd(Ship):
@@ -382,56 +313,9 @@ class Lourd(Ship):
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
                  BASE_IMG_DIR: str = None):
         
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         valeur_mort, taille, peut_miner, peut_transporter,
-                         image, tier, ligne, colonne, id)
-
-        # Initialisation de l’Animator
-        pixel_coord = (colonne * TAILLE_CASE, ligne * TAILLE_CASE)
-        self.animator = ShipAnimator(BASE_IMG_DIR, taille, pixel_coord)
-
-        # Charger les animations
-        for anim in ["base", "engine", "shield", "destruction"]:
-            self.animator.load_animation(anim, f"{anim}.png")
-
-        self.animator.play("base")
-        self.is_dead_anim_playing = False
-        self.is_weapon_anim_playing = False
-
-    # Dessin + barre de vie
-    def dessiner(self, surface, taille_case):
-        # Mettre à jour la position de l’Animator
-        self.animator.x = self.colonne * taille_case
-        self.animator.y = self.ligne * taille_case
-        self.animator.update_and_draw()
-
-        if self.is_dead_anim_playing:
-            self.dead_timer += 1  # incrémente chaque frame
-
-        self.animator.update_and_draw()
-
-    # Attaque avec animation
-    def attaquer(self, cible: "Ship"):
-        super().attaquer(cible)  # utilise la fonction de la classe Ship
-        cordonner = (cible.ligne, cible.colonne)
-        self.animator.fire("big bullet", cordonner, True, 5)
-    
-    # Prise de dégâts avec animation
-    def subir_degats(self, degats):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
-        if self.pv_actuel > 0:
-            self.animator.play("shield", reset=True)
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction", reset=True)
-                self.is_dead_anim_playing = True
-                self.dead_timer = 0
-
-    # Vérifier si le vaisseau est mort
-    def est_mort(self):
-        # True après N frames de l'animation destruction
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
-
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+                 taille, peut_miner, peut_transporter, image,
+                 tier, ligne, colonne, id, BASE_IMG_DIR)
 
 
 
@@ -443,62 +327,9 @@ class Foreuse(Ship):
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
                  BASE_IMG_DIR: str = None):
         
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         valeur_mort, taille, peut_miner, peut_transporter,
-                         image, tier, ligne, colonne, id)
-
-        # Initialisation de l’Animator
-        pixel_coord = (colonne * 32, ligne * 32)
-        self.animator = Animator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
-
-        # Charger les animations
-        for anim in ["base", "engine", "destruction"]:
-            self.animator.load_animation(anim, f"{anim}.png")
-
-        self.animator.play("base")
-        self.is_dead_anim_playing = False
-        self.is_weapon_anim_playing = False
-
-    # Dessin + barre de vie
-    def dessiner(self, surface, taille_case):
-        # Mettre à jour la position de l’Animator
-        self.animator.x = self.colonne * taille_case
-        self.animator.y = self.ligne * taille_case
-        self.animator.update_and_draw()
-
-        # Afficher barre de vie
-        x = self.colonne * taille_case
-        y = (self.ligne + self.taille[1]) * taille_case + 2
-        largeur_barre = self.taille[0] * taille_case
-        proportion = self.pv_actuel / self.pv_max
-        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
-        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
-
-        if self.is_dead_anim_playing:
-            self.dead_timer += 1  # incrémente chaque frame
-
-        self.animator.update_and_draw()
-
-    # Attaque avec animation
-    def attaquer(self, cible: "Ship"):
-        pass
-    
-    # Prise de dégâts avec animation
-    def subir_degats(self, degats):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
-        if self.pv_actuel > 0:
-            self.animator.play("base", reset=True)
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction", reset=True)
-                self.is_dead_anim_playing = True
-                self.dead_timer = 0
-
-
-    # Vérifier si le vaisseau est mort
-    def est_mort(self):
-        # True après N frames de l'animation destruction
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+                 taille, peut_miner, peut_transporter, image,
+                 tier, ligne, colonne, id, BASE_IMG_DIR)
 
 
 
@@ -510,62 +341,10 @@ class Transport(Ship):
                  tier: int, ligne: int = 0, colonne: int = 0, id: Optional[int] = None,
                  BASE_IMG_DIR: str = None):
         
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         valeur_mort, taille, peut_miner, peut_transporter,
-                         image, tier, ligne, colonne, id)
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+                 taille, peut_miner, peut_transporter, image,
+                 tier, ligne, colonne, id, BASE_IMG_DIR)
         self.cargaison = []  # liste des vaisseaux stockés
-        # Initialisation de l’Animator
-        pixel_coord = (colonne * 32, ligne * 32)
-        self.animator = Animator(BASE_IMG_DIR, taille, pixel_coord, tile_size=32)
-
-        # Charger les animations
-        for anim in ["base", "engine", "shield", "destruction", "weapons"]:
-            self.animator.load_animation(anim, f"{anim}.png")
-
-        self.animator.play("base")
-        self.is_dead_anim_playing = False
-        self.is_weapon_anim_playing = False
-
-    # Dessin + barre de vie
-    def dessiner(self, surface, taille_case):
-        # Mettre à jour la position de l’Animator
-        self.animator.x = self.colonne * taille_case
-        self.animator.y = self.ligne * taille_case
-        self.animator.update_and_draw()
-
-        # Afficher barre de vie
-        x = self.colonne * taille_case
-        y = (self.ligne + self.taille[1]) * taille_case + 2
-        largeur_barre = self.taille[0] * taille_case
-        proportion = self.pv_actuel / self.pv_max
-        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 5))
-        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 5))
-
-        if self.is_dead_anim_playing:
-            self.dead_timer += 1  # incrémente chaque frame
-
-        self.animator.update_and_draw()
-
-    # Attaque avec animation
-    def attaquer(self, cible: "Ship"):
-        super().attaquer(cible)  # utilise la fonction de la classe Ship
-        self.animator.play("weapons", reset=True)
-    
-    # Prise de dégâts avec animation
-    def subir_degats(self, degats):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
-        if self.pv_actuel > 0:
-            self.animator.play("shield", reset=True)
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction", reset=True)
-                self.is_dead_anim_playing = True
-                self.dead_timer = 0
-
-    # Vérifier si le vaisseau est mort
-    def est_mort(self):
-        # True après N frames de l'animation destruction
-        return self.pv_actuel <= 0 and self.is_dead_anim_playing and self.dead_timer >= 50  # 30 frames = 0.5s si 60fps
 
     def ajouter_cargo(self, Ship: Ship, plateau) -> bool:
         """Ajoute un vaisseau dans le transport si possible."""

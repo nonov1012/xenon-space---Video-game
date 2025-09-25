@@ -18,7 +18,7 @@ LEVELS: Dict[int, Dict[str, Any]] = {
 class MotherShip(Ship):
     """Représente la base d'un joueur avec niveaux, PV, et combat."""
 
-    def __init__(self, screen, position: Tuple[int, int], tier: int = 1, largeur: int = 4, hauteur: int = 5, uid=1, BASE_IMG_DIR = None) -> None:
+    def __init__(self, screen, position: Tuple[int, int], tier: int = 1, largeur: int = 4, hauteur: int = 5, id=1, BASE_IMG_DIR = None) -> None:
         self.largeur = largeur   # en cases
         self.hauteur = hauteur   # en cases
         self.tier = tier
@@ -55,7 +55,7 @@ class MotherShip(Ship):
             tier=tier,
             ligne=position[0],   # case Y
             colonne=position[1], # case X
-            uid=uid
+            id=id
         )
 
         # Initialisation de l’Animator (position en pixels)

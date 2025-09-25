@@ -21,7 +21,7 @@ class ShipAnimator(Animator):
         PV_max : int = 100,
         angle : int = 0,
         show_health : bool = True,
-        color : Tuple[int, int, int] = (255, 255, 255)
+        color : Tuple[int, int, int] = (0, 255, 0)
     ):
         super().__init__(path, dimensions, coord, tile_size, default_fps)
 
