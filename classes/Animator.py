@@ -268,3 +268,9 @@ class Animator:
         cls = self.__class__
         if hasattr(cls, "liste_animation") and self in cls.liste_animation:
             cls.liste_animation.remove(self)
+            
+    @classmethod
+    def clear_list(cls):
+        """Vide complètement la liste d'animations de cette classe"""
+        if hasattr(cls, "liste_animation"):
+            cls.liste_animation.clear()

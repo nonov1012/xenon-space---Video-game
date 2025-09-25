@@ -1,6 +1,8 @@
 import pygame
 
 from main import start_game
+from classes.ShipAnimator import ShipAnimator
+from classes.PlanetAnimator import PlanetAnimator
 
 def draw(ecran):
     """Interface de personnalisation avec onglets Classique/Avance"""
@@ -105,6 +107,7 @@ def draw(ecran):
     slider_actif = None
     horloge = pygame.time.Clock()
     en_cours = True
+    lancer_partie = False
 
     while en_cours:
         souris = pygame.mouse.get_pos()
@@ -216,7 +219,8 @@ def draw(ecran):
                         if label == "JOUER":
                             print("JOUER avec parametres:", {k: v["valeur"] for k, v in parametres.items()},
                                   "Random:", random_active)
-                            start_game(ecran, parametres, random_active)
+                            en_cours = False
+                            lancer_partie = True
                         elif label == "RESET":
                             for k in parametres:
                                 parametres[k]["valeur"] = parametres[k]["min"]
@@ -231,9 +235,16 @@ def draw(ecran):
                                               panneau_largeur // len(onglets), 40)
                     if rect_onglet.collidepoint(event.pos):
                         onglet_actif = nom
-
+    
         # Curseur
         ecran.blit(curseur_img, souris)
 
         pygame.display.flip()
         horloge.tick(60)
+    
+    if lancer_partie == True:
+        # menu.menuPrincipal.en_cours = False
+        ShipAnimator.clear_list()
+        PlanetAnimator.clear_list()
+        start_game(ecran, parametres, random_active)
+    

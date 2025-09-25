@@ -26,5 +26,7 @@ PLANETES_PATH = os.path.join(IMG_PATH, "planets")
 PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
 ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
 
+RPC_ID = "1419749281190903848"
+
 if __name__ == "__main__":
     print("\n" + IMG_PATH)

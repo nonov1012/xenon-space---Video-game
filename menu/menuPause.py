@@ -1,7 +1,7 @@
 import pygame
 import sys
-import menuParam
-import menuJouer
+import menu.menuParam
+import menu.menuJouer
 from classes.Sounds import SoundManager
 
 class PauseMenu:
