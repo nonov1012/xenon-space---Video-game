@@ -73,6 +73,7 @@ class Ship:
     # ------------ UTILITAIRES ------------
     def donner_dimensions(self, direction: str) -> Tuple[int, int]:
         """Retourne (largeur, hauteur) selon l'orientation du vaisseau."""
+
         if direction in ("haut", "bas"):
             return self.taille
         elif direction in ("droite", "gauche"):
@@ -142,13 +143,13 @@ class Ship:
     # ------------ INTERACTION AVEC LE PLATEAU (grille de Points) ------------
     def occuper_plateau(self, grille: List[List[Point]], nouveau_type: Type, direction=None, ligne: int = None, colonne: int = None):
         """Occupe les cases du plateau avec le type spécifié."""
+
         if direction is None:
             direction = self.direction
         if ligne is None:
             ligne = self.cordonner.x
         if colonne is None:
             colonne = self.cordonner.y
-            
         largeur, hauteur = self.donner_dimensions(direction)
         for l in range(ligne, ligne + hauteur):
             for c in range(colonne, colonne + largeur):
@@ -345,7 +346,6 @@ class Ship:
             if cible_direction in angles:
                 self.animator.target_angle = angles[cible_direction]
                 self.prevision.target_angle = angles[cible_direction]
-
             self.animator.update_and_draw()
             return True
         else:

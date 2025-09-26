@@ -56,6 +56,7 @@ class Animator:
         self.y = coord[1] * tile_size
 
         print(TAILLE_CASE)
+
         # --- dimensions en nombre de cases ---
         self.tile_w, self.tile_h = dimensions   # <<< ici
         self.pixel_w = self.tile_w * tile_size

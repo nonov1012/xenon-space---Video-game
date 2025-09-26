@@ -15,6 +15,7 @@ NB_CASE_X = 50 # Nombre de cases en largeur
 NB_CASE_Y = 30 # Nombre de cases en hauteur
 TAILLE_CASE = screen_height // (NB_CASE_Y + 2) # Taille d'une case en pixels
 
+# Adapté l'écran
 GRID_WIDTH = NB_CASE_X * TAILLE_CASE
 OFFSET_X = (screen_width - GRID_WIDTH) // 2
 

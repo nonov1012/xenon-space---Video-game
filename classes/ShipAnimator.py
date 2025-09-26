@@ -54,8 +54,6 @@ class ShipAnimator(Animator):
         self.color = color
         self.alpha = alpha
         self.alive = True
-        
-        self.x += OFFSET_X
 
     def update_and_draw(self) -> bool:
         """
@@ -139,7 +137,7 @@ class ShipAnimator(Animator):
 
     def display_health(self):
         bar_w = int(self.pixel_w)
-        bar_h = 10 * 100 / int(self.pixel_h)
+        bar_h = 10
         x = self.x
         y = self.y + self.pixel_h - bar_h
         pygame.draw.rect(Animator.screen, (255, 0, 0), (x, y, bar_w, bar_h))
