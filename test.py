@@ -171,13 +171,20 @@ while fonctionne:
             elif event.key == pygame.K_LSHIFT:
                 afficher_zones = not afficher_zones
 
-        # --- Clic gauche = déplacement / attaque ---
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if selection_ship and not interface_transport_active:
-                success = selection_ship.deplacement(case_souris, game_map.grille, ships)
-                if success:
+                # Vérifier si on clique sur la case d'origine du vaisseau sélectionné (coin haut-gauche)
+                if (case_souris[0] == selection_ship.cordonner.x and 
+                    case_souris[1] == selection_ship.cordonner.y):
+                    # Désélectionner le vaisseau
                     selection_ship = None
                     selection_cargo = None
+                else:
+                    # Tenter un déplacement/attaque
+                    success = selection_ship.deplacement(case_souris, game_map.grille, ships)
+                    if success:
+                        selection_ship = None
+                        selection_cargo = None
             else:
                 # Sélectionner un vaisseau
                 for ship in ships[:]:
@@ -225,7 +232,7 @@ while fonctionne:
                         if isinstance(target, Transport):
                             success = target.ajouter_cargo(selection_ship)
                             if success:
-                                selection_ship.occuper_plateau(game_map.grille, Type.VIDE)
+                                selection_ship.liberer_position(game_map.grille)
                                 ships.remove(selection_ship)
                                 selection_ship = None
                                 selection_cargo = None
@@ -250,8 +257,8 @@ while fonctionne:
     # --- Mettre à jour et dessiner les vaisseaux ---
     for ship in ships[:]:
         if ship.est_mort():
-            # Libère les cases de la grille
-            ship.occuper_plateau(game_map.grille, Type.VIDE)
+            # Libère les cases de la grille en restaurant le terrain approprié (cases atmosphère)
+            ship.liberer_position(game_map.grille)
             # Retirer le vaisseau de la liste
             ships.remove(ship)
             print(f"{ship.__class__.__name__} détruit")

@@ -236,6 +236,26 @@ class Ship:
                 return ship
         return None
 
+    def liberer_position(self, grille: List[List[Point]]):
+        """Libère la position du vaisseau en restaurant le terrain approprié."""
+        largeur, hauteur = self.donner_dimensions(self.direction)
+        for l in range(self.cordonner.x, self.cordonner.x + hauteur):
+            for c in range(self.cordonner.y, self.cordonner.y + largeur):
+                if 0 <= l < len(grille) and 0 <= c < len(grille[0]):
+                    # Vérifier si c'est une case d'atmosphère
+                    est_atmosphere = False
+                    for dl in range(-1, 2):
+                        for dc in range(-1, 2):
+                            nl, nc = l + dl, c + dc
+                            if (0 <= nl < len(grille) and 0 <= nc < len(grille[0]) and 
+                                grille[nl][nc].type == Type.PLANETE):
+                                est_atmosphere = True
+                                break
+                        if est_atmosphere:
+                            break
+                    
+                    grille[l][c].type = Type.ATMOSPHERE if est_atmosphere else Type.VIDE
+
     def deplacement(self, case_cible: Tuple[int, int], grille: List[List[Point]], ships: List["Ship"]):
         """Effectue un déplacement ou une attaque vers la case cible."""
         if self.id is None: 
@@ -252,7 +272,8 @@ class Ship:
             if cible_ship and cible_ship.id != self.id:
                 self.attaquer(cible_ship)
                 if cible_ship.est_mort():
-                    cible_ship.occuper_plateau(grille, Type.VIDE)
+                    # Restaurer le terrain sous le vaisseau détruit
+                    cible_ship.liberer_position(grille)
                     ships.remove(cible_ship)
                 return True
             
@@ -266,14 +287,37 @@ class Ship:
         if case_cible not in positions_deplacement:
             return False
         
-        # Libérer l'ancienne position (temporairement pour le test de collision)
+        # Sauvegarder les types de terrain actuels sous le vaisseau
+        terrain_sous_vaisseau = []
         ancienne_largeur, ancienne_hauteur = self.donner_dimensions(self.direction)
         for l in range(self.cordonner.x, self.cordonner.x + ancienne_hauteur):
             for c in range(self.cordonner.y, self.cordonner.y + ancienne_largeur):
                 if 0 <= l < len(grille) and 0 <= c < len(grille[0]):
-                    grille[l][c].type = Type.VIDE
+                    # Déterminer le type de terrain à restaurer
+                    if grille[l][c].type == Type.VAISSEAU:
+                        # Vérifier si c'est une case d'atmosphère
+                        est_atmosphere = False
+                        for dl in range(-1, 2):
+                            for dc in range(-1, 2):
+                                nl, nc = l + dl, c + dc
+                                if (0 <= nl < len(grille) and 0 <= nc < len(grille[0]) and 
+                                    grille[nl][nc].type == Type.PLANETE):
+                                    est_atmosphere = True
+                                    break
+                            if est_atmosphere:
+                                break
+                        
+                        terrain_type = Type.ATMOSPHERE if est_atmosphere else Type.VIDE
+                    else:
+                        terrain_type = grille[l][c].type
+                    
+                    terrain_sous_vaisseau.append((l, c, terrain_type))
         
-        # Vérifier la collision à la nouvelle position (sans ignorer self car on a déjà libéré)
+        # Libérer l'ancienne position avec les bons types de terrain
+        for l, c, terrain_type in terrain_sous_vaisseau:
+            grille[l][c].type = terrain_type
+        
+        # Vérifier la collision à la nouvelle position
         if self.verifier_collision(grille, ligne, colonne, cible_direction, ignorer_self=False):
             # Mettre à jour la position
             self.cordonner._x = ligne
@@ -287,12 +331,11 @@ class Ship:
             largeur, hauteur = self.donner_dimensions(self.direction)
             x = colonne * TAILLE_CASE + OFFSET_X
             y = ligne * TAILLE_CASE
-            w, h = largeur * TAILLE_CASE, hauteur * TAILLE_CASE
 
             self.animator.x = x
             self.animator.y = y
-            self.animator.pixel_w = w
-            self.animator.pixel_h = h
+            self.animator.pixel_w = largeur * TAILLE_CASE
+            self.animator.pixel_h = hauteur * TAILLE_CASE
 
             # Mise à jour des angles
             self.prevision.angle = self.animator.angle
