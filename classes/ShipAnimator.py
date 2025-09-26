@@ -76,13 +76,10 @@ class ShipAnimator(Animator):
             Animator.screen.blit(surface, pos)
 
         # --- Image statique si aucune animation prioritaire ---
-        if hasattr(self, "static_image") and self.static_image and not self.current_anim:
+        if hasattr(self, "static_image") and self.static_image and (self.current_anim not in ("sheild", "destruction")):
             rotated_img = pygame.transform.rotate(self.static_image, self.angle)
             rect = rotated_img.get_rect(center=(self.x + self.pixel_w // 2, self.y + self.pixel_h // 2))
             blit_with_alpha(rotated_img, rect.topleft)
-            
-            if self.current_anim == "base":
-                self.current_anim = None
 
         # --- Animation prioritaire ---
         if self.current_anim and self.current_anim != "engine":
@@ -137,7 +134,7 @@ class ShipAnimator(Animator):
 
     def display_health(self):
         bar_w = int(self.pixel_w)
-        bar_h = 10
+        bar_h = 5
         x = self.x
         y = self.y + self.pixel_h - bar_h
         pygame.draw.rect(Animator.screen, (255, 0, 0), (x, y, bar_w, bar_h))
@@ -216,8 +213,8 @@ class ShipAnimator(Animator):
             spawn_y = center_y - math.cos(angle_rad) * distance
 
             # --- Conversion en coordonnées grille ---
-            proj_x = spawn_x
-            proj_y = spawn_y
+            proj_x = spawn_x / TAILLE_CASE
+            proj_y = spawn_y / TAILLE_CASE
 
             # --- Animation du projectile (si pas laser) ---
             if projectile_type != "laser":

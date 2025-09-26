@@ -1,5 +1,6 @@
 import pygame
 from typing import Tuple, List, Optional
+from classes.ProjectileAnimator import ProjectileAnimator
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point, Type
@@ -52,7 +53,7 @@ class Ship:
 
         # Initialisation de l'Animator
         # Attention: ShipAnimator attend (y, x) en pixels selon le code
-        tile_coord = (cordonner.y, cordonner.x)  # Juste les indices de cases
+        tile_coord = (cordonner.x, cordonner.y)  # Juste les indices de cases
         self.animator = ShipAnimator(path, taille, tile_coord, PV_max=pv_max, PV_actuelle=pv_max)
         self.prevision = ShipAnimator(path, taille, tile_coord, show_health=False, alpha=100)
 
@@ -97,11 +98,14 @@ class Ship:
             largeur, hauteur = cible.donner_dimensions(cible.direction)
 
             # Centre de la cible en pixels
-            target_x = (cible.cordonner.y + largeur / 2) * TAILLE_CASE + OFFSET_X
-            target_y = (cible.cordonner.x + hauteur / 2) * TAILLE_CASE
+            largeur, hauteur = cible.donner_dimensions(cible.direction)
+
+            target_x = (cible.cordonner.y * TAILLE_CASE) + (largeur * TAILLE_CASE) / 2 + OFFSET_X
+            target_y = (cible.cordonner.x * TAILLE_CASE) + (hauteur * TAILLE_CASE) / 2
+
 
             self.animator.fire(
-                projectile_type="torpedo",
+                projectile_type="laser",
                 target=(target_x, target_y),
                 is_fired=True,
                 projectile_speed=3
@@ -272,6 +276,7 @@ class Ship:
             cible_ship = self.trouver_vaisseau_a_position(ships, ligne, colonne)
             if cible_ship and cible_ship.id != self.id:
                 self.attaquer(cible_ship)
+                self.prevision.alpha = 0
                 if cible_ship.est_mort():
                     # Restaurer le terrain sous le vaisseau détruit
                     cible_ship.liberer_position(grille)
@@ -333,8 +338,10 @@ class Ship:
             x = colonne * TAILLE_CASE + OFFSET_X
             y = ligne * TAILLE_CASE
 
-            self.animator.x = x
-            self.animator.y = y
+            self.prevision.alpha = 0
+            self.prevision.x = ligne
+            self.prevision.y = colonne
+            self.animator.set_target((x, y))
             self.animator.pixel_w = largeur * TAILLE_CASE
             self.animator.pixel_h = hauteur * TAILLE_CASE
 

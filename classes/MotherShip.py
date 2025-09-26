@@ -5,6 +5,7 @@ from classes.Point import Point
 from classes.Animator import Animator
 from classes.ShipAnimator import ShipAnimator
 from classes.ProjectileAnimator import ProjectileAnimator
+from blazyck import *
 
 LEVELS = {
     1: {"cout_upgrade": 1000, "pv_max": 500, "gains": 300, "attaque": 0, "port_attaque": 0},
@@ -27,26 +28,16 @@ class MotherShip(Ship):
                  tier: int,
                  cordonner: Point,
                  id: Optional[int] = None,
-                 path: str = None):
+                 path: str = None,
+                 show_health : bool = True):
 
         super().__init__(pv_max, attaque, port_attaque, port_deplacement,
                          cout, valeur_mort, taille, peut_miner=False,
-                         peut_transporter=False, image=pygame.Surface((taille[1]*32, taille[0]*32)),
+                         peut_transporter=False, image=pygame.Surface((taille[1]*TAILLE_CASE, taille[0]*TAILLE_CASE)),
                          tier=tier, cordonner=cordonner, id=id, path=path)
-
-        # Remplir l'image par défaut grise
-        self.image.fill((200, 200, 200))
-
-        # Initialisation de l’Animator
-        pixel_coord = (cordonner.y * 32, cordonner.x * 32)
-        self.animator = ShipAnimator(path, taille, pixel_coord)
-
-        # Charger animations
-        for anim in ["base", "engine", "shield", "destruction"]:
-            self.animator.load_animation(anim, f"{anim}.png")
-
-        self.animator.play("base")
-        self.is_dead_anim_playing = False
+        
+        self.prevision.alpha = 0
+        self.animator.show_health = show_health
 
     # ---------------- Déplacement et rotation désactivés ----------------
     def deplacement(self, *args, **kwargs):

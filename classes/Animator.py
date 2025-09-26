@@ -53,9 +53,8 @@ class Animator:
 
         # position
         self.x = coord[0] * tile_size
+        self.x += OFFSET_X
         self.y = coord[1] * tile_size
-
-        print(TAILLE_CASE)
 
         # --- dimensions en nombre de cases ---
         self.tile_w, self.tile_h = dimensions   # <<< ici
@@ -189,8 +188,8 @@ class Animator:
         self.active = True
 
         # centre actuel du projectile / entité
-        cx = self.x + self.pixel_w // 2
-        cy = self.y + self.pixel_h // 2
+        cx = self.x
+        cy = self.y
 
         # vecteur direction vers la cible (coordonnées écran)
         dx = self.target[0] - cx
@@ -244,8 +243,8 @@ class Animator:
         self.y += self.vy * self.speed
 
         # coordonnées du centre du projectile
-        cx = self.x + self.pixel_w / 2
-        cy = self.y + self.pixel_h / 2
+        cx = self.x
+        cy = self.y
 
         # vecteur restant jusqu'à la cible
         dx_remain = self.target[0] - cx
@@ -253,8 +252,8 @@ class Animator:
 
         # produit scalaire : si <= 0, le centre a atteint ou dépassé la cible
         if (dx_remain * self.vx + dy_remain * self.vy) <= 0:
-            self.x = self.target[0] - self.pixel_w / 2
-            self.y = self.target[1] - self.pixel_h / 2
+            self.x = self.target[0]
+            self.y = self.target[1]
             self.active = False
 
     def set_angle(self, angle: float):

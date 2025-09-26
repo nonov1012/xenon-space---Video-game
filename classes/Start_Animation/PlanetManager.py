@@ -26,7 +26,7 @@ class PlanetManager:
         h = w
 
         name = random.choice(self.planet_names)
-        x = random.randint(-w * 2, -w * 1)
+        x = random.randint(-w * 3, -w * 2)
         y = random.randint(0, (Animator.screen.get_height() - 50))
         y = y / TAILLE_CASE
         speed = random.randint(self.speed_range[0], self.speed_range[1])
@@ -34,7 +34,7 @@ class PlanetManager:
         planet = PlanetAnimator((w, h), (x, y), default_fps=10, speed=speed)
         planet.play(name, True)
         centre = planet.get_center()
-        planet.set_target((Animator.screen.get_width() + planet.pixel_w * 10, centre[1]), False)
+        planet.set_target((Animator.screen.get_width() + planet.pixel_w * 10, centre[1]), True, "right")
 
         # Réinitialiser la probabilité après spawn
         self.spawn_prob = 1
