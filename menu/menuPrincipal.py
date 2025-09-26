@@ -2,10 +2,11 @@ import pygame
 import sys
 from classes.PlanetAnimator import PlanetAnimator
 from classes.ShipAnimator import ShipAnimator
-import menuJouer
-import menuParam
-import menuSucces
-import menuPause
+import menu.menuJouer
+import menu.menuParam
+import menu.menuSucces
+import menu.menuPause
+
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
 from classes.Start_Animation.StarField import StarField
@@ -23,7 +24,8 @@ from classes.Start_Animation.main import create_space_background
 pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
-ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN, pygame.SRCALPHA)
+pygame.display.set_caption("Xénon Space")
 clock = pygame.time.Clock()
 
 Animator.set_screen(ecran) # initialisation de la classe Animator
@@ -35,7 +37,7 @@ pygame.mouse.set_visible(False)
 
 # Sons
 sm = SoundManager()
-sm.play_music("assets/sounds/musics/music_ingame.mp3")
+# sm.play_music("assets/sounds/musics/music_ingame.mp3")
 sm.load_sfx("son_hover", "assets/sounds/menu/buttons/button_hover.mp3")
 sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
@@ -157,18 +159,18 @@ while en_cours:
         elif evenement.type == pygame.KEYDOWN:
             if evenement.key == pygame.K_ESCAPE:
                 # Appelle le menu pause
-                pause_menu = menuPause.PauseMenu(ecran, sm)
+                pause_menu = menu.menuPause.PauseMenu(ecran, sm)
                 pause_menu.run()
         elif evenement.type == pygame.MOUSEBUTTONDOWN:
             if bouton_jouer.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
-                menuJouer.main(ecran)
+                menu.menuJouer.draw(ecran)
             elif bouton_param.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
-                menuParam.main(ecran)
+                menu.menuParam.main(ecran)
             elif bouton_succes.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
-                menuSucces.main(ecran)
+                menu.menuSucces.main(ecran)
             elif bouton_quitter.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 pygame.quit()
