@@ -255,8 +255,4 @@ class ShipAnimator(Animator):
                 if animation.play_with_fade("destruction"):
                     animation.remove_from_list()
                     
-    @classmethod
-    def clear_list(cls):
-        """Vide complètement la liste d'animations de cette classe"""
-        if hasattr(cls, "liste_animation"):
-            cls.liste_animation.clear()
+    
