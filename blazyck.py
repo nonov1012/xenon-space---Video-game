@@ -20,7 +20,7 @@ GRID_WIDTH = NB_CASE_X * TAILLE_CASE
 OFFSET_X = (screen_width - GRID_WIDTH) // 2
 
 # Planètes
-MAX_PLANETES_ANIMATIONS = 6 # Nombre d'animations de planètes différents
+MAX_PLANETES_ANIMATIONS = 50 # Nombre d'animations de planètes différents
 PLANETES_FRAME_SIZE = (75, 75) # Taille d'une frame de planètes
 
 # Chemain des fichiers

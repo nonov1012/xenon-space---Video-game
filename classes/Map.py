@@ -48,8 +48,8 @@ class Map:
 
         # === Chargement des images de planètes ===
         self.planete_images = []
-        for i in range(1, 8):
-            path = os.path.join(PLANETES_PATH, f"planet{i}.gif")
+        for i in range(1, MAX_PLANETES_ANIMATIONS):
+            path = os.path.join(PLANETES_PATH, f"planet{i}.png")
             if os.path.exists(path):
                 try:
                     img = load_image(path)
@@ -61,7 +61,7 @@ class Map:
         
         # === Chargement des images d’astéroïdes ===
         self.asteroide_images = []
-        for i in range(1, 6):  # imaginons aste1.png → aste5.png
+        for i in range(1, 50):
             path = os.path.join(ASTEROIDES_PATH, f"aste{i}.png")
             if os.path.exists(path):
                 try:
@@ -102,7 +102,7 @@ class Map:
         Associe une image aléatoire à cette planète.
         """
         # Ajout de l'animation des planètes
-        planet = PlanetAnimator((taille, taille), (x, y), speed=0, default_fps=10)
+        planet = PlanetAnimator((taille, taille), (x, y), speed=0, default_fps=15)
         planet.liste_animation[-1].play("planet" + str(random.randint(1, MAX_PLANETES_ANIMATIONS)), True)
 
         planet.draw_atmosphere(color_atmosphere)
