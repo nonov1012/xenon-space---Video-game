@@ -119,7 +119,7 @@ def start_game(ecran, parametres, random_active):
     ships = []
 
     # MotherShip du joueur (zone de base)
-    smm1 = MotherShip(pv_max=5000, attaque=0, port_attaque=0, port_deplacement=0, cout=0,
+    smm1 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
                       valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
                       id=next_uid, path=img_base_dir)
     next_uid += 1
@@ -127,7 +127,7 @@ def start_game(ecran, parametres, random_active):
 
     # Vaisseaux de départ du joueur (dans la zone de base)
     # Petit vaisseau de reconnaissance
-    sp1 = Petit(pv_max=300, attaque=100, port_attaque=3, port_deplacement=6, cout=200,
+    sp1 = Petit(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
                 valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
                 image=img_petit, tier=1, cordonner=Point(5,1), id=next_uid, path=img_petit_dir)
     next_uid += 1

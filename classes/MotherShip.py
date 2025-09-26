@@ -77,43 +77,6 @@ class MotherShip(Ship):
         self.apply_level(self.tier + 1)
         return True
 
-    # ---------------- Gestion dégâts / combat ----------------
-    def subir_degats(self, amount: int):
-        self.take_damage(amount)
-
-    def take_damage(self, amount: int):
-        self.pv_actuel = max(0, self.pv_actuel - max(0, amount))
-        if self.pv_actuel > 0:
-            self.animator.play("shield")
-        else:
-            if not self.is_dead_anim_playing:
-                self.animator.play("destruction")
-                self.is_dead_anim_playing = True
-
-    def est_mort(self) -> bool:
-        if self.pv_actuel > 0: return False
-        if not self.is_dead_anim_playing: return False
-        frames = self.animator.animations.get("destruction")
-        if not frames: return True
-        return self.animator.frame_index == len(frames) - 1
-
-    def heal(self, amount: int):
-        self.pv_actuel = min(self.pv_max, self.pv_actuel + amount)
-
-    def attaquer(self, cible: "Ship"):
-        if hasattr(cible, "subir_degats"):
-            cible.subir_degats(self.attaque)
-
-    # ---------------- Rendu ----------------
-    def dessiner(self, surface, taille_case):
-        self.animator.update_and_draw()
-        # barre de vie
-        x = self.cordonner.y * taille_case
-        y = (self.cordonner.x + self.taille[0]) * taille_case - 15
-        largeur_barre = self.taille[1] * taille_case
-        proportion = self.pv_actuel / self.pv_max
-        pygame.draw.rect(surface, (255,0,0), (x, y, largeur_barre, 15))
-        pygame.draw.rect(surface, (0,255,0), (x, y, int(largeur_barre * proportion), 15))
 
 """
 def main():

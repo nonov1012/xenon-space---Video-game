@@ -208,14 +208,16 @@ class ShipAnimator(Animator):
             angle_rad = math.radians(self.angle)
             distance = self.pixel_h / 2  # distance devant le nez
             
+            
             # Calcul correct pour ton système de coordonnées
             spawn_x = center_x - math.sin(angle_rad) * distance
             spawn_y = center_y - math.cos(angle_rad) * distance
 
             # --- Conversion en coordonnées grille ---
-            proj_x = spawn_x / TAILLE_CASE
-            proj_y = spawn_y / TAILLE_CASE
-
+            proj_x = center_x / TAILLE_CASE -4
+            proj_y = center_y / TAILLE_CASE
+            print (proj_x, proj_y)
+ 
             # --- Animation du projectile (si pas laser) ---
             if projectile_type != "laser":
                 bullet = ProjectileAnimator(

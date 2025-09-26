@@ -53,7 +53,7 @@ class Ship:
 
         # Initialisation de l'Animator
         # Attention: ShipAnimator attend (y, x) en pixels selon le code
-        tile_coord = (cordonner.x, cordonner.y)  # Juste les indices de cases
+        tile_coord = (cordonner.y, cordonner.x)  # Juste les indices de cases
         self.animator = ShipAnimator(path, taille, tile_coord, PV_max=pv_max, PV_actuelle=pv_max)
         self.prevision = ShipAnimator(path, taille, tile_coord, show_health=False, alpha=100)
 
