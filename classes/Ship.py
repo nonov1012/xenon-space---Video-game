@@ -6,6 +6,8 @@ from blazyck import *
 from classes.Point import Point, Type
 import threading
 import random
+from classes.Economie import *
+from classes.Player import *
 
 # =======================
 # Classe Ship = Vaisseau
@@ -190,6 +192,24 @@ class Ship:
                 if point.type in types_bloquants:
                     return False
         return True
+    
+    def est_a_cote_planete(self, grille: list[list[Point]]) -> bool:
+        largeur, hauteur = self.donner_dimensions(self.direction)
+        ligne_start = self.cordonner.x
+        colonne_start = self.cordonner.y
+        
+        # On parcourt toutes les cases autour du vaisseau (bordure 1 case)
+        for l in range(ligne_start - 1, ligne_start + hauteur + 1):
+            for c in range(colonne_start - 1, colonne_start + largeur + 1):
+                # Ignorer les cases à l’intérieur du vaisseau
+                if ligne_start <= l < ligne_start + hauteur and colonne_start <= c < colonne_start + largeur:
+                    continue
+                # Vérifier limites
+                if 0 <= l < len(grille) and 0 <= c < len(grille[0]):
+                    if grille[l][c].type == Type.PLANETE:
+                        return True
+        return False
+
 
     # ------------ DÉPLACEMENT / ATTAQUE ------------
     def positions_possibles_adjacentes(self, grille: List[List[Point]], direction=None):
@@ -456,13 +476,10 @@ class Foreuse(Ship):
         # Les foreuses peuvent toujours miner
         self.peut_miner = True
 
-    def miner_asteroide(self, grille: List[List[Point]], x: int, y: int) -> bool:
-        """Version améliorée du minage pour les foreuses."""
-        if super().miner_asteroide(grille, x, y):
-            # Les foreuses récupèrent plus de ressources
-            # Ici on pourrait ajouter bonus de ressources
-            return True
-        return False
+    def generer_argent_si_proche_planete(self, grille: List[List[Point]], joueur: "Player"):
+        """Ajoute de l'argent si le vaisseau est à côté d'une planète."""
+        if self.est_a_cote_planete(grille):
+            joueur.economie.ajouter(75)
 
 class Transport(Ship):
     """Vaisseau de transport - peut transporter d'autres vaisseaux."""

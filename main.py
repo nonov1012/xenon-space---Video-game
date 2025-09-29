@@ -252,6 +252,11 @@ def start_game(ecran, parametres, random_active):
                                     selection_cargo = None
                                     interface_transport_active = False
                             break
+                        
+        # à modifier plus tard
+        for vaisseau in ships:
+            if isinstance(vaisseau, Foreuse):  # si seulement les foreuses
+                sf1.generer_argent_si_proche_planete(map_obj.grille, player)
 
         # --- Dessin ---
         ecran.fill((0, 0, 0, 0))
