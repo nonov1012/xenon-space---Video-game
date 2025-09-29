@@ -1,4 +1,4 @@
-import pygame
+    import pygame
 
 def main(ecran):
     """Menu Succes avec titre et descriptions"""

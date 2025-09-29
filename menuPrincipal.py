@@ -16,7 +16,7 @@ from classes.Achievements import AchievementManager
 
 # -------------------------------
 # Creer le fond spatial (etoiles + planetes + vaisseau)
-# -------------------------------
+# -------------------------------*
 def create_space_background(screen: pygame.Surface, planete_path: str, num_stars=100, screen_ratio=1.0):
     screen_width, screen_height = screen.get_size()
 
@@ -88,7 +88,7 @@ pygame.display.set_icon(icone)
 # -------------------------------
 # Fond anime avec planetes et vaisseau
 # -------------------------------
-stars, planet_manager, B1 = create_space_background(ecran, PLANETES_PATH, num_stars=100, screen_ratio=screen_ratio)
+stars, planet_manager, B1 = create_space_back_ground(ecran, PLANETES_PATH, num_stars=100, screen_ratio=screen_ratio)
 
 # -------------------------------
 # Titre centre
