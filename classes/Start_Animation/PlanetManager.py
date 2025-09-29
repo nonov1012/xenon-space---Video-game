@@ -31,7 +31,7 @@ class PlanetManager:
         y = y / TAILLE_CASE
         speed = random.randint(self.speed_range[0], self.speed_range[1])
 
-        planet = PlanetAnimator((w, h), (x, y), default_fps=10, speed=speed)
+        planet = PlanetAnimator((w, h), (x, y), default_fps=(15*speed/2), speed=speed)
         planet.play(name, True)
         centre = planet.get_center()
         planet.set_target((Animator.screen.get_width() + planet.pixel_w * 10, centre[1]), True, "right")

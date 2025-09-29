@@ -43,8 +43,8 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
     center_y = (screen_height / TAILLE_CASE) / 2
     vaisseau_w = 4 * screen_ratio
     vaisseau_h = 5 * screen_ratio
-    x = int(center_x - vaisseau_w / 1.5)
-    y = int(center_y - vaisseau_h / 2)
+    x = int(center_x - vaisseau_w / 1.30)
+    y = int(center_y - vaisseau_h / 2.30)
 
     B1 = MotherShip(
         pv_max=5000,          # Points de vie max
@@ -55,7 +55,7 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
         valeur_mort=0,        # Valeur à la mort
         taille=(vaisseau_w, vaisseau_h),  # Taille en tuples
         tier=1,               # Niveau
-        cordonner=Point(x, y),  # Position
+        cordonner=Point(y, x),  # Position
         id=999,               # ID unique pour le menu
         path="assets/img/ships/base",  # Chemin des assets
         show_health=False

@@ -341,22 +341,21 @@ class Ship:
             x = colonne * TAILLE_CASE + OFFSET_X
             y = ligne * TAILLE_CASE
 
-            self.prevision.alpha = 0
             self.prevision.x = ligne
             self.prevision.y = colonne
-            self.animator.set_target((x, y))
+            self.animator.set_target((x, y), False)
+            self.animator.set_target_angle(self.animator.angle)
             self.animator.pixel_w = largeur * TAILLE_CASE
             self.animator.pixel_h = hauteur * TAILLE_CASE
-
-            # Mise à jour des angles
-            self.prevision.angle = self.animator.angle
-            self.prevision.alpha = 0
             
             angles = {"haut": 0, "droite": -90, "gauche": 90, "bas": 180}
             if cible_direction in angles:
                 self.animator.target_angle = angles[cible_direction]
                 self.prevision.target_angle = angles[cible_direction]
-            self.animator.update_and_draw()
+
+            # Mise à jour des angles
+            self.prevision.angle = self.animator.angle
+            self.prevision.alpha = 0
             return True
         else:
             # Remettre l'occupation à l'ancienne position en cas d'échec
