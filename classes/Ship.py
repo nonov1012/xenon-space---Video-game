@@ -16,7 +16,7 @@ class Ship:
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, cordonner: Optional[Point] = None, id: Optional[int] = None,
-                 path: str = None):
+                 path: str = None, joueur : int = 1):
         
         # ---- Caractéristiques ----
         self.pv_max = pv_max
@@ -29,6 +29,7 @@ class Ship:
         self.taille = tuple(taille)
         self.peut_miner = peut_miner
         self.peut_transporter = peut_transporter
+        self.joueur = joueur
 
         # Inventaire de transport (3 slots)
         self.cargaison = [None, None, None]
@@ -91,25 +92,27 @@ class Ship:
     # ------------ COMBAT ------------
     def attaquer(self, cible: "Ship"):
         """Attaque un vaisseau cible."""
-        cible.subir_degats(self.attaque)
-        
-        # Vérifier si ce vaisseau peut tirer (les foreuses n'ont pas d'animation de tir)
-        if self.attaque > 0 and not isinstance(self, Foreuse):
-            largeur, hauteur = cible.donner_dimensions(cible.direction)
+        print(cible.joueur)
+        if self.joueur != cible.joueur:
+            cible.subir_degats(self.attaque)
+            
+            # Vérifier si ce vaisseau peut tirer (les foreuses n'ont pas d'animation de tir)
+            if self.attaque > 0 and not isinstance(self, Foreuse):
+                largeur, hauteur = cible.donner_dimensions(cible.direction)
 
-            # Centre de la cible en pixels
-            largeur, hauteur = cible.donner_dimensions(cible.direction)
+                # Centre de la cible en pixels
+                largeur, hauteur = cible.donner_dimensions(cible.direction)
 
-            target_x = (cible.cordonner.y * TAILLE_CASE) + (largeur * TAILLE_CASE) / 2 + OFFSET_X
-            target_y = (cible.cordonner.x * TAILLE_CASE) + (hauteur * TAILLE_CASE) / 2
+                target_x = (cible.cordonner.y * TAILLE_CASE) + (largeur * TAILLE_CASE) / 2 + OFFSET_X
+                target_y = (cible.cordonner.x * TAILLE_CASE) + (hauteur * TAILLE_CASE) / 2
 
 
-            self.animator.fire(
-                projectile_type="laser",
-                target=(target_x, target_y),
-                is_fired=True,
-                projectile_speed=3
-            )
+                self.animator.fire(
+                    projectile_type="laser",
+                    target=(target_x, target_y),
+                    is_fired=True,
+                    projectile_speed=3
+                )
 
     def subir_degats(self, degats):
         """Fait subir des dégâts au vaisseau."""
@@ -417,40 +420,40 @@ class Petit(Ship):
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, 
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool, 
                  peut_transporter: bool, image: pygame.Surface, tier: int, 
-                 cordonner: Point, id: Optional[int] = None, path: str = None):
+                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                          taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path)
+                         tier, cordonner, id, path, joueur)
 
 class Moyen(Ship):
     """Vaisseau de taille moyenne - équilibré."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
-                 cordonner: Point, id: Optional[int] = None, path: str = None):
+                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                          taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path)
+                         tier, cordonner, id, path, joueur)
 
 class Lourd(Ship):
     """Vaisseau lourd - résistant mais lent."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
-                 cordonner: Point, id: Optional[int] = None, path: str = None):
+                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                          taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path)
+                         tier, cordonner, id, path, joueur)
 
 class Foreuse(Ship):
     """Vaisseau spécialisé dans le minage d'astéroïdes."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
-                 cordonner: Point, id: Optional[int] = None, path: str = None):
+                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                          taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path)
+                         tier, cordonner, id, path, joueur)
         # Les foreuses peuvent toujours miner
         self.peut_miner = True
 
@@ -467,10 +470,10 @@ class Transport(Ship):
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
-                 cordonner: Point, id: Optional[int] = None, path: str = None):
+                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                          taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path)
+                         tier, cordonner, id, path, joueur)
         # Cargaison pour transporter d'autres vaisseaux
         self.cargaison: List[Optional[Ship]] = [None, None, None]
         self.peut_transporter = True

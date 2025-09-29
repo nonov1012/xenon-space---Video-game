@@ -29,12 +29,13 @@ class MotherShip(Ship):
                  cordonner: Point,
                  id: Optional[int] = None,
                  path: str = None,
-                 show_health : bool = True):
+                 show_health : bool = True,
+                 joueur : int = 1):
 
         super().__init__(pv_max, attaque, port_attaque, port_deplacement,
                          cout, valeur_mort, taille, peut_miner=False,
                          peut_transporter=False, image=pygame.Surface((taille[1]*TAILLE_CASE, taille[0]*TAILLE_CASE)),
-                         tier=tier, cordonner=cordonner, id=id, path=path)
+                         tier=tier, cordonner=cordonner, id=id, path=path, joueur=joueur)
         
         self.prevision.alpha = 0
         self.animator.show_health = show_health

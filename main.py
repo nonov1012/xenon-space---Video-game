@@ -121,7 +121,7 @@ def start_game(ecran, parametres, random_active):
     # MotherShip du joueur (zone de base)
     smm1 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
                       valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
-                      id=next_uid, path=img_base_dir)
+                      id=next_uid, path=img_base_dir, joueur = 1)
     next_uid += 1
     ships.append(smm1)
 
@@ -129,14 +129,20 @@ def start_game(ecran, parametres, random_active):
     # Petit vaisseau de reconnaissance
     sp1 = Petit(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
                 valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
-                image=img_petit, tier=1, cordonner=Point(5,1), id=next_uid, path=img_petit_dir)
+                image=img_petit, tier=1, cordonner=Point(5,1), id=next_uid, path=img_petit_dir, joueur = 1)
+    next_uid += 1
+    ships.append(sp1)
+
+    sp1 = Lourd(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
+                valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
+                image=img_Lourd, tier=1, cordonner=Point(5,5), id=next_uid, path=img_lourd_dir, joueur = 2)
     next_uid += 1
     ships.append(sp1)
 
     # Foreuse de départ
     sf1 = Foreuse(pv_max=500, attaque=0, port_attaque=0, port_deplacement=3, cout=500,
                   valeur_mort=int(500*0.6), taille=(2,2), peut_miner=True, peut_transporter=False,
-                  image=img_foreuse, tier=1, cordonner=Point(1,5), id=next_uid, path=img_foreuse_dir)
+                  image=img_foreuse, tier=1, cordonner=Point(1,5), id=next_uid, path=img_foreuse_dir, joueur = 1)
     next_uid += 1
     ships.append(sf1)
 
