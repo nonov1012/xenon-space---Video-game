@@ -1,13 +1,35 @@
+#################################################################
+#  __   __ __                      _____                        #
+#  \ \ / //_/                     / ____|                       #
+#   \ V / ___ _ __   ___  _ __   | (___  _ __   __ _  ___ ___   #
+#    > < / _ \ '_ \ / _ \| '_ \   \___ \| '_ \ / _` |/ __/ _ \  #
+#   / . \  __/ | | | (_) | | | |  ____) | |_) | (_| | (_|  __/  #
+#  /_/ \_\___|_| |_|\___/|_| |_| |_____/| .__/ \__,_|\___\___|  #
+#                                       | |                     #
+#                                       |_|                     #
+#################################################################
+# Développé par :                                               #
+# - nonov1012                                                   #
+# - brian62100                                                  #
+# - 
+# - 
+# - 
+# -
+#################################################################
+# Copyright (c) 2025                                            #
+# Tous droits réservés. Merci de ne pas reproduire              #
+# ou modifier le code sans autorisation.                        #
+#################################################################
+
 import pygame
 from typing import Tuple, List, Optional
-from classes.ProjectileAnimator import ProjectileAnimator
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point, Type
-import threading
-import random
 from classes.Economie import *
 from classes.Player import *
+from heapq import heappush, heappop
+
 
 # =======================
 # Classe Ship = Vaisseau
@@ -19,7 +41,26 @@ class Ship:
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, cordonner: Optional[Point] = None, id: Optional[int] = None,
                  path: str = None, joueur : int = 1):
+        """
+        Classe de base pour tous les vaisseaux.
         
+        :param pv_max: Points de vie maximum
+        :param attaque: Dégâts infligés par attaque
+        :param port_attaque: Portée d’attaque en cases
+        :param port_deplacement: Portée de déplacement (points de mouvement)
+        :param cout: Coût d’achat
+        :param valeur_mort: Valeur donnée à l’adversaire en cas de destruction
+        :param taille: Dimensions du vaisseau (largeur, hauteur en cases)
+        :param peut_miner: True si le vaisseau peut miner
+        :param peut_transporter: True si le vaisseau peut transporter
+        :param image: Sprite de base du vaisseau
+        :param tier: Niveau technologique
+        :param cordonner: Position initiale (coin haut-gauche du vaisseau)
+        :param id: Identifiant unique
+        :param path: Chemin vers les assets
+        :param joueur: Numéro du joueur propriétaire
+        """
+
         # ---- Caractéristiques ----
         self.pv_max = pv_max
         self.pv_actuel = pv_max
@@ -33,40 +74,38 @@ class Ship:
         self.peut_transporter = peut_transporter
         self.joueur = joueur
 
-        # Inventaire de transport (3 slots)
+        # Inventaire (3 slots si transport possible)
         self.cargaison = [None, None, None]
 
         # ---- Graphisme & niveau ----
         self.image = image
         self.tier = tier
 
-        # ---- Identifiant stable ----
+        # ---- Identifiant ----
         self.id = id
 
-        # ---- Position réelle ----
+        # ---- Position ----
         if cordonner is None:
             cordonner = Point(0, 0)
         self.cordonner: Point = cordonner
+        self.direction = "haut"  # direction initiale
 
-        self.direction = "haut"  # direction par défaut
-
-        # ---- Aperçu (preview avant placement / action) ----
+        # ---- Prévisualisation (pour placement/rotation avant validation) ----
         self.aperçu_direction = self.direction
         self.aperçu_cordonner = Point(cordonner.x, cordonner.y)
 
-        # Initialisation de l'Animator
-        # Attention: ShipAnimator attend (y, x) en pixels selon le code
-        tile_coord = (cordonner.y, cordonner.x)  # Juste les indices de cases
+        # ---- Gestion animations ----
+        tile_coord = (cordonner.y, cordonner.x)  # Coordonnées en cases
         self.animator = ShipAnimator(path, taille, tile_coord, PV_max=pv_max, PV_actuelle=pv_max)
         self.prevision = ShipAnimator(path, taille, tile_coord, show_health=False, alpha=100)
 
-        # Charger les animations de base
+        # Charger animations de base
         base_animations = ["base", "engine", "shield", "destruction"]
         for anim in base_animations:
             self.animator.load_animation(anim, f"{anim}.png")
             self.prevision.load_animation(anim, f"{anim}.png")
 
-        # Charger l'animation weapons seulement si le vaisseau peut attaquer
+        # Ajouter animation "weapons" si le vaisseau est armé
         if self.attaque > 0 and not isinstance(self, Foreuse):
             self.animator.load_animation("weapons", "weapons.png")
             self.prevision.load_animation("weapons", "weapons.png")
@@ -74,40 +113,40 @@ class Ship:
         self.animator.play("base")
         self.prevision.play("base")
 
+
     # ------------ UTILITAIRES ------------
     def donner_dimensions(self, direction: str) -> Tuple[int, int]:
-        """Retourne (largeur, hauteur) selon l'orientation du vaisseau."""
-
+        """Retourne (largeur, hauteur) en fonction de la direction (rotation)."""
         if direction in ("haut", "bas"):
             return self.taille
         elif direction in ("droite", "gauche"):
             return (self.taille[1], self.taille[0])
 
     def _centre_depuis_coin(self, ligne_coin, colonne_coin, direction):
+        """Convertit la position du coin haut-gauche en coordonnées du centre."""
         largeur, hauteur = self.donner_dimensions(direction)
         return ligne_coin + (hauteur-1)/2, colonne_coin + (largeur-1)/2
 
     def _coin_depuis_centre(self, centre_l, centre_c, direction):
+        """Convertit la position du centre en coordonnées du coin haut-gauche."""
         largeur, hauteur = self.donner_dimensions(direction)
         return int(round(centre_l-(hauteur-1)/2)), int(round(centre_c-(largeur-1)/2))
 
     # ------------ COMBAT ------------
     def attaquer(self, cible: "Ship"):
-        """Attaque un vaisseau cible."""
-        print(cible.joueur)
+        """
+        Attaque un autre vaisseau.
+        - inflige des dégâts
+        - déclenche animation de tir si le vaisseau est armé
+        """
         if self.joueur != cible.joueur:
             cible.subir_degats(self.attaque)
             
-            # Vérifier si ce vaisseau peut tirer (les foreuses n'ont pas d'animation de tir)
             if self.attaque > 0 and not isinstance(self, Foreuse):
+                # Calcul position centrale de la cible
                 largeur, hauteur = cible.donner_dimensions(cible.direction)
-
-                # Centre de la cible en pixels
-                largeur, hauteur = cible.donner_dimensions(cible.direction)
-
                 target_x = (cible.cordonner.y * TAILLE_CASE) + (largeur * TAILLE_CASE) / 2 + OFFSET_X
                 target_y = (cible.cordonner.x * TAILLE_CASE) + (hauteur * TAILLE_CASE) / 2
-
 
                 self.animator.fire(
                     projectile_type="laser",
@@ -117,7 +156,7 @@ class Ship:
                 )
 
     def subir_degats(self, degats):
-        """Fait subir des dégâts au vaisseau."""
+        """Réduit les PV et joue les animations appropriées (bouclier ou destruction)."""
         self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
         self.animator.PV_actuelle = self.pv_actuel
         if self.pv_actuel > 0:
@@ -129,30 +168,28 @@ class Ship:
             self.animator.alive = False
 
     def est_mort(self):
-        """Vérifie si le vaisseau est mort."""
+        """Retourne True si le vaisseau est détruit."""
         return self.pv_actuel <= 0
 
+    # ------------ MINAGE ------------
     def peut_miner_asteroide(self, grille: List[List[Point]], x: int, y: int) -> bool:
-        """Vérifie si le vaisseau peut miner l'astéroïde à la position donnée."""
+        """Retourne True si le vaisseau peut miner un astéroïde à (x, y)."""
         if not self.peut_miner:
             return False
-        
         if 0 <= x < len(grille[0]) and 0 <= y < len(grille):
             return grille[y][x].type == Type.ASTEROIDE
         return False
 
     def miner_asteroide(self, grille: List[List[Point]], x: int, y: int) -> bool:
-        """Mine un astéroïde et le transforme en case vide."""
+        """Mine un astéroïde → transforme la case en VIDE, ajoute potentiellement des ressources."""
         if self.peut_miner_asteroide(grille, x, y):
             grille[y][x].type = Type.VIDE
-            # Ici on pourrait ajouter des ressources au vaisseau
             return True
         return False
 
-    # ------------ INTERACTION AVEC LE PLATEAU (grille de Points) ------------
+     # ------------ INTERACTION PLATEAU ------------
     def occuper_plateau(self, grille: List[List[Point]], nouveau_type: Type, direction=None, ligne: int = None, colonne: int = None):
-        """Occupe les cases du plateau avec le type spécifié."""
-
+        """Occupe les cases correspondant à l’emprise du vaisseau avec le type donné (souvent VAISSEAU)."""
         if direction is None:
             direction = self.direction
         if ligne is None:
@@ -165,8 +202,9 @@ class Ship:
                 if 0 <= l < len(grille) and 0 <= c < len(grille[0]):
                     grille[l][c].type = nouveau_type
 
+
     def verifier_collision(self, grille: List[List[Point]], ligne: int = 0, colonne: int = 0, direction="haut", ignorer_self=False):
-        """Vérifie s'il y a collision avec les objets du plateau."""
+        """Retourne False si le vaisseau entrerait en collision avec un obstacle (planète, base, autre vaisseau)."""
         largeur, hauteur = self.donner_dimensions(direction)
         
         # Vérification des limites
@@ -194,6 +232,7 @@ class Ship:
         return True
     
     def est_a_cote_planete(self, grille: list[list[Point]]) -> bool:
+        """Retourne True si le vaisseau touche une case voisine de type PLANETE."""
         largeur, hauteur = self.donner_dimensions(self.direction)
         ligne_start = self.cordonner.x
         colonne_start = self.cordonner.y
@@ -213,31 +252,75 @@ class Ship:
 
     # ------------ DÉPLACEMENT / ATTAQUE ------------
     def positions_possibles_adjacentes(self, grille: List[List[Point]], direction=None):
-        """Calcule les positions de déplacement possibles."""
+        """
+        Calcule toutes les positions atteignables par le vaisseau avec un coût variable.
+        - VIDE = 1 point
+        - ATMOSPHERE = 2 points
+        - autres types = bloquant
+        Utilise une recherche de type Dijkstra.
+        """
+
         if direction is None:
             direction = self.direction
-            
+
         nb_lignes = len(grille)
         nb_colonnes = len(grille[0])
         largeur, hauteur = self.donner_dimensions(direction)
-        positions = []
-        
-        for dy in range(-self.port_deplacement, self.port_deplacement + 1):
-            for dx in range(-self.port_deplacement, self.port_deplacement + 1):
-                if dy == 0 and dx == 0: 
-                    continue
-                if abs(dy) + abs(dx) <= self.port_deplacement:
-                    nl, nc = self.cordonner.x + dy, self.cordonner.y + dx
-                    
-                    # Vérification des limites
-                    if 0 <= nl <= nb_lignes - hauteur and 0 <= nc <= nb_colonnes - largeur:
-                        # Utiliser ignorer_self=True pour éviter l'auto-collision
-                        if self.verifier_collision(grille, nl, nc, direction, ignorer_self=True):
-                            positions.append((nl, nc))
-        return positions
+
+        # Coût des cases
+        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2}
+
+        # Positions atteignables avec leur coût minimal
+        reachable = {}
+
+        # File de priorité
+        heap = []
+
+        start_pos = (self.cordonner.x, self.cordonner.y)
+        heappush(heap, (0, start_pos))
+
+        while heap:
+            cout_actuel, (l, c) = heappop(heap)
+
+            if (l, c) in reachable and reachable[(l, c)] <= cout_actuel:
+                continue
+            reachable[(l, c)] = cout_actuel
+
+            # 4 directions cardinales
+            for dl, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
+                nl, nc = l + dl, c + dc
+
+                # Vérifier limites
+                if 0 <= nl <= nb_lignes - hauteur and 0 <= nc <= nb_colonnes - largeur:
+                    # Vérifier collision en ignorant ses propres cases
+                    if self.verifier_collision(grille, nl, nc, direction, ignorer_self=True):
+                        # Calculer coût du déplacement pour l’emprise du vaisseau
+                        max_cost = 0
+                        valide = True
+                        for yy in range(nl, nl + hauteur):
+                            for xx in range(nc, nc + largeur):
+                                point = grille[yy][xx]
+                                if point.type in cout_case:
+                                    max_cost = max(max_cost, cout_case[point.type])
+                                elif point.type == Type.VAISSEAU:
+                                    # Autoriser si c'est le même vaisseau (ignorer_self=True déjà gère ça)
+                                    continue
+                                else:
+                                    valide = False
+                                    break
+                            if not valide:
+                                break
+
+                        if valide and max_cost > 0:
+                            cout_total = cout_actuel + max_cost
+                            if cout_total <= self.port_deplacement:
+                                heappush(heap, (cout_total, (nl, nc)))
+
+        return [pos for pos in reachable if pos != start_pos]
+
 
     def positions_possibles_attaque(self, grille: List[List[Point]], direction=None):
-        """Calcule les positions d'attaque possibles."""
+        """Retourne toutes les cases dans la portée d’attaque (distance de Manhattan)."""
         if direction is None:
             direction = self.direction
             
@@ -256,7 +339,7 @@ class Ship:
         return positions
 
     def trouver_vaisseau_a_position(self, ships: List["Ship"], ligne: int, colonne: int) -> Optional["Ship"]:
-        """Trouve un vaisseau à la position donnée."""
+        """Retourne le vaisseau occupant une case donnée (ou None si vide)."""
         for ship in ships:
             largeur, hauteur = ship.donner_dimensions(ship.direction)
             if (ship.cordonner.x <= ligne < ship.cordonner.x + hauteur and
@@ -265,7 +348,7 @@ class Ship:
         return None
 
     def liberer_position(self, grille: List[List[Point]]):
-        """Libère la position du vaisseau en restaurant le terrain approprié."""
+        """Libère les cases occupées par le vaisseau (remet VIDE ou ATMOSPHERE)."""
         largeur, hauteur = self.donner_dimensions(self.direction)
         for l in range(self.cordonner.x, self.cordonner.x + hauteur):
             for c in range(self.cordonner.y, self.cordonner.y + largeur):
@@ -285,7 +368,12 @@ class Ship:
                     grille[l][c].type = Type.ATMOSPHERE if est_atmosphere else Type.VIDE
 
     def deplacement(self, case_cible: Tuple[int, int], grille: List[List[Point]], ships: List["Ship"]):
-        """Effectue un déplacement ou une attaque vers la case cible."""
+        """
+        Exécute un déplacement ou une attaque :
+        - Si case cible est attaquable → attaque
+        - Sinon, si case cible atteignable → déplace le vaisseau
+        Met à jour la grille et les animations.
+        """
         if self.id is None: 
             raise ValueError("Ship.id non défini")
             
@@ -384,7 +472,7 @@ class Ship:
 
     # ------------ ROTATION (aperçu) ------------
     def rotation_aperçu(self, grille: List[List[Point]]):
-        """Effectue une rotation de l'aperçu du vaisseau."""
+        """Effectue une rotation de l’aperçu du vaisseau (90°)."""
         ordre = ["haut", "droite", "bas", "gauche"]
         idx = ordre.index(self.aperçu_direction) if self.aperçu_direction in ordre else 0
         nouvelle_direction = ordre[(idx + 1) % len(ordre)]
@@ -422,7 +510,7 @@ class Ship:
                 self.prevision.target_angle = angles[nouvelle_direction]
 
     def rotation_aperçu_si_possible(self, case_souris: Tuple[int, int], grille: List[List[Point]]):
-        """Met à jour l'aperçu à la position de la souris et effectue une rotation."""
+        """Déplace l’aperçu à la souris puis tente une rotation si possible."""
         self.aperçu_cordonner._x = case_souris[0]
         self.aperçu_cordonner._y = case_souris[1]
         
@@ -435,7 +523,7 @@ class Ship:
 # ------------ Sous-classes spécialisées ------------
 
 class Petit(Ship):
-    """Vaisseau de petite taille - rapide et agile."""
+    """Vaisseau rapide et fragile."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, 
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool, 
                  peut_transporter: bool, image: pygame.Surface, tier: int, 
@@ -445,7 +533,7 @@ class Petit(Ship):
                          tier, cordonner, id, path, joueur)
 
 class Moyen(Ship):
-    """Vaisseau de taille moyenne - équilibré."""
+    """Vaisseau équilibré."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
@@ -454,8 +542,9 @@ class Moyen(Ship):
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
 
+
 class Lourd(Ship):
-    """Vaisseau lourd - résistant mais lent."""
+    """Vaisseau résistant mais lent."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
@@ -465,7 +554,7 @@ class Lourd(Ship):
                          tier, cordonner, id, path, joueur)
 
 class Foreuse(Ship):
-    """Vaisseau spécialisé dans le minage d'astéroïdes."""
+    """Vaisseau spécialisé dans le minage."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
@@ -482,7 +571,7 @@ class Foreuse(Ship):
             joueur.economie.ajouter(75)
 
 class Transport(Ship):
-    """Vaisseau de transport - peut transporter d'autres vaisseaux."""
+    """Vaisseau pouvant transporter d’autres vaisseaux (3 slots)."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
                  cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
