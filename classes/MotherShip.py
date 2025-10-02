@@ -1,70 +1,56 @@
-from time import sleep
-from typing import Any, Dict, Optional
 import pygame
-import sys
+from typing import Optional, Tuple
+from classes.Ship import Ship
+from classes.Point import Point
+from classes.Animator import Animator
 from classes.ShipAnimator import ShipAnimator
 from classes.ProjectileAnimator import ProjectileAnimator
-from classes.Animator import Animator
-import os
-from classes.Point import Point
 from blazyck import *
 
-# Exemple de configuration des niveaux (tiers).
-# Chaque clé est un tier. Les valeurs sont les attributs applicables à la base à ce niveau.
-LEVELS: Dict[int, Dict[str, Any]] = {
-    1: {
-        "cout_upgrade": 1000,    # coût pour passer au niveau suivant
-        "PV_max": 500,
-        "gains": 300,
-        "atk": 0,
-        "distance_atk": 0,
-    },
-    2: {
-        "cout_upgrade": 2000,
-        "PV_max": 800,
-        "gains": 350,
-        "atk": 0,
-        "distance_atk": 0,
-    },
-    3: {
-        "cout_upgrade": 6000,
-        "PV_max": 1300,
-        "gains": 400,
-        "atk": 0,
-        "distance_atk": 0,
-    },
-    4: {
-        "cout_upgrade": None,   # None => pas d'upgrade possible (niveau max)
-        "PV_max": 1700,
-        "gains": 450,
-        "atk": 100,
-        "distance_atk": 3,
-    },
+LEVELS = {
+    1: {"cout_upgrade": 1000, "pv_max": 500, "gains": 300, "attaque": 0, "port_attaque": 0},
+    2: {"cout_upgrade": 2000, "pv_max": 800, "gains": 350, "attaque": 0, "port_attaque": 0},
+    3: {"cout_upgrade": 6000, "pv_max": 1300, "gains": 400, "attaque": 0, "port_attaque": 0},
+    4: {"cout_upgrade": None, "pv_max": 1700, "gains": 450, "attaque": 100, "port_attaque": 3},
 }
 
-class MotherShip:
-    """Représente la base d'un joueur avec niveaux, PV, et combat."""
+class MotherShip(Ship):
+    """Base fixe du joueur, ne peut pas se déplacer ni tourner."""
 
-    def __init__(self, point : Point, tier: int = 1, show_health: bool = True, largeur: int = 4, hauteur: int = 5, color = (0, 255, 0)) -> None:
-        self.largeur = largeur
-        self.hauteur = hauteur
-        self.tier = tier
+    def __init__(self,
+                 pv_max: int,
+                 attaque: int,
+                 port_attaque: int,
+                 port_deplacement: int,
+                 cout: int,
+                 valeur_mort: int,
+                 taille: Tuple[int,int],
+                 tier: int,
+                 cordonner: Point,
+                 id: Optional[int] = None,
+                 path: str = None,
+                 show_health : bool = True,
+                 joueur : int = 1):
 
-        # Charger les stats du tier
-        dict_tier = LEVELS[self.tier]
-        self.PV_max = dict_tier["PV_max"]
-        self.PV_actuelle = self.PV_max
-        self.atk = dict_tier.get("atk", 0)
-        self.distance_atk = dict_tier.get("distance_atk", 0)
-        self.gains = dict_tier.get("gains", 0)
-        self.cout = dict_tier.get("cout_upgrade", 0)
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement,
+                         cout, valeur_mort, taille, peut_miner=False,
+                         peut_transporter=False, image=pygame.Surface((taille[1]*TAILLE_CASE, taille[0]*TAILLE_CASE)),
+                         tier=tier, cordonner=cordonner, id=id, path=path, joueur=joueur)
+        
+        self.prevision.alpha = 0
+        self.animator.show_health = show_health
 
-        sprites_path = os.path.join(IMG_PATH, "ships", "base")
+    # ---------------- Déplacement et rotation désactivés ----------------
+    def deplacement(self, *args, **kwargs):
+        return False
 
-        # Animation
-        self.animator = ShipAnimator(sprites_path, (self.largeur, self.hauteur), (point.x, point.y), show_health=show_health, color=color)
+    def rotation_aperçu(self, *args, **kwargs):
+        pass
 
-    # ---------- Niveaux ----------
+    def rotation_aperçu_si_possible(self, *args, **kwargs):
+        pass
+
+    # ---------------- Gestion des niveaux ----------------
     @property
     def max_tier(self) -> int:
         return max(LEVELS.keys())
@@ -76,56 +62,24 @@ class MotherShip:
         return LEVELS[self.tier].get("cout_upgrade")
 
     def apply_level(self, tier: int) -> None:
-        if tier not in LEVELS:
-            raise ValueError(f"Tier inconnu {tier}")
+        if tier not in LEVELS: raise ValueError(f"Tier inconnu {tier}")
         new_conf = LEVELS[tier]
         self.tier = tier
-        self.PV_max = new_conf["PV_max"]
-        self.atk = new_conf.get("atk", self.atk)
-        self.distance_atk = new_conf.get("distance_atk", self.distance_atk)
-        self.gains = new_conf.get("gains", self.gains)
-        # PV actuels augmentés proportionnellement
-        self.PV_actuelle += self.PV_max
+        self.pv_max = new_conf["pv_max"]
+        self.attaque = new_conf.get("attaque", self.attaque)
+        self.port_attaque = new_conf.get("port_attaque", self.port_attaque)
+        self.cout = new_conf.get("cout_upgrade", self.cout)
+        self.pv_actuel = self.pv_max
 
     def upgrade(self, payer_fct) -> bool:
-        if not self.can_upgrade():
-            return False
+        if not self.can_upgrade(): return False
         price = self.get_next_tier_cost()
-        if price is None or not payer_fct(price):
-            return False
+        if price is None or not payer_fct(price): return False
         self.apply_level(self.tier + 1)
         return True
 
-    # ---------- Combat ----------
-    def take_damage(self, amount: int):
-        self.PV_actuelle = max(0, self.PV_actuelle - max(0, amount))
-        self.animator.play("shield")
-        self.update()
 
-    def heal(self, amount: int):
-        self.PV_actuelle = min(self.PV_max, self.PV_actuelle + amount)
-
-    def dead(self) -> bool:
-        return self.PV_actuelle <= 0
-
-    def attack(self, cible: Any):
-        if hasattr(cible, "take_damage"):
-            cible.take_damage(self.atk)
-
-    # ---------- Rendu ----------
-    def draw(self, x: int, y: int):
-        self.animator.draw_image()
-        self.animator.display_health(self.PV_actuelle, self.PV_max)
-
-    # ---------- Autres ----------
-    def update(self):
-        if self.dead():
-            self.animator.play("destruction")
-        self.animator.update(self.PV_actuelle, self.PV_max)
-
-    def __del__(self):
-        print("Vaisseau mère détruit")
-
+"""
 def main():
     pygame.init()
     screen = pygame.display.set_mode((1000, 800))
@@ -154,6 +108,7 @@ def main():
                     if event.button == 3:  # clic droit : dégâts
                         B1.take_damage(100)
                         print(f"PV actuels : {B1.PV_actuelle}")
+                        B1.animator.set_target(pygame.mouse.get_pos())
                     elif event.button == 1:  # clic gauche : arme
                         B1.animator.fire("laser", pygame.mouse.get_pos(), True, 10)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
@@ -180,3 +135,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""

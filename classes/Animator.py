@@ -43,7 +43,7 @@ class Animator:
         tile_size: int = TAILLE_CASE,
         default_fps: int = 10,
         speed : int = 1
-    ):
+        ):
         self.path = path
         self.tile_size = tile_size
 
@@ -53,7 +53,20 @@ class Animator:
 
         # position
         self.x = coord[0] * tile_size
+        self.x += OFFSET_X
         self.y = coord[1] * tile_size
+
+        # --- dimensions en nombre de cases ---
+        self.tile_w, self.tile_h = dimensions   # <<< ici
+        self.pixel_w = self.tile_w * tile_size
+        self.pixel_h = self.tile_h * tile_size
+
+        # image statique (chargée une seule fois)
+        self.static_image = None
+        base_path = os.path.join(self.path, "base.png")
+        if os.path.isfile(base_path):
+            img = pygame.image.load(base_path).convert_alpha()
+            self.static_image = pygame.transform.scale(img, (self.pixel_w, self.pixel_h))
 
         # animations
         self.animations: Dict[str, List[pygame.Surface]] = {}  # nom -> liste de frames
@@ -169,29 +182,54 @@ class Animator:
         return (self.x + self.pixel_w // 2, self.y + self.pixel_h // 2)
 
 
-    def set_target(self, target: Tuple[int, int], angle_targeted : bool = True):
+    
+    def set_target(self, target: Tuple[int, int], angle_targeted: bool = True, image_facing: str = "up"):
         self.target = target
         self.active = True
 
         # centre actuel du projectile / entité
-        cx = self.x + self.pixel_w // 2
-        cy = self.y + self.pixel_h // 2
+        cx = self.x
+        cy = self.y
 
-        # vecteur direction vers la cible
+        # vecteur direction vers la cible (coordonnées écran)
         dx = self.target[0] - cx
         dy = self.target[1] - cy
         dist = math.hypot(dx, dy)
 
         if dist == 0:
-            self.vx, self.vy = 0, 0
+            self.vx, self.vy = 0.0, 0.0
             return
         else:
             self.vx = dx / dist
             self.vy = dy / dist
 
+        
+        # === IMPORTANT ===
+        # math.atan2 attend un système où y positif = vers le haut.
+        # Sur l'écran y positif = vers le bas, donc on inverse dy: -dy.
+        # angle_to_target (en degrés) : 0 = droite, + = sens trigo (CCW).
+        angle_to_target = math.degrees(math.atan2(-dy, dx))
+
+        # offset selon l'orientation "par défaut" de l'image :
+        # - "right" : l'image regarde vers la droite (est standard pour atan2)
+        # - "up"    : l'image regarde vers le haut (typiquement icône "haut")
+        # - "left"  : image regarde vers la gauche
+        # - "down"  : image regarde vers le bas
+        offsets = {
+            "right": 0.0,
+            "up": -90.0,
+            "left": 180.0,
+            "down": 90.0
+        }
+        offset = offsets.get(image_facing, 0.0)
+
+        # angle final normalisé en [0,360)
+        angle = (angle_to_target + offset) % 360.0
         if angle_targeted:
-            # --- Calculer l'angle pour que le haut regarde la cible ---
-            self.angle = math.degrees(math.atan2(dy, dx)) + 90
+            self.target_angle = angle
+        else:
+            self.angle = angle
+            self.target_angle = angle
 
     def move(self):
         """
@@ -205,8 +243,8 @@ class Animator:
         self.y += self.vy * self.speed
 
         # coordonnées du centre du projectile
-        cx = self.x + self.pixel_w / 2
-        cy = self.y + self.pixel_h / 2
+        cx = self.x
+        cy = self.y
 
         # vecteur restant jusqu'à la cible
         dx_remain = self.target[0] - cx
@@ -214,8 +252,8 @@ class Animator:
 
         # produit scalaire : si <= 0, le centre a atteint ou dépassé la cible
         if (dx_remain * self.vx + dy_remain * self.vy) <= 0:
-            self.x = self.target[0] - self.pixel_w / 2
-            self.y = self.target[1] - self.pixel_h / 2
+            self.x = self.target[0]
+            self.y = self.target[1]
             self.active = False
 
     def set_angle(self, angle: float):
@@ -268,3 +306,9 @@ class Animator:
         cls = self.__class__
         if hasattr(cls, "liste_animation") and self in cls.liste_animation:
             cls.liste_animation.remove(self)
+    
+    @classmethod
+    def clear_list(cls):
+        """Vide complètement la liste d'animations de cette classe"""
+        if hasattr(cls, "liste_animation"):
+            cls.liste_animation.clear()
