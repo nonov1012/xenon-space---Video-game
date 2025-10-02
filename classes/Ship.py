@@ -23,6 +23,7 @@
 
 import pygame
 from typing import Tuple, List, Optional
+from classes.Player import Player
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point, Type
@@ -73,6 +74,7 @@ class Ship:
         self.peut_miner = peut_miner
         self.peut_transporter = peut_transporter
         self.joueur = joueur
+        self.gain = 0
 
         # Inventaire (3 slots si transport possible)
         self.cargaison = [None, None, None]
@@ -184,6 +186,7 @@ class Ship:
         """Mine un astéroïde → transforme la case en VIDE, ajoute potentiellement des ressources."""
         if self.peut_miner_asteroide(grille, x, y):
             grille[y][x].type = Type.VIDE
+            self.gain += 75
             return True
         return False
 
@@ -246,6 +249,7 @@ class Ship:
                 # Vérifier limites
                 if 0 <= l < len(grille) and 0 <= c < len(grille[0]):
                     if grille[l][c].type == Type.PLANETE:
+                        self.gain += 100 # TODO : modifié par une valeur paramétrable
                         return True
         return False
 
@@ -564,11 +568,6 @@ class Foreuse(Ship):
                          tier, cordonner, id, path, joueur)
         # Les foreuses peuvent toujours miner
         self.peut_miner = True
-
-    def generer_argent_si_proche_planete(self, grille: List[List[Point]], joueur: "Player"):
-        """Ajoute de l'argent si le vaisseau est à côté d'une planète."""
-        if self.est_a_cote_planete(grille):
-            joueur.economie.ajouter(75)
 
 class Transport(Ship):
     """Vaisseau pouvant transporter d’autres vaisseaux (3 slots)."""
