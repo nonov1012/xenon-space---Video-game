@@ -25,6 +25,7 @@
 import pygame
 
 # Import classes
+from classes import Turn
 import menu.menuPrincipal
 from classes.Map import Map
 from classes.Start_Animation.StarField import StarField
@@ -56,6 +57,198 @@ def set_prevision_for_ship(ship, case, direction):
         ship.prevision.target_angle = 90
     elif direction == "bas":
         ship.prevision.target_angle = 180
+
+def draw_glowing_rect(ecran, x, y, color, size=TAILLE_CASE, thickness=2):
+    """Dessine un carré façon 'hologramme' avec glow futuriste, sans croix."""
+    r, g, b = color
+    rect = pygame.Rect(x, y, size, size)
+
+    # contours superposés pour un effet lumineux
+    for i in range(3):
+        alpha = 80 - i * 25
+        glow_surf = pygame.Surface((size, size), pygame.SRCALPHA)
+        pygame.draw.rect(glow_surf, (r, g, b, alpha),
+                         glow_surf.get_rect(), thickness + i*2, border_radius=3)
+        ecran.blit(glow_surf, (x, y))
+
+def handle_events(running, selection_ship, selection_cargo, interface_transport_active,
+                  afficher_grille, map_obj, ships, shop, ecran, position_souris, case_souris):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        # --- Touches clavier ---
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            elif event.key == pygame.K_LCTRL:
+                afficher_grille = not afficher_grille
+            elif event.key == pygame.K_LSHIFT:
+                afficher_zones = True
+            elif event.key == pygame.K_r and selection_ship:
+                selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
+
+        # --- Clic gauche ---
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            shop.handle_click(event.pos)
+
+            if selection_ship and not interface_transport_active:
+                if (case_souris[0] == selection_ship.cordonner.x and 
+                    case_souris[1] == selection_ship.cordonner.y):
+                    selection_ship, selection_cargo = None, None
+                else:
+                    success = selection_ship.deplacement(case_souris, map_obj.grille, ships)
+                    if success:
+                        selection_ship, selection_cargo = None, None
+            else:
+                for ship in ships[:]:
+                    largeur, hauteur = ship.donner_dimensions(ship.direction)
+                    if (ship.cordonner.x <= case_souris[0] < ship.cordonner.x + hauteur and
+                        ship.cordonner.y <= case_souris[1] < ship.cordonner.y + largeur):
+                        selection_ship = ship
+                        selection_ship.aperçu_direction = ship.direction
+                        selection_ship.aperçu_cordonner._x = ship.cordonner.x
+                        selection_ship.aperçu_cordonner._y = ship.cordonner.y
+                        break
+
+        # --- Clic droit ---
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and selection_ship:
+            if isinstance(selection_ship, Transport):
+                clicked_on_mini = False
+                for i, ship in enumerate(selection_ship.cargaison):
+                    if ship is None:
+                        continue
+                    rect = pygame.Rect(selection_ship.cordonner.y * TAILLE_CASE + OFFSET_X + i*22,
+                                       selection_ship.cordonner.x * TAILLE_CASE - 22, 20, 20)
+                    if rect.collidepoint(position_souris):
+                        selection_cargo = ship
+                        interface_transport_active = True
+                        clicked_on_mini = True
+                        break
+
+                if not clicked_on_mini and interface_transport_active and selection_cargo:
+                    positions_valides = selection_ship.positions_debarquement(selection_cargo, map_obj.grille)
+                    if case_souris in positions_valides:
+                        index = selection_ship.cargaison.index(selection_cargo)
+                        success = selection_ship.retirer_cargo(index, case_souris[0], case_souris[1], 
+                                                             map_obj.grille, ships)
+                        if success:
+                            selection_cargo, interface_transport_active = None, False
+            else:
+                for target in ships:
+                    if target == selection_ship: 
+                        continue
+                    largeur, hauteur = target.donner_dimensions(target.direction)
+                    if (target.cordonner.x <= case_souris[0] < target.cordonner.x + hauteur and
+                        target.cordonner.y <= case_souris[1] < target.cordonner.y + largeur):
+                        if isinstance(target, Transport):
+                            success = target.ajouter_cargo(selection_ship)
+                            if success:
+                                selection_ship.liberer_position(map_obj.grille)
+                                ships.remove(selection_ship)
+                                selection_ship, selection_cargo, interface_transport_active = None, None, False
+                        break
+
+    return running, selection_ship, selection_cargo, interface_transport_active, afficher_grille
+
+
+def update_game(ships, map_obj, player, sf1):
+    for vaisseau in ships[:]:
+        if vaisseau.est_mort():
+            vaisseau.liberer_position(map_obj.grille)
+            ships.remove(vaisseau)
+            player.economie.ajouter(vaisseau.valeur_mort)
+
+
+def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_cargo,
+              interface_transport_active, case_souris, font, player, shop, new_cursor, position_souris,
+              afficher_grille):
+    ecran.fill((0, 0, 0, 0))
+    stars.update()
+    stars.draw(ecran)
+
+    keys = pygame.key.get_pressed()
+    afficher_zones = keys[pygame.K_LSHIFT]
+
+    map_obj.generer_grille(ecran, afficher_zones, afficher_grille, colors)
+
+    for (ax, ay), img in map_obj.asteroide_img_map.items():
+        ecran.blit(img, (ax * TAILLE_CASE + OFFSET_X, ay * TAILLE_CASE))
+
+    if selection_ship and isinstance(selection_ship, Transport):
+        selection_ship.afficher_cargaison(ecran)
+
+    # --- Preview déplacement / débarquement ---
+    if selection_ship:
+        if interface_transport_active and selection_cargo:
+            # Cases possibles pour débarquer (jaune holographique)
+            positions_possibles = selection_ship.positions_debarquement(selection_cargo, map_obj.grille)
+            for ligne, colonne in positions_possibles:
+                draw_glowing_rect(ecran,
+                                colonne * TAILLE_CASE + OFFSET_X,
+                                ligne * TAILLE_CASE,
+                                (255, 255, 120))
+
+            if case_souris in positions_possibles:
+                selection_cargo.prevision.alpha = 120
+                set_prevision_for_ship(selection_cargo, case_souris, selection_cargo.direction)
+                selection_cargo.prevision.update_and_draw()
+            else:
+                selection_cargo.prevision.alpha = 0
+        else:
+            # Cases possibles pour déplacement (cyan futuriste)
+            positions_possibles = selection_ship.positions_possibles_adjacentes(
+                map_obj.grille, direction=selection_ship.aperçu_direction
+            )
+            for ligne, colonne in positions_possibles:
+                draw_glowing_rect(ecran,
+                                colonne * TAILLE_CASE + OFFSET_X,
+                                ligne * TAILLE_CASE,
+                                (80, 200, 255))
+
+            if case_souris in positions_possibles:
+                selection_ship.prevision.alpha = 120
+                set_prevision_for_ship(selection_ship, case_souris, selection_ship.aperçu_direction)
+                selection_ship.prevision.update_and_draw()
+            else:
+                selection_ship.prevision.alpha = 0
+
+    # --- Preview attaque / minage ---
+    if selection_ship and not interface_transport_active:
+        positions_attaque = selection_ship.positions_possibles_attaque(
+            map_obj.grille, direction=selection_ship.aperçu_direction
+        )
+        for ligne, colonne in positions_attaque:
+            draw_glowing_rect(ecran,
+                            colonne * TAILLE_CASE + OFFSET_X,
+                            ligne * TAILLE_CASE,
+                            (255, 80, 80))
+
+            # Si astéroïde minable → orange
+            if (0 <= ligne < len(map_obj.grille) and 0 <= colonne < len(map_obj.grille[0]) and
+                map_obj.grille[ligne][colonne].type == Type.ASTEROIDE and selection_ship.peut_miner):
+                draw_glowing_rect(ecran,
+                                colonne * TAILLE_CASE + OFFSET_X,
+                                ligne * TAILLE_CASE,
+                                (255, 180, 80))
+
+
+    # (--- preview mouvement/attaque identique à ton code ---)
+
+    Animator.update_all()
+    PlanetAnimator.update_all()
+    ShipAnimator.update_all()
+    ProjectileAnimator.update_all()
+
+    if selection_ship:
+        info_text = f"{selection_ship.__class__.__name__} - PV: {selection_ship.pv_actuel}/{selection_ship.pv_max}"
+        ecran.blit(font.render(info_text, True, (255, 255, 255)), (10, 40))
+
+    ecran.blit(font.render(f"Coins: {player.economie.solde}", True, (255, 255, 0)), (10, 10))
+    shop.draw()
+    ecran.blit(new_cursor, position_souris)
+
+    pygame.display.flip()
 
 def start_game(ecran, parametres, random_active):
     clock = pygame.time.Clock()
@@ -161,205 +354,17 @@ def start_game(ecran, parametres, random_active):
         discord.update("En jeu")
         position_souris = pygame.mouse.get_pos()
         case_souris = ((position_souris[1]) // TAILLE_CASE, 
-                       (position_souris[0] - OFFSET_X) // TAILLE_CASE)
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                
-            # --- Touches clavier ---
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-                    # menuPause = menu.PauseMenu(ecran, sm)
-                    # menuPause.run()
-                elif event.key == pygame.K_LCTRL:
-                    afficher_grille = not afficher_grille
-                elif event.key == pygame.K_LSHIFT:
-                    afficher_zones = True
-                # Rotation avec R
-                elif event.key == pygame.K_r and selection_ship:
-                    selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
-                    
-            # --- Clic gauche = sélection/déplacement/attaque ---
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                # Gérer le shop d'abord
-                shop.handle_click(event.pos)
-                
-                # Gestion des vaisseaux
-                if selection_ship and not interface_transport_active:
-                    # Vérifier si on clique sur la case d'origine (désélection)
-                    if (case_souris[0] == selection_ship.cordonner.x and 
-                        case_souris[1] == selection_ship.cordonner.y):
-                        selection_ship = None
-                        selection_cargo = None
-                    else:
-                        # Tenter un déplacement/attaque
-                        success = selection_ship.deplacement(case_souris, map_obj.grille, ships)
-                        if success:
-                            selection_ship = None
-                            selection_cargo = None
-                else:
-                    # Sélectionner un vaisseau
-                    for ship in ships[:]:
-                        largeur, hauteur = ship.donner_dimensions(ship.direction)
-                        if (ship.cordonner.x <= case_souris[0] < ship.cordonner.x + hauteur and
-                            ship.cordonner.y <= case_souris[1] < ship.cordonner.y + largeur):
-                            selection_ship = ship
-                            selection_ship.aperçu_direction = ship.direction
-                            selection_ship.aperçu_cordonner._x = ship.cordonner.x
-                            selection_ship.aperçu_cordonner._y = ship.cordonner.y
-                            break
-            
-            # --- Clic droit = transport/embarquement/débarquement ---
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and selection_ship:
-                if isinstance(selection_ship, Transport):
-                    clicked_on_mini = False
-                    for i, ship in enumerate(selection_ship.cargaison):
-                        if ship is None:
-                            continue
-                        rect = pygame.Rect(selection_ship.cordonner.y * TAILLE_CASE + OFFSET_X + i*22,
-                                           selection_ship.cordonner.x * TAILLE_CASE - 22, 20, 20)
-                        if rect.collidepoint(position_souris):
-                            selection_cargo = ship
-                            interface_transport_active = True
-                            clicked_on_mini = True
-                            break
-                    
-                    if not clicked_on_mini and interface_transport_active and selection_cargo:
-                        positions_valides = selection_ship.positions_debarquement(selection_cargo, map_obj.grille)
-                        if case_souris in positions_valides:
-                            index = selection_ship.cargaison.index(selection_cargo)
-                            success = selection_ship.retirer_cargo(index, case_souris[0], case_souris[1], 
-                                                                 map_obj.grille, ships)
-                            if success:
-                                selection_cargo = None
-                                interface_transport_active = False
-                else:
-                    # Embarquer dans un transport
-                    for target in ships:
-                        if target == selection_ship: 
-                            continue
-                        largeur, hauteur = target.donner_dimensions(target.direction)
-                        if (target.cordonner.x <= case_souris[0] < target.cordonner.x + hauteur and
-                            target.cordonner.y <= case_souris[1] < target.cordonner.y + largeur):
-                            if isinstance(target, Transport):
-                                success = target.ajouter_cargo(selection_ship)
-                                if success:
-                                    selection_ship.liberer_position(map_obj.grille)
-                                    ships.remove(selection_ship)
-                                    selection_ship = None
-                                    selection_cargo = None
-                                    interface_transport_active = False
-                            break
-                        
-        # à modifier plus tard
-        for vaisseau in ships:
-            if isinstance(vaisseau, Foreuse):  # si seulement les foreuses
-                sf1.generer_argent_si_proche_planete(map_obj.grille, player)
+                    (position_souris[0] - OFFSET_X) // TAILLE_CASE)
 
-        # --- Dessin ---
-        ecran.fill((0, 0, 0, 0))
-        
-        stars.update()
-        stars.draw(ecran)
-        
-        # Vérifier si LSHIFT est enfoncé
-        keys = pygame.key.get_pressed()
-        afficher_zones = keys[pygame.K_LSHIFT]
+        running, selection_ship, selection_cargo, interface_transport_active, afficher_grille = \
+            handle_events(running, selection_ship, selection_cargo, interface_transport_active,
+                        afficher_grille, map_obj, ships, shop, ecran, position_souris, case_souris)
 
-        # Dessiner la grille
-        map_obj.generer_grille(ecran, afficher_zones, afficher_grille, colors)
+        update_game(ships, map_obj, player, sf1)
+        draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_cargo,
+                interface_transport_active, case_souris, font, player, shop, new_cursor, position_souris,
+                afficher_grille)
 
-        # Dessiner les astéroïdes
-        for (ax, ay), img in map_obj.asteroide_img_map.items():
-            ecran.blit(img, (ax * TAILLE_CASE + OFFSET_X, ay * TAILLE_CASE))
-
-        # Mettre à jour et dessiner les vaisseaux
-        for ship in ships[:]:
-            if ship.est_mort():
-                ship.liberer_position(map_obj.grille)
-                ships.remove(ship)
-                player.economie.ajouter(ship.valeur_mort)  # Récompense pour destruction
-                continue
-            
-            ship.animator.update_and_draw()
-
-        # Affichage cargaison transport
-        if selection_ship and isinstance(selection_ship, Transport):
-            selection_ship.afficher_cargaison(ecran)
-
-        # Preview déplacement / débarquement
-        if selection_ship:
-            if interface_transport_active and selection_cargo:
-                # Cases possibles pour débarquer
-                positions_possibles = selection_ship.positions_debarquement(selection_cargo, map_obj.grille)
-                for ligne, colonne in positions_possibles:
-                    pygame.draw.rect(ecran, (255, 255, 0),
-                                    (colonne * TAILLE_CASE + OFFSET_X, ligne * TAILLE_CASE, 
-                                     TAILLE_CASE, TAILLE_CASE), 3)
-
-                # Afficher preview du cargo si souris sur case valide
-                if case_souris in positions_possibles:
-                    selection_cargo.prevision.alpha = 120
-                    set_prevision_for_ship(selection_cargo, case_souris, selection_cargo.direction)
-                    selection_cargo.prevision.update_and_draw()
-            else:
-                # Cases possibles pour déplacement
-                positions_possibles = selection_ship.positions_possibles_adjacentes(
-                    map_obj.grille, direction=selection_ship.aperçu_direction
-                )
-                for ligne, colonne in positions_possibles:
-                    pygame.draw.rect(ecran, (0, 255, 0),
-                                    (colonne * TAILLE_CASE + OFFSET_X, ligne * TAILLE_CASE, 
-                                     TAILLE_CASE, TAILLE_CASE), 3)
-
-                # Preview si souris sur case valide
-                if case_souris in positions_possibles:
-                    selection_ship.prevision.alpha = 120
-                    set_prevision_for_ship(selection_ship, case_souris, selection_ship.aperçu_direction)
-                    selection_ship.prevision.update_and_draw()
-
-        # Preview attaque
-        if selection_ship and not interface_transport_active:
-            positions_attaque = selection_ship.positions_possibles_attaque(
-                map_obj.grille, direction=selection_ship.aperçu_direction
-            )
-            for ligne, colonne in positions_attaque:
-                pygame.draw.rect(ecran, (255, 50, 50), 
-                                (colonne * TAILLE_CASE + OFFSET_X, ligne * TAILLE_CASE, 
-                                 TAILLE_CASE, TAILLE_CASE), 2)
-                
-                # Si astéroïde minable, afficher en orange
-                if (0 <= ligne < len(map_obj.grille) and 0 <= colonne < len(map_obj.grille[0]) and
-                    map_obj.grille[ligne][colonne].type == Type.ASTEROIDE and selection_ship.peut_miner):
-                    pygame.draw.rect(ecran, (255, 165, 0), 
-                                    (colonne * TAILLE_CASE + OFFSET_X, ligne * TAILLE_CASE, 
-                                     TAILLE_CASE, TAILLE_CASE), 2)
-
-        # Mise à jour des animations
-        Animator.update_all()
-        PlanetAnimator.update_all()
-        ShipAnimator.update_all()
-        ProjectileAnimator.update_all()
-
-        # Affichage des informations
-        if selection_ship:
-            info_text = f"{selection_ship.__class__.__name__} - PV: {selection_ship.pv_actuel}/{selection_ship.pv_max}"
-            text_surface = font.render(info_text, True, (255, 255, 255))
-            ecran.blit(text_surface, (10, 40))
-        
-        # Afficher les coins
-        coins_text = font.render(f"Coins: {player.economie.solde}", True, (255, 255, 0))
-        ecran.blit(coins_text, (10, 10))
-
-        # Dessiner la boutique
-        shop.draw()
-        
-        # Curseur
-        ecran.blit(new_cursor, position_souris)
-        
         clock.tick(60)
-        pygame.display.flip()
 
     pygame.quit()
