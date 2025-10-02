@@ -25,8 +25,8 @@
 import pygame
 
 # Import classes
-from classes import Turn
 import menu.menuPrincipal
+from classes.Turn import Turn
 from classes.Map import Map
 from classes.Start_Animation.StarField import StarField
 from classes.Point import Type, Point
@@ -87,6 +87,10 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                 afficher_zones = True
             elif event.key == pygame.K_r and selection_ship:
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                # on finit son tour
+                Turn.players[0].gain()
+                Turn.next()
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -289,8 +293,12 @@ def start_game(ecran, parametres, random_active):
     discord = DiscordRP(RPC_ID)
     discord.connect()
     
+    # TODO : refaire le shop pour que ça soit dans les players
     player = Player("TestPlayer", solde_initial=3000)
     shop = Shop(player, font, ecran)
+
+    # ===== Player =====
+    Turn.players = [Player("P1"), Player("P2", id=2)]
 
     # ===== Ship =====
     # --- Images / dossiers ---
@@ -309,38 +317,37 @@ def start_game(ecran, parametres, random_active):
 
     # --- Création vaisseaux ---
     next_uid = 1
-    ships = []
 
     # MotherShip du joueur (zone de base)
     smm1 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
                       valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
-                      id=next_uid, path=img_base_dir, joueur = 1)
+                      id=next_uid, path=img_base_dir, joueur = Turn.players[0].id)
     next_uid += 1
-    ships.append(smm1)
+    Turn.players[0].ships.append(smm1)
 
     # Vaisseaux de départ du joueur (dans la zone de base)
     # Petit vaisseau de reconnaissance
     sp1 = Petit(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
                 valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
-                image=img_petit, tier=1, cordonner=Point(5,1), id=next_uid, path=img_petit_dir, joueur = 1)
+                image=img_petit, tier=1, cordonner=Point(5,1), id=next_uid, path=img_petit_dir, joueur = Turn.players[0].id)
     next_uid += 1
-    ships.append(sp1)
+    Turn.players[0].ships.append(sp1)
 
     sp1 = Lourd(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
                 valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
-                image=img_Lourd, tier=1, cordonner=Point(5,5), id=next_uid, path=img_lourd_dir, joueur = 2)
+                image=img_Lourd, tier=1, cordonner=Point(5,5), id=next_uid, path=img_lourd_dir, joueur = Turn.players[1].id)
     next_uid += 1
-    ships.append(sp1)
+    Turn.players[1].ships.append(sp1)
 
     # Foreuse de départ
     sf1 = Foreuse(pv_max=500, attaque=0, port_attaque=0, port_deplacement=3, cout=500,
                   valeur_mort=int(500*0.6), taille=(2,2), peut_miner=True, peut_transporter=False,
-                  image=img_foreuse, tier=1, cordonner=Point(1,5), id=next_uid, path=img_foreuse_dir, joueur = 1)
+                  image=img_foreuse, tier=1, cordonner=Point(1,5), id=next_uid, path=img_foreuse_dir, joueur = Turn.players[0].id)
     next_uid += 1
-    ships.append(sf1)
+    Turn.players[0].ships.append(sf1)
 
     # --- Placer vaisseaux sur la grille ---
-    for s in ships:
+    for s in Turn.get_players_ships():
         s.occuper_plateau(map_obj.grille, Type.VAISSEAU)
 
     # --- Variables de sélection et contrôle ---
@@ -358,11 +365,11 @@ def start_game(ecran, parametres, random_active):
 
         running, selection_ship, selection_cargo, interface_transport_active, afficher_grille = \
             handle_events(running, selection_ship, selection_cargo, interface_transport_active,
-                        afficher_grille, map_obj, ships, shop, ecran, position_souris, case_souris)
+                        afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris)
 
-        update_game(ships, map_obj, player, sf1)
-        draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_cargo,
-                interface_transport_active, case_souris, font, player, shop, new_cursor, position_souris,
+        update_game(Turn.get_players_ships(), map_obj, Turn.players[0], sf1)
+        draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
+                interface_transport_active, case_souris, font, Turn.players[0], shop, new_cursor, position_souris,
                 afficher_grille)
 
         clock.tick(60)

@@ -27,7 +27,6 @@ from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point, Type
 from classes.Economie import *
-from classes.Player import *
 from heapq import heappush, heappop
 
 
@@ -533,6 +532,7 @@ class Petit(Ship):
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
+        self.animator.speed = 10
 
 class Moyen(Ship):
     """Vaisseau équilibré."""
@@ -543,6 +543,7 @@ class Moyen(Ship):
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
+        self.animator.speed = 7
 
 
 class Lourd(Ship):
@@ -554,6 +555,7 @@ class Lourd(Ship):
         super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
+        self.animator.speed = 5
 
 class Foreuse(Ship):
     """Vaisseau spécialisé dans le minage."""
@@ -566,6 +568,7 @@ class Foreuse(Ship):
                          tier, cordonner, id, path, joueur)
         # Les foreuses peuvent toujours miner
         self.peut_miner = True
+        self.animator.speed = 10
 
 class Transport(Ship):
     """Vaisseau pouvant transporter d’autres vaisseaux (3 slots)."""
@@ -579,6 +582,7 @@ class Transport(Ship):
         # Cargaison pour transporter d'autres vaisseaux
         self.cargaison: List[Optional[Ship]] = [None, None, None]
         self.peut_transporter = True
+        self.animator.speed = 7
 
     def ajouter_cargo(self, ship: Ship) -> bool:
         """Ajoute un vaisseau à la cargaison."""

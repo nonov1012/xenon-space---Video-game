@@ -1,13 +1,13 @@
-from classes.MotherShip import MotherShip
-#from classes.ship import Ship
 from classes.Economie import Economie
-from classes.ship import Ship
+from classes.Ship import Ship, Foreuse
 
 class Player:
-    def __init__(self, name: str, solde_initial: int = 500) -> None:
+    def __init__(self, name: str, solde_initial: int = 500, id : int = 1) -> None:
         self.name: str = name
         self.economie: Economie = Economie(solde_initial)
-        self._start_loadaout()
+        self._start_loadout()
+        self.id = id
+        self.ships: list[Ship] = []
         #self.ships: list[Ship] = []
         #self.base: MotherShip = MotherShip()
 
@@ -15,7 +15,7 @@ class Player:
         ships = []
 
         # TODO : implémentation de l'ajout des vaisseaux
-        # ??? : Faire un truc pour que les stat du vaisseau soit paramétrable (donc avec les constantes ou le json des stats jsp)
+        # ??? : Faire un truc pour que les stat du vaisseau soit paramétrable (donc avec les constantes ou le json des stats jsp) (optionel)
         # Noa : Finit ton truc pour donner des coordonnées valides aux vaisseaux.
         
         return ships
@@ -29,8 +29,16 @@ class Player:
         return self.economie.retirer(price)
     
     def gain(self) -> None:
+        revenue = 0
         for ship in self.ships:
-            self.economie.ajouter(ship.price)
+            revenue += ship.gain
+            if isinstance(ship, Foreuse):
+                ship.gain = 0
+                ship.pv_actuel = ship.pv_max * 0.1
+
+        self.economie.ajouter(revenue)
+        return
+            
 
     # ---------- Gestion de la base ----------
     #def upgrade_base(self) -> bool:
@@ -47,11 +55,6 @@ class Player:
     #def remove_ship(self, ship: Ship) -> None:
         if ship in self.ships:
             self.ships.remove(ship)
-
-    # ---------- Gestion du tour ----------
-    def play(self) -> None:
-        # TODO : après avoir finit player
-        pass
 
     # ---------- Debug / affichage ----------
     def __str__(self) -> str:
