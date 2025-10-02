@@ -11,7 +11,7 @@
 # Développé par :                                               #
 # - nonov1012                                                   #
 # - brian62100                                                  #
-# - 
+# - DAVID Gabriel                                               #
 # - 
 # - 
 # -
@@ -23,7 +23,6 @@
 
 import pygame
 from typing import Tuple, List, Optional
-from classes.Player import Player
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point, Type
@@ -455,8 +454,7 @@ class Ship:
 
             self.prevision.x = ligne
             self.prevision.y = colonne
-            self.animator.set_target((x, y), False)
-            self.animator.set_target_angle(self.animator.angle)
+            self.animator.set_target((x, y))
             self.animator.pixel_w = largeur * TAILLE_CASE
             self.animator.pixel_h = hauteur * TAILLE_CASE
             

@@ -39,6 +39,7 @@ class MotherShip(Ship):
         
         self.prevision.alpha = 0
         self.animator.show_health = show_health
+        self.gain = 300 # TODO : modifié par une valeur paramétrable
 
     # ---------------- Déplacement et rotation désactivés ----------------
     def deplacement(self, *args, **kwargs):
