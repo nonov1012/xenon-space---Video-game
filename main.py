@@ -160,8 +160,8 @@ def update_game(ships, map_obj, player, sf1):
     for vaisseau in ships[:]:
         if vaisseau.est_mort():
             vaisseau.liberer_position(map_obj.grille)
-            ships.remove(vaisseau)
             player.economie.ajouter(vaisseau.valeur_mort)
+            ships.remove(vaisseau)
 
 
 def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_cargo,
@@ -181,6 +181,10 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
 
     if selection_ship and isinstance(selection_ship, Transport):
         selection_ship.afficher_cargaison(ecran)
+    
+    for vaisseau in ships:
+            if isinstance(vaisseau, Foreuse):  # si seulement les foreuses
+                vaisseau.generer_argent_si_proche_planete(map_obj.grille, player)
 
     # --- Preview déplacement / débarquement ---
     if selection_ship:
@@ -237,7 +241,7 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
                                 (255, 180, 80))
 
 
-    # (--- preview mouvement/attaque identique à ton code ---)
+    # (--- preview mouvement/attaque ---)
 
     Animator.update_all()
     PlanetAnimator.update_all()
@@ -324,6 +328,12 @@ def start_game(ecran, parametres, random_active):
                       id=next_uid, path=img_base_dir, joueur = Turn.players[0].id)
     next_uid += 1
     Turn.players[0].ships.append(smm1)
+
+    smm2 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
+                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(25,47), 
+                      id=next_uid, path=img_base_dir, joueur = Turn.players[1].id)
+    next_uid += 1
+    Turn.players[1].ships.append(smm2)
 
     # Vaisseaux de départ du joueur (dans la zone de base)
     # Petit vaisseau de reconnaissance
