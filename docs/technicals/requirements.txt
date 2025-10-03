@@ -1,0 +1,4 @@
+pygame>=2.1.2
+Pillow>=11.0.0
+pypresence>=4.3.0
+numpy>=1.26.4
