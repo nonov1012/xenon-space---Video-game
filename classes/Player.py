@@ -8,7 +8,6 @@ class Player:
         self._start_loadout()
         self.id = id
         self.ships: list[Ship] = []
-        #self.ships: list[Ship] = []
         #self.base: MotherShip = MotherShip()
 
     def _start_loadout(self) -> list[Ship]:
