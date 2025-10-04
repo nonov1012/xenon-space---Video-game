@@ -95,9 +95,9 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                 for ship in Turn.players[0].ships:
                     if isinstance(ship, Foreuse):  # si foreuse
                         if ship.est_a_cote_planete(map_obj.grille):
-                            ship.gain += 100
+                            ship.gain += PLANETES_REWARD
                         if ship.est_autour_asteroide(map_obj.grille):
-                            ship.gain += 75
+                            ship.gain += ASTEROIDES_REWARD
 
                 Turn.players[0].gain()
                 Turn.next()
@@ -384,7 +384,7 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     if type_vaisseau == "Petit":
         return Petit(
             pv_max=300, attaque=100, port_attaque=3, port_deplacement=6,
-            cout=325, valeur_mort=int(325*0.6), taille=(2,2),
+            cout=325, taille=(2,2),
             peut_miner=False, peut_transporter=False,
             image=images['petit'], tier=1, cordonner=position,
             id=next_uid, path=paths['petit'], joueur=joueur_id
@@ -392,7 +392,7 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     elif type_vaisseau == "Moyen":
         return Moyen(
             pv_max=500, attaque=200, port_attaque=4, port_deplacement=5,
-            cout=650, valeur_mort=int(650*0.6), taille=(2,2),
+            cout=650, taille=(2,2),
             peut_miner=False, peut_transporter=False,
             image=images['moyen'], tier=1, cordonner=position,
             id=next_uid, path=paths['moyen'], joueur=joueur_id
@@ -400,7 +400,7 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     elif type_vaisseau == "Grand":  # Correspond au Lourd
         return Lourd(
             pv_max=800, attaque=300, port_attaque=5, port_deplacement=3,
-            cout=1050, valeur_mort=int(1050*0.6), taille=(3,3),
+            cout=1050, taille=(3,3),
             peut_miner=False, peut_transporter=False,
             image=images['lourd'], tier=1, cordonner=position,
             id=next_uid, path=paths['lourd'], joueur=joueur_id
@@ -408,7 +408,7 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     elif type_vaisseau == "Foreuse":
         return Foreuse(
             pv_max=400, attaque=0, port_attaque=0, port_deplacement=4,
-            cout=400, valeur_mort=int(400*0.6), taille=(2,2),
+            cout=400, taille=(2,2),
             peut_miner=True, peut_transporter=False,
             image=images['foreuse'], tier=1, cordonner=position,
             id=next_uid, path=paths['foreuse'], joueur=joueur_id
@@ -416,7 +416,7 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     elif type_vaisseau == "Transporteur":
         return Transport(
             pv_max=600, attaque=50, port_attaque=3, port_deplacement=5,
-            cout=500, valeur_mort=int(500*0.6), taille=(3,4),
+            cout=500, taille=(3,4),
             peut_miner=False, peut_transporter=True,
             image=images['transport'], tier=1, cordonner=position,
             id=next_uid, path=paths['transport'], joueur=joueur_id
@@ -509,13 +509,13 @@ def start_game(ecran, parametres, random_active):
 
     # MotherShip du joueur (zone de base)
     smm1 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
+                      taille=(4,5), tier=1, cordonner=Point(0,0), 
                       id=next_uid[0], path=img_base_dir, joueur = Turn.players[0].id)
     next_uid[0] += 1
     Turn.players[0].ships.append(smm1)
 
     smm2 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(25,46), 
+                      taille=(4,5), tier=1, cordonner=Point(25,46), 
                       id=next_uid[0], path=img_base_dir, joueur = Turn.players[1].id)
     next_uid[0] += 1
     Turn.players[1].ships.append(smm2)
@@ -523,20 +523,20 @@ def start_game(ecran, parametres, random_active):
     # Vaisseaux de départ du joueur (dans la zone de base)
     # Petit vaisseau de reconnaissance
     sp1 = Petit(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
-                valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
+                taille=(2,2), peut_miner=False, peut_transporter=False,
                 image=img_petit, tier=1, cordonner=Point(5,1), id=next_uid[0], path=img_petit_dir, joueur = Turn.players[0].id)
     next_uid[0] += 1
     Turn.players[0].ships.append(sp1)
 
     sp1 = Lourd(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
-                valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
+                taille=(2,2), peut_miner=False, peut_transporter=False,
                 image=img_Lourd, tier=1, cordonner=Point(5,5), id=next_uid[0], path=img_lourd_dir, joueur = Turn.players[1].id)
     next_uid[0] += 1
     Turn.players[1].ships.append(sp1)
 
     # Foreuse de départ
     sf1 = Foreuse(pv_max=500, attaque=0, port_attaque=0, port_deplacement=3, cout=500,
-                  valeur_mort=int(500*0.6), taille=(2,2), peut_miner=True, peut_transporter=False,
+                  taille=(2,2), peut_miner=True, peut_transporter=False,
                   image=img_foreuse, tier=1, cordonner=Point(1,5), id=next_uid[0], path=img_foreuse_dir, joueur = Turn.players[0].id)
     next_uid[0] += 1
     Turn.players[0].ships.append(sf1)

@@ -52,7 +52,6 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
         port_attaque=0,       # Portée d'attaque
         port_deplacement=0,   # Portée de déplacement (immobile)
         cout=0,               # Coût
-        valeur_mort=0,        # Valeur à la mort
         taille=(vaisseau_w, vaisseau_h),  # Taille en tuples
         tier=1,               # Niveau
         cordonner=Point(y, x),  # Position

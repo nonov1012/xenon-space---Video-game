@@ -89,10 +89,10 @@ def main():
     P2 = Player("Bob")
     Turn.players = [P1, P2]
     P1.ships.append(MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
+                      taille=(4,5), tier=1, cordonner=Point(0,0), 
                       id=0, path="assets/img/ships/base", joueur = Turn.players[0].id))
     P2.ships.append(MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
+                      taille=(4,5), tier=1, cordonner=Point(0,0), 
                       id=1, path="assets/img/ships/base", joueur = Turn.players[1].id))
 
     hud_left = BarDisplay(left=True, player=Turn.players[0])

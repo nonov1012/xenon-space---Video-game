@@ -37,7 +37,7 @@ from classes.FloatingText import FloatingText
 
 class Ship:
     def __init__(self,
-                 pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int, valeur_mort: int,
+                 pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, cordonner: Optional[Point] = None, id: Optional[int] = None,
                  path: str = None, joueur : int = 1):
@@ -49,7 +49,6 @@ class Ship:
         :param port_attaque: Portée d’attaque en cases
         :param port_deplacement: Portée de déplacement (points de mouvement)
         :param cout: Coût d’achat
-        :param valeur_mort: Valeur donnée à l’adversaire en cas de destruction
         :param taille: Dimensions du vaisseau (largeur, hauteur en cases)
         :param peut_miner: True si le vaisseau peut miner
         :param peut_transporter: True si le vaisseau peut transporter
@@ -68,7 +67,6 @@ class Ship:
         self.port_attaque = port_attaque
         self.port_deplacement = port_deplacement
         self.cout = cout
-        self.valeur_mort = valeur_mort
         self.taille = tuple(taille)
         self.peut_miner = peut_miner
         self.peut_transporter = peut_transporter
@@ -157,7 +155,7 @@ class Ship:
                     projectile_speed=3
                 )
         if cible.est_mort():
-            self.gain += cible.valeur_mort
+            self.gain += cible.cout * POURCENT_DEATH_REWARD
 
     def subir_degats(self, degats):
         """Réduit les PV et joue les animations appropriées (bouclier ou destruction)."""
@@ -547,10 +545,10 @@ class Ship:
 class Petit(Ship):
     """Vaisseau rapide et fragile."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, 
-                 cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool, 
+                 cout: int, taille: Tuple[int,int], peut_miner: bool, 
                  peut_transporter: bool, image: pygame.Surface, tier: int, 
                  cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
         self.animator.speed = 10
@@ -558,10 +556,10 @@ class Petit(Ship):
 class Moyen(Ship):
     """Vaisseau équilibré."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
-                 cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
+                 cout: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
                  cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
         self.animator.speed = 7
@@ -570,10 +568,10 @@ class Moyen(Ship):
 class Lourd(Ship):
     """Vaisseau résistant mais lent."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
-                 cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
+                 cout: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
                  cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
         self.animator.speed = 5
@@ -581,10 +579,10 @@ class Lourd(Ship):
 class Foreuse(Ship):
     """Vaisseau spécialisé dans le minage."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
-                 cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
+                 cout: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
                  cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
         # Les foreuses peuvent toujours miner
@@ -594,10 +592,10 @@ class Foreuse(Ship):
 class Transport(Ship):
     """Vaisseau pouvant transporter d’autres vaisseaux (3 slots)."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
-                 cout: int, valeur_mort: int, taille: Tuple[int,int], peut_miner: bool,
+                 cout: int, taille: Tuple[int,int], peut_miner: bool,
                  peut_transporter: bool, image: pygame.Surface, tier: int,
                  cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout, valeur_mort,
+        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
         # Cargaison pour transporter d'autres vaisseaux

@@ -31,6 +31,12 @@ PLANETES_PATH = os.path.join(IMG_PATH, "planets")
 PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
 ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
 
+# Stats des vaisseaux
+# Gains
+PLANETES_REWARD = 100
+ASTEROIDES_REWARD = 75
+POURCENT_DEATH_REWARD = 0.6
+
 RPC_ID = "1419749281190903848"
 
 if __name__ == "__main__":
