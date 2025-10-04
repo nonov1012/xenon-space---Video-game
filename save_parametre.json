@@ -7,8 +7,8 @@
         "menu_pause": 103
     },
     "audio": {
-        "volume_general": 94,
-        "volume_musique": 50,
-        "volume_sons": 50
+        "volume_general": 50,
+        "volume_musique": 25,
+        "volume_sons": 25
     }
 }
