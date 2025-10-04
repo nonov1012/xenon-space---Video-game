@@ -15,7 +15,6 @@ class Turn:
         player = cls.players.pop(0)
         cls.players.append(player)
         cls._nb_turns += 1 / len(cls.players)
-        
 
     @classmethod
     def describe(cls):
