@@ -18,6 +18,7 @@ TAILLE_CASE = screen_height // (NB_CASE_Y + 2) # Taille d'une case en pixels
 # Adapté l'écran
 GRID_WIDTH = NB_CASE_X * TAILLE_CASE
 OFFSET_X = (screen_width - GRID_WIDTH) // 2
+SCREEN_WIDTH, SCREEN_HEIGHT = screen_width, screen_height
 
 # Planètes
 MAX_PLANETES_ANIMATIONS = 50 # Nombre d'animations de planètes différents
@@ -29,6 +30,12 @@ IMG_PATH = os.path.join(BASE_DIR, "assets", "img")
 PLANETES_PATH = os.path.join(IMG_PATH, "planets")
 PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
 ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
+
+# Stats des vaisseaux
+# Gains
+PLANETES_REWARD = 100
+ASTEROIDES_REWARD = 75
+POURCENT_DEATH_REWARD = 0.6
 
 RPC_ID = "1419749281190903848"
 

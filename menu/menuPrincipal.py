@@ -179,5 +179,3 @@ while en_cours:
                 sm.play_sfx("son_click")
                 pygame.quit()
                 sys.exit()
-
-

@@ -23,17 +23,16 @@ class MotherShip(Ship):
                  port_attaque: int,
                  port_deplacement: int,
                  cout: int,
-                 valeur_mort: int,
                  taille: Tuple[int,int],
                  tier: int,
                  cordonner: Point,
                  id: Optional[int] = None,
                  path: str = None,
-                 show_health : bool = True,
+                 show_health : bool = False,
                  joueur : int = 1):
 
         super().__init__(pv_max, attaque, port_attaque, port_deplacement,
-                         cout, valeur_mort, taille, peut_miner=False,
+                         cout, taille, peut_miner=False,
                          peut_transporter=False, image=pygame.Surface((taille[1]*TAILLE_CASE, taille[0]*TAILLE_CASE)),
                          tier=tier, cordonner=cordonner, id=id, path=path, joueur=joueur)
         

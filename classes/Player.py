@@ -1,5 +1,7 @@
 from classes.Economie import Economie
 from classes.Ship import Ship, Foreuse
+from classes.MotherShip import MotherShip
+from classes.FloatingText import FloatingText
 
 class Player:
     def __init__(self, name: str, solde_initial: int = 500, id : int = 1) -> None:
@@ -8,7 +10,7 @@ class Player:
         self._start_loadout()
         self.id = id
         self.ships: list[Ship] = []
-        #self.base: MotherShip = MotherShip()
+        self.floating_texts : list[FloatingText] = []  # liste de FloatingText actifs
 
     def _start_loadout(self) -> list[Ship]:
         ships = []
@@ -27,15 +29,17 @@ class Player:
         """
         return self.economie.retirer(price)
     
-    def gain(self) -> None:
-        revenue = 0
+    def gain(self):
+        total_gain = 0
         for ship in self.ships:
-            revenue += ship.gain
-            if isinstance(ship, Foreuse):
-                ship.gain = 0
-                ship.pv_actuel = ship.pv_max * 0.1
-
-        self.economie.ajouter(revenue)
+            if ship.gain > 0:
+                total_gain += ship.gain
+                FloatingText(f"+{ship.gain}₿", pos=(ship.animator.x + ship.animator.pixel_w, ship.animator.y + ship.animator.pixel_h / 2))
+                if not isinstance(ship, MotherShip):
+                    ship.gain = 0
+                    if isinstance(ship, Foreuse):
+                        ship.subir_degats(ship.pv_max * 0.1)
+        self.economie.ajouter(total_gain)
         return
             
 
@@ -46,6 +50,12 @@ class Player:
         Utilise Player.buy() comme fonction de paiement.
         """
         return self.base.upgrade(self.buy)
+    
+    def getMotherShip(self) -> MotherShip:
+        for ship in self.ships:
+            if isinstance(ship, MotherShip):
+                return ship
+        return
 
     # ---------- Gestion des vaisseaux ----------
     #def add_ship(self, ship: Ship) -> None:
