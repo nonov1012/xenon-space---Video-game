@@ -6,6 +6,7 @@ import menu.menuJouer
 import menu.menuParam
 import menu.menuSucces
 import menu.menuPause
+import menu.credit
 
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
@@ -171,8 +172,12 @@ while en_cours:
             elif bouton_succes.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 menu.menuSucces.main(ecran)
+            elif bouton_credit.collidepoint(evenement.pos):
+                sm.play_sfx("son_click")
+                menu.credit.main(ecran)
             elif bouton_quitter.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 pygame.quit()
                 sys.exit()
+
 

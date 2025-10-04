@@ -3,6 +3,7 @@ import sys
 import os
 import json
 from blazyck import *
+import copy
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from classes.Animator import Animator
@@ -331,15 +332,15 @@ def main(ecran):
                             sauvegarder_parametres(settings)
                             print("Parametres sauvegardes dans", SAVE_FILE)
                         elif label == "RESET":
-                            settings = DEFAULT_SETTINGS.copy()
-                            print("Parametres reinitialises")
+                            settings = copy.deepcopy(DEFAULT_SETTINGS)  # Copie complète de tous les sous-dictionnaires
+                            capture_touche = None  # Annule la capture en cours
+                            print("Paramètres réinitialisés")
                         elif label == "RETOUR":
                             en_cours = False
 
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 slider_actif = None
 
-        # Glisser slider audio
         if slider_actif and clic and onglet_actif == "Audio":
             slider_largeur = 400
             slider_x = panneau_x + (panneau_largeur - slider_largeur) // 2
