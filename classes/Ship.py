@@ -570,6 +570,11 @@ class Foreuse(Ship):
         self.peut_miner = True
         self.animator.speed = 10
 
+    def generer_argent_si_proche_planete(self, grille: List[List[Point]], joueur: "Player"):
+        """Ajoute de l'argent si le vaisseau est à côté d'une planète."""
+        if self.est_a_cote_planete(grille):
+            joueur.economie.ajouter(75)
+
 class Transport(Ship):
     """Vaisseau pouvant transporter d’autres vaisseaux (3 slots)."""
     def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,

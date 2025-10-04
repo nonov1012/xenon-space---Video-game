@@ -30,13 +30,14 @@ class Shop:
             return placeholder
 
     def buy_ship(self, ship):
+        """Achète un vaisseau et retourne son nom si l'achat réussit"""
         # Vérifie si le joueur peut payer via Economie
         if self.player.economie.retirer(ship["price"]):
-            # Ajoute le vaisseau au joueur
-            #self.player.add_ship(ship["name"])
             print(f"Acheté: {ship['name']}")
+            return ship["name"]  # Retourne le nom du vaisseau acheté
         else:
             print("Pas assez de coins !")
+            return None  # Retourne None si l'achat échoue
 
     def draw(self):
         num_ships = len(self.ships)
@@ -71,6 +72,8 @@ class Shop:
                 self.screen.blit(info_text, text_rect)
 
     def handle_click(self, pos):
+        """Gère les clics sur les boutons du shop et retourne le type de vaisseau acheté"""
         for ship in self.ships:
-            if ship["rect"].collidepoint(pos):
-                self.buy_ship(ship)
+            if "rect" in ship and ship["rect"].collidepoint(pos):
+                return self.buy_ship(ship)
+        return None
