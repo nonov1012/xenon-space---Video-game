@@ -18,6 +18,7 @@ TAILLE_CASE = screen_height // (NB_CASE_Y + 2) # Taille d'une case en pixels
 # Adapté l'écran
 GRID_WIDTH = NB_CASE_X * TAILLE_CASE
 OFFSET_X = (screen_width - GRID_WIDTH) // 2
+SCREEN_WIDTH, SCREEN_HEIGHT = screen_width, screen_height
 
 # Planètes
 MAX_PLANETES_ANIMATIONS = 50 # Nombre d'animations de planètes différents
