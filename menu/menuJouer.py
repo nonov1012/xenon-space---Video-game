@@ -7,7 +7,7 @@ from classes.ShipAnimator import ShipAnimator
 from classes.PlanetAnimator import PlanetAnimator
 from classes.Animator import Animator
 from classes.Start_Animation.main import create_space_background
-from menu.modifShips import vaisseaux_sliders, limites_params, vaisseaux
+from menu.modifShips import vaisseaux_sliders, limites_params, SHIP_STATS, noms_affichage
 
 def dessiner_slider(ecran, valeur, min_val, max_val, x, y, largeur, hauteur,
                     couleur_prog=(0, 200, 100), couleur_curseur=(0, 150, 80)):
@@ -41,6 +41,7 @@ def draw(ecran):
     police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 60)
     police_param = pygame.font.Font("assets/fonts/SpaceNova.otf", 24)
     police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 24)
+    police_petite = pygame.font.Font("assets/fonts/SpaceNova.otf", 18)
 
     # -------------------------------
     # Parametres avec sliders
@@ -59,7 +60,17 @@ def draw(ecran):
     # -------------------------------
     types_vaisseaux = list(vaisseaux_sliders.keys())
     vaisseau_actif = types_vaisseaux[0]
+    tier_actif = 1  # Pour MotherShip
     slider_vaisseau_actif = None
+    
+    # État du dropdown
+    dropdown_ouvert = False
+    dropdown_scroll = 0  # Scroll du dropdown
+    max_items_dropdown = 2  # Nombre max d'items visibles
+    
+    # État du scroll
+    scroll_offset = 0
+    max_scroll = 0
 
     icones_vaisseaux = {}
     for ship in types_vaisseaux:
@@ -148,7 +159,7 @@ def draw(ecran):
     # Boucle principale
     # -------------------------------
     slider_actif = None
-    img_rect = None  # Initialisation pour éviter l'erreur
+    img_rect = None
     horloge = pygame.time.Clock()
     en_cours = True
     lancer_partie = False
@@ -246,38 +257,214 @@ def draw(ecran):
             ecran.blit(txt_random, txt_random.get_rect(center=rect_random.center))
 
         # -------------------------------
-        # Onglet Vaisseaux
+        # Onglet Vaisseaux AMÉLIORÉ
         # -------------------------------
+        # Définir les rects en dehors pour éviter les erreurs
+        dropdown_x = panneau_x + 10
+        dropdown_y = panneau_y + 10
+        dropdown_largeur = 200
+        dropdown_hauteur = 35
+        rect_dropdown = pygame.Rect(dropdown_x, dropdown_y, dropdown_largeur, dropdown_hauteur)
+        
+        liste_rects = []
+        tier_rects = []
+        param_rects = []
+        params_zone_x = panneau_x + 10
+        params_zone_y = panneau_y + 120
+        
         if onglet_actif == "Vaisseaux":
-            # Cadre du vaisseau actif
-            cadre_x, cadre_y, cadre_taille = panneau_x + 10, panneau_y + 10, 90
-            pygame.draw.rect(ecran, BLANC, (cadre_x, cadre_y, cadre_taille, cadre_taille), 2, border_radius=5)
-            img_vaisseau = icones_vaisseaux[vaisseau_actif]
-            img_rect = img_vaisseau.get_rect(center=(cadre_x + cadre_taille//2, cadre_y + cadre_taille//2))
-            ecran.blit(img_vaisseau, img_rect.topleft)
-
-            # Nom du vaisseau
-            texte_nom = police_param.render(vaisseau_actif, True, BLEU_ACCENT)
-            ecran.blit(texte_nom, (cadre_x + cadre_taille + 10, cadre_y + 10))
-
-            slider_largeur_v = 300
-            slider_hauteur_v = 15
-            slider_x_v = panneau_x + 150
-            decalage_y_v = 60
-
-            for idx, (param, valeur) in enumerate(vaisseaux_sliders[vaisseau_actif].items()):
-                y = panneau_y + decalage_y_v + idx * 60
+            # --- DROPDOWN pour sélectionner le vaisseau ---
+            pygame.draw.rect(ecran, GRIS_MOYEN, rect_dropdown, border_radius=5)
+            pygame.draw.rect(ecran, BLANC, rect_dropdown, 2, border_radius=5)
+            
+            # Texte du vaisseau sélectionné
+            texte_dropdown = police_petite.render(vaisseau_actif, True, BLANC)
+            ecran.blit(texte_dropdown, (dropdown_x + 10, dropdown_y + 8))
+            
+            # Flèche dropdown
+            fleche = "▼" if not dropdown_ouvert else "▲"
+            texte_fleche = police_petite.render(fleche, True, BLANC)
+            ecran.blit(texte_fleche, (dropdown_x + dropdown_largeur - 30, dropdown_y + 8))
+            
+            # Liste déroulante si ouverte
+            liste_rects = []
+            if dropdown_ouvert:
+                # Calculer les items visibles avec scroll
+                total_items = len(types_vaisseaux)
+                max_dropdown_scroll = max(0, total_items - max_items_dropdown)
+                dropdown_scroll = max(0, min(dropdown_scroll, max_dropdown_scroll))
                 
-                # Utilise limites_params pour min/max
+                items_visibles = types_vaisseaux[dropdown_scroll:dropdown_scroll + max_items_dropdown]
+                
+                for i, ship in enumerate(items_visibles):
+                    rect_item = pygame.Rect(dropdown_x, dropdown_y + dropdown_hauteur + i * 30, dropdown_largeur, 30)
+                    liste_rects.append((rect_item, ship))
+                    
+                    couleur = BLEU_ACCENT if ship == vaisseau_actif else GRIS_FONCE
+                    pygame.draw.rect(ecran, couleur, rect_item)
+                    pygame.draw.rect(ecran, GRIS_CLAIR, rect_item, 1)
+                    
+                    texte_item = police_petite.render(ship, True, BLANC)
+                    ecran.blit(texte_item, (rect_item.x + 10, rect_item.y + 5))
+                
+                # Indicateur de scroll si nécessaire
+                if total_items > max_items_dropdown:
+                    scroll_indicator_x = dropdown_x + dropdown_largeur - 15
+                    scroll_indicator_y = dropdown_y + dropdown_hauteur + 5
+                    scroll_indicator_h = max_items_dropdown * 30 - 10
+                    
+                    # Barre de scroll
+                    pygame.draw.rect(ecran, GRIS_MOYEN, 
+                                   (scroll_indicator_x, scroll_indicator_y, 8, scroll_indicator_h), 
+                                   border_radius=4)
+                    
+                    # Curseur de scroll
+                    scroll_ratio = dropdown_scroll / max_dropdown_scroll if max_dropdown_scroll > 0 else 0
+                    cursor_h = 20
+                    cursor_y = scroll_indicator_y + int(scroll_ratio * (scroll_indicator_h - cursor_h))
+                    pygame.draw.rect(ecran, BLEU_ACCENT, 
+                                   (scroll_indicator_x, cursor_y, 8, cursor_h), 
+                                   border_radius=4)
+            
+            # --- ICÔNE du vaisseau ---
+            icone_x = dropdown_x + dropdown_largeur + 20
+            icone_y = panneau_y + 10
+            icone_taille = 80
+            
+            pygame.draw.rect(ecran, BLANC, (icone_x, icone_y, icone_taille, icone_taille), 2, border_radius=5)
+            img_vaisseau = icones_vaisseaux[vaisseau_actif]
+            img_rect = img_vaisseau.get_rect(center=(icone_x + icone_taille//2, icone_y + icone_taille//2))
+            ecran.blit(img_vaisseau, img_rect.topleft)
+            
+            # --- SÉLECTEUR DE TIER (si MotherShip) - À CÔTÉ de l'icône ---
+            tier_rects = []
+            if vaisseau_actif == "MotherShip":
+                # Positionner les tiers à droite de l'icône
+                tier_x_start = icone_x + icone_taille + 20
+                tier_y_start = icone_y + 25
+                
+                texte_tier_label = police_petite.render("Tier:", True, BLANC)
+                ecran.blit(texte_tier_label, (tier_x_start, tier_y_start))
+                
+                # Disposition horizontale des tiers
+                for i, tier in enumerate([1, 2, 3, 4]):
+                    tier_rect = pygame.Rect(tier_x_start + 60 + i * 40, tier_y_start, 35, 30)
+                    tier_rects.append((tier_rect, tier))
+                    
+                    couleur = BLEU_ACCENT if tier == tier_actif else GRIS_MOYEN
+                    pygame.draw.rect(ecran, couleur, tier_rect, border_radius=5)
+                    
+                    texte_tier = police_petite.render(str(tier), True, BLANC)
+                    ecran.blit(texte_tier, texte_tier.get_rect(center=tier_rect.center))
+            
+            # --- ZONE SCROLLABLE pour les paramètres ---
+            params_zone_x = panneau_x + 10
+            params_zone_y = panneau_y + 120
+            params_zone_largeur = panneau_largeur - 20
+            params_zone_hauteur = panneau_hauteur - 130
+            
+            # Surface pour le contenu scrollable
+            surf_scroll = pygame.Surface((params_zone_largeur, params_zone_hauteur))
+            surf_scroll.fill(GRIS_FONCE)
+            
+            # Récupérer les paramètres du vaisseau actuel
+            if vaisseau_actif == "MotherShip":
+                params_vaisseau = vaisseaux_sliders[vaisseau_actif][tier_actif]
+            else:
+                params_vaisseau = vaisseaux_sliders[vaisseau_actif]
+            
+            # Déterminer les paramètres qui utilisent des boutons vs sliders
+            params_avec_boutons = ["taille_largeur", "taille_hauteur", "nb_vaisseaux", "port_attaque", "port_deplacement"]
+            
+            y_offset = 10 - scroll_offset
+            param_rects = []  # Pour stocker les zones cliquables
+            
+            displayed_idx = 0  # Compteur pour les paramètres affichés uniquement
+            for idx, (param, valeur) in enumerate(params_vaisseau.items()):
+                if param in ["peut_miner", "peut_transporter", "taille"]:
+                    continue  # Skip les booléens et taille (tuple)
+                
+                y_pos = y_offset + displayed_idx * 85  # Utiliser displayed_idx au lieu de idx
+                displayed_idx += 1  # Incrémenter seulement pour les params affichés
+                
+                # Si en dehors de la zone visible, skip le dessin mais calculer la hauteur totale
+                if y_pos < -85 or y_pos > params_zone_hauteur:
+                    continue
+                
+                # Nom du paramètre avec affichage lisible
+                nom_affiche = noms_affichage.get(param, param)
+                texte_nom = police_petite.render(nom_affiche, True, BLANC)
+                surf_scroll.blit(texte_nom, (10, y_pos))
+                
+                # Valeur
+                texte_val = police_petite.render(str(valeur), True, BLEU_ACCENT)
+                surf_scroll.blit(texte_val, (10, y_pos + 22))
+                
                 min_val = limites_params[param]["min"]
                 max_val = limites_params[param]["max"]
                 
-                # Dessine le slider
-                dessiner_slider(ecran, valeur, min_val, max_val, slider_x_v, y + 25, slider_largeur_v, slider_hauteur_v)
-                
-                # Affiche le nom et la valeur
-                texte_param = police_param.render(f"{param}: {valeur}", True, BLANC)
-                ecran.blit(texte_param, (slider_x_v, y))
+                # Choix entre boutons +/- ou slider
+                if param in params_avec_boutons:
+                    # BOUTONS +/-
+                    btn_moins_rect = pygame.Rect(200, y_pos + 15, 30, 30)
+                    btn_plus_rect = pygame.Rect(340, y_pos + 15, 30, 30)
+                    
+                    pygame.draw.rect(surf_scroll, GRIS_MOYEN, btn_moins_rect, border_radius=5)
+                    pygame.draw.rect(surf_scroll, GRIS_MOYEN, btn_plus_rect, border_radius=5)
+                    
+                    texte_moins = police_param.render("-", True, BLANC)
+                    texte_plus = police_param.render("+", True, BLANC)
+                    surf_scroll.blit(texte_moins, texte_moins.get_rect(center=btn_moins_rect.center))
+                    surf_scroll.blit(texte_plus, texte_plus.get_rect(center=btn_plus_rect.center))
+                    
+                    # Valeur au centre
+                    texte_val_centre = police_param.render(str(valeur), True, VERT)
+                    val_rect = texte_val_centre.get_rect(center=(285, y_pos + 30))
+                    surf_scroll.blit(texte_val_centre, val_rect)
+                    
+                    # Stocker les rects pour la détection de clic (ajuster avec offset de la zone)
+                    param_rects.append((btn_moins_rect, param, "moins", y_offset))
+                    param_rects.append((btn_plus_rect, param, "plus", y_offset))
+                    
+                else:
+                    # SLIDER
+                    slider_x_local = 200
+                    slider_largeur_local = 250
+                    slider_hauteur_local = 15
+                    
+                    # Dessiner le slider sur la surface
+                    pygame.draw.rect(surf_scroll, GRIS_MOYEN, 
+                                   (slider_x_local, y_pos + 25, slider_largeur_local, slider_hauteur_local), 
+                                   border_radius=8)
+                    
+                    rel_pos = (valeur - min_val) / (max_val - min_val) if max_val > min_val else 0
+                    largeur_prog = int(rel_pos * slider_largeur_local)
+                    if largeur_prog > 0:
+                        pygame.draw.rect(surf_scroll, VERT, 
+                                       (slider_x_local, y_pos + 25, largeur_prog, slider_hauteur_local), 
+                                       border_radius=8)
+                    
+                    curseur_x_local = int(slider_x_local + rel_pos * slider_largeur_local)
+                    pygame.draw.ellipse(surf_scroll, VERT_FONCE, 
+                                      (curseur_x_local - 8, y_pos + 20, 16, slider_hauteur_local + 10))
+                    
+                    # Stocker le rect pour la détection
+                    slider_rect = pygame.Rect(slider_x_local, y_pos + 20, slider_largeur_local, 30)
+                    param_rects.append((slider_rect, param, "slider", y_offset))
+            
+            # Calculer max_scroll avec le nombre réel de paramètres affichés
+            nb_params_affiches = len([p for p in params_vaisseau.keys() if p not in ["peut_miner", "peut_transporter", "taille"]])
+            hauteur_contenu = nb_params_affiches * 85
+            max_scroll = max(0, hauteur_contenu - params_zone_hauteur + 20)
+            
+            # Clipper et afficher la surface
+            ecran.set_clip(pygame.Rect(params_zone_x, params_zone_y, params_zone_largeur, params_zone_hauteur))
+            ecran.blit(surf_scroll, (params_zone_x, params_zone_y))
+            ecran.set_clip(None)
+            
+            # Bordure de la zone
+            pygame.draw.rect(ecran, GRIS_CLAIR, 
+                           (params_zone_x, params_zone_y, params_zone_largeur, params_zone_hauteur), 2)
 
         # -------------------------------
         # Boutons principaux
@@ -304,6 +491,20 @@ def draw(ecran):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 en_cours = False
+                
+            # MOLETTE pour scroll
+            if event.type == pygame.MOUSEWHEEL:
+                if onglet_actif == "Vaisseaux":
+                    # Si dropdown ouvert, scroll le dropdown
+                    if dropdown_ouvert:
+                        dropdown_scroll -= event.y
+                        max_dropdown_scroll = max(0, len(types_vaisseaux) - max_items_dropdown)
+                        dropdown_scroll = max(0, min(dropdown_scroll, max_dropdown_scroll))
+                    else:
+                        # Sinon scroll la zone de paramètres
+                        scroll_offset -= event.y * 20
+                        scroll_offset = max(0, min(scroll_offset, max_scroll))
+                
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 # Boutons bas
                 for _, rect, label in boutons:
@@ -311,7 +512,11 @@ def draw(ecran):
                         if label == "JOUER":
                             print("JOUER avec parametres:", {k: v["valeur"] for k, v in parametres.items()},
                                   "Random:", random_active)
-                            print("Vaisseau :", vaisseau_actif, vaisseaux_sliders[vaisseau_actif])
+                            print("Vaisseau :", vaisseau_actif)
+                            if vaisseau_actif == "MotherShip":
+                                print("Tier:", tier_actif, vaisseaux_sliders[vaisseau_actif][tier_actif])
+                            else:
+                                print(vaisseaux_sliders[vaisseau_actif])
                             en_cours = False
                             lancer_partie = True
                         elif label == "RESET":
@@ -325,7 +530,6 @@ def draw(ecran):
                     rect_random = pygame.Rect(panneau_x + panneau_largeur - 230, panneau_y + panneau_hauteur - 50, 200, 40)
                     if rect_random.collidepoint(event.pos):
                         random_active = not random_active
-                        # Si Random activé, randomize les valeurs
                         if random_active:
                             for k in parametres:
                                 parametres[k]["valeur"] = random.randint(parametres[k]["min"], parametres[k]["max"])
@@ -336,44 +540,96 @@ def draw(ecran):
                                               panneau_largeur // len(onglets), 40)
                     if rect_onglet.collidepoint(event.pos):
                         onglet_actif = nom
-
-                # Slider Vaisseaux - clic sur toute la barre
+                        scroll_offset = 0  # Reset scroll
+                        dropdown_scroll = 0  # Reset scroll dropdown
+                        dropdown_ouvert = False  # Fermer dropdown
+                
+                # --- VAISSEAUX: Gestion des clics ---
                 if onglet_actif == "Vaisseaux":
-                    slider_largeur_v = 300
-                    slider_x_v = panneau_x + 150
-                    decalage_y_v = 60
+                    # Clic sur dropdown
+                    if rect_dropdown.collidepoint(event.pos):
+                        dropdown_ouvert = not dropdown_ouvert
                     
-                    for idx, param in enumerate(vaisseaux_sliders[vaisseau_actif].keys()):
-                        y = panneau_y + decalage_y_v + idx * 60
-                        # Zone cliquable = toute la barre du slider
-                        rect_slider_zone = pygame.Rect(slider_x_v, y + 20, slider_largeur_v, 30)
-                        if rect_slider_zone.collidepoint(event.pos):
-                            slider_vaisseau_actif = param
-                            # Applique immédiatement la nouvelle valeur avec limites_params
+                    # Clic sur liste déroulante
+                    elif dropdown_ouvert:
+                        for rect_item, ship in liste_rects:
+                            if rect_item.collidepoint(event.pos):
+                                vaisseau_actif = ship
+                                tier_actif = 1  # Reset tier
+                                scroll_offset = 0
+                                dropdown_scroll = 0  # Reset scroll dropdown
+                                dropdown_ouvert = False
+                                break
+                    
+                    # Clic sur tier (MotherShip)
+                    if vaisseau_actif == "MotherShip":
+                        for tier_rect, tier in tier_rects:
+                            if tier_rect.collidepoint(event.pos):
+                                tier_actif = tier
+                                scroll_offset = 0
+                                break
+                    
+                    # Clic sur boutons +/- ou sliders
+                    for rect_param, param, action, y_off in param_rects:
+                        # Ajuster la position du rect avec l'offset de la zone scrollable
+                        rect_ajuste = rect_param.copy()
+                        rect_ajuste.x += params_zone_x
+                        rect_ajuste.y += params_zone_y
+                        
+                        if rect_ajuste.collidepoint(event.pos):
+                            if vaisseau_actif == "MotherShip":
+                                params = vaisseaux_sliders[vaisseau_actif][tier_actif]
+                            else:
+                                params = vaisseaux_sliders[vaisseau_actif]
+                            
                             min_val = limites_params[param]["min"]
                             max_val = limites_params[param]["max"]
-                            rel_x = max(0, min(slider_largeur_v, event.pos[0] - slider_x_v))
-                            nouveau_val = int(min_val + (rel_x / slider_largeur_v) * (max_val - min_val))
-                            vaisseaux_sliders[vaisseau_actif][param] = nouveau_val
-
-                    # Changer vaisseau actif (clic sur l'image)
-                    if img_rect and img_rect.collidepoint(event.pos):
-                        index = (types_vaisseaux.index(vaisseau_actif) + 1) % len(types_vaisseaux)
-                        vaisseau_actif = types_vaisseaux[index]
+                            
+                            if action == "moins":
+                                params[param] = max(min_val, params[param] - 1)
+                            elif action == "plus":
+                                params[param] = min(max_val, params[param] + 1)
+                            elif action == "slider":
+                                slider_vaisseau_actif = param
+                                # Appliquer immédiatement
+                                rel_x = max(0, min(rect_param.width, event.pos[0] - rect_ajuste.x))
+                                nouveau_val = int(min_val + (rel_x / rect_param.width) * (max_val - min_val))
+                                params[param] = nouveau_val
+                            break
+                    
+                    # Fermer dropdown si clic ailleurs
+                    if dropdown_ouvert and not rect_dropdown.collidepoint(event.pos):
+                        clic_sur_liste = False
+                        for rect_item, _ in liste_rects:
+                            if rect_item.collidepoint(event.pos):
+                                clic_sur_liste = True
+                                break
+                        if not clic_sur_liste:
+                            dropdown_ouvert = False
+                            dropdown_scroll = 0  # Reset scroll
 
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 slider_vaisseau_actif = None
-    
+        
         # Glisser slider Vaisseaux
         if slider_vaisseau_actif and clic and onglet_actif == "Vaisseaux":
-            slider_largeur_v = 300
-            slider_x_v = panneau_x + 150
-            # Utilise limites_params pour les limites
-            min_val = limites_params[slider_vaisseau_actif]["min"]
-            max_val = limites_params[slider_vaisseau_actif]["max"]
-            rel_x = max(0, min(slider_largeur_v, souris[0] - slider_x_v))
-            nouveau_val = int(min_val + (rel_x / slider_largeur_v) * (max_val - min_val))
-            vaisseaux_sliders[vaisseau_actif][slider_vaisseau_actif] = nouveau_val
+            for rect_param, param, action, y_off in param_rects:
+                if param == slider_vaisseau_actif and action == "slider":
+                    rect_ajuste = rect_param.copy()
+                    rect_ajuste.x += params_zone_x
+                    rect_ajuste.y += params_zone_y
+                    
+                    if vaisseau_actif == "MotherShip":
+                        params = vaisseaux_sliders[vaisseau_actif][tier_actif]
+                    else:
+                        params = vaisseaux_sliders[vaisseau_actif]
+                    
+                    min_val = limites_params[param]["min"]
+                    max_val = limites_params[param]["max"]
+                    rel_x = max(0, min(rect_param.width, souris[0] - rect_ajuste.x))
+                    nouveau_val = int(min_val + (rel_x / rect_param.width) * (max_val - min_val))
+                    params[param] = nouveau_val
+                    break
 
         # Curseur
         ecran.blit(curseur_img, souris)
