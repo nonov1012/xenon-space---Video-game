@@ -6,6 +6,7 @@ import menu.menuJouer
 import menu.menuParam
 import menu.menuSucces
 import menu.menuPause
+import menu.credit
 
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
@@ -22,7 +23,9 @@ from classes.Start_Animation.main import create_space_background
 # Initialisation Pygame
 # -------------------------------
 pygame.init()
-ecran = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.NOFRAME)
+screen_info = pygame.display.Info()
+screen_width, screen_height = screen_info.current_w, screen_info.current_h
+ecran = pygame.display.set_mode((screen_width, screen_height), pygame.NOFRAME)
 pygame.display.set_caption("Xénon Space")
 clock = pygame.time.Clock()
 
@@ -46,7 +49,7 @@ pygame.display.set_icon(icone)
 # -------------------------------
 # Fond anime avec planetes et vaisseau
 # -------------------------------
-screen_ratio = (SCREEN_WIDTH * 100 / 600) / 100
+screen_ratio = (screen_width * 100 / 600) / 100
 
 # Création du fond spatial et du vaisseau
 stars, planet_manager, B1 = create_space_background(num_stars=100, screen_ratio=screen_ratio)
@@ -55,7 +58,7 @@ stars, planet_manager, B1 = create_space_background(num_stars=100, screen_ratio=
 # Titre centre
 # -------------------------------
 police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 100)
-titre_position = (SCREEN_WIDTH // 2, 200)
+titre_position = (screen_width // 2, 200)
 titre = TitreAnime("XENON-SPACE", police_titre, titre_position,
                    couleur_haut=(255,255,0), couleur_bas=(255,0,255))
 
@@ -69,8 +72,8 @@ image_bouton = pygame.transform.scale(image_bouton, (500,150))
 largeur_bouton, hauteur_bouton = image_bouton.get_size()
 
 decalage_boutons = -500  # boutons a gauche
-x_bouton = SCREEN_WIDTH // 2 - largeur_bouton // 2 + decalage_boutons
-y_bouton = SCREEN_HEIGHT // 2
+x_bouton = screen_width // 2 - largeur_bouton // 2 + decalage_boutons
+y_bouton = screen_height // 2
 
 texte_jouer = police.render("Jouer", True, blanc)
 texte_param = police.render("Parametres", True, blanc)
@@ -84,8 +87,8 @@ bouton_succes  = pygame.Rect(x_bouton, y_bouton , largeur_bouton, hauteur_bouton
 bouton_quitter = pygame.Rect(x_bouton, y_bouton + 100, largeur_bouton, hauteur_bouton)
 
 # Bouton credit reste a sa position originale
-bouton_credit  = pygame.Rect(SCREEN_WIDTH - largeur_bouton - 30,
-                             SCREEN_HEIGHT - hauteur_bouton - 30,
+bouton_credit  = pygame.Rect(screen_width - largeur_bouton - 30,
+                             screen_height - hauteur_bouton - 30,
                              largeur_bouton, hauteur_bouton)
 
 zoom_states = {}
@@ -169,8 +172,10 @@ while en_cours:
             elif bouton_succes.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 menu.menuSucces.main(ecran)
+            elif bouton_credit.collidepoint(evenement.pos):
+                sm.play_sfx("son_click")
+                menu.credit.main(ecran)
             elif bouton_quitter.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 pygame.quit()
                 sys.exit()
-
