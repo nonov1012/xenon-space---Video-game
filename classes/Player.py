@@ -29,14 +29,14 @@ class Player:
         return self.economie.retirer(price)
     
     def gain(self) -> None:
-        revenue = 0
+        gains = 0
         for ship in self.ships:
-            revenue += ship.gain
+            gains += ship.gain
             if isinstance(ship, Foreuse):
                 ship.gain = 0
                 ship.pv_actuel = ship.pv_max * 0.1
 
-        self.economie.ajouter(revenue)
+        self.economie.ajouter(gains)
         return
             
 

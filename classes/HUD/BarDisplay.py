@@ -45,7 +45,7 @@ class BarDisplay:
         if self.highlight:
             pulse = 3 + 2 * math.sin(self._time * 4)  # pulse 2 à 5 px
             alpha = 100 + 50 * math.sin(self._time * 6)
-            glow_color = (0, 180, 255, int(alpha))
+            glow_color = (255, 255, 255, int(alpha)+50)
             for i in range(3):
                 rect_w = self.width + int(pulse) + i*2
                 rect_h = self.height + int(pulse) + i*2
