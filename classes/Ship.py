@@ -28,6 +28,7 @@ from blazyck import *
 from classes.Point import Point, Type
 from classes.Economie import *
 from heapq import heappush, heappop
+from classes.FloatingText import FloatingText
 
 
 # =======================
@@ -141,6 +142,7 @@ class Ship:
         """
         if self.joueur != cible.joueur:
             cible.subir_degats(self.attaque)
+            FloatingText(f"-{self.attaque}", (cible.animator.x + cible.animator.pixel_w, cible.animator.y + cible.animator.pixel_h / 2 ), color=(255, 0, 0))
             
             if self.attaque > 0 and not isinstance(self, Foreuse):
                 # Calcul position centrale de la cible
@@ -154,6 +156,8 @@ class Ship:
                     is_fired=True,
                     projectile_speed=3
                 )
+        if cible.est_mort():
+            self.gain += cible.valeur_mort
 
     def subir_degats(self, degats):
         """Réduit les PV et joue les animations appropriées (bouclier ou destruction)."""
