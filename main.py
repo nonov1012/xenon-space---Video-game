@@ -44,7 +44,7 @@ from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
-    ship.prevision.pixel_w = largeur * TAILLE_CASE
+    ship.prevision.pixel_w = largeur * TAILLE_CASE                      
     ship.prevision.pixel_h = hauteur * TAILLE_CASE
     ship.prevision.x = case[1] * TAILLE_CASE + OFFSET_X
     ship.prevision.y = case[0] * TAILLE_CASE
