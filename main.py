@@ -91,8 +91,15 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
             elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                 # on finit son tour
+                for ship in Turn.players[0].ships:
+                    if isinstance(ship, Foreuse):  # si foreuse
+                        if ship.est_a_cote_planete(map_obj.grille):
+                            ship.gain += 100
+                        if ship.est_autour_asteroide(map_obj.grille):
+                            ship.gain += 75
                 Turn.players[0].gain()
                 Turn.next()
+                HUD.change_turn()
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -243,10 +250,6 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
 
     if selection_ship and isinstance(selection_ship, Transport):
         selection_ship.afficher_cargaison(ecran)
-    
-    for vaisseau in ships:
-            if isinstance(vaisseau, Foreuse):  # si seulement les foreuses
-                vaisseau.generer_argent_si_proche_planete(map_obj.grille, player)
 
     # --- Preview déplacement / débarquement ---
     if selection_ship:

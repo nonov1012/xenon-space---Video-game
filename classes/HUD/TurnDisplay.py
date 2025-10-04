@@ -15,23 +15,26 @@ class TurnDisplay:
         self.font_player = pygame.font.SysFont("Consolas", 18)
 
         # Couleurs
-        self.bg_color = (20, 25, 40)
+        self.bg_color = (20, 25, 40, 180)      # 180 = alpha pour semi-transparence
         self.border_color = (80, 210, 255)
         self.text_color = (255, 255, 255)
         self.warn_color = (255, 80, 80)
 
     def update(self):
-        # Rien de dynamique pour l’instant
         pass
 
     def draw(self):
-        """Dessine le panneau du tour"""
+        """Dessine le panneau du tour avec transparence"""
         x = self.screen.get_width() // 2 - self.width // 2
         y = self.margin
 
-        # --- Fond principal ---
-        pygame.draw.rect(self.screen, self.bg_color, (x, y, self.width, self.height), border_radius=8)
-        pygame.draw.rect(self.screen, self.border_color, (x, y, self.width, self.height), width=2, border_radius=8)
+        # --- Surface transparente ---
+        panel_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        pygame.draw.rect(panel_surf, self.bg_color, (0, 0, self.width, self.height), border_radius=8)
+        pygame.draw.rect(panel_surf, self.border_color, (0, 0, self.width, self.height), width=2, border_radius=8)
+
+        # --- Blit de la surface transparente sur l'écran ---
+        self.screen.blit(panel_surf, (x, y))
 
         # --- Texte du tour ---
         turn_text = f"{Turn.sentence} {Turn.get_nb_turns()}"
