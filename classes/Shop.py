@@ -1,9 +1,9 @@
 import pygame
 
-BAR_HEIGHT = 100
-ICON_SIZE = 60
+BAR_HEIGHT = 85
+ICON_SIZE = 50
 ICON_MARGIN = 20
-CASE_PADDING = 10
+CASE_PADDING = 8
 
 class Shop:
     def __init__(self, player, font, screen):
@@ -78,6 +78,38 @@ class Shop:
             return (50, 200, 150)  # Turquoise
     
     def draw(self):
+        # Dessiner le cadre du shop
+        shop_y = self.screen.get_height() - BAR_HEIGHT
+        shop_width = self.screen.get_width()
+        
+        # Fond du shop avec dégradé
+        shop_bg = pygame.Surface((shop_width, BAR_HEIGHT), pygame.SRCALPHA)
+        for i in range(BAR_HEIGHT):
+            alpha = int(200 - (i / BAR_HEIGHT) * 50)
+            color = (20 + i // 5, 25 + i // 5, 35 + i // 5, alpha)
+            pygame.draw.line(shop_bg, color, (0, i), (shop_width, i))
+        self.screen.blit(shop_bg, (0, shop_y))
+        
+        # Bordure supérieure du shop
+        pygame.draw.line(self.screen, (100, 150, 200), (0, shop_y), (shop_width, shop_y), 3)
+        pygame.draw.line(self.screen, (150, 200, 255), (0, shop_y + 1), (shop_width, shop_y + 1), 1)
+        
+        # Coins décoratifs
+        corner_size = 20
+        # Coin supérieur gauche
+        pygame.draw.line(self.screen, (150, 200, 255), (0, shop_y), (corner_size, shop_y), 4)
+        pygame.draw.line(self.screen, (150, 200, 255), (0, shop_y), (0, shop_y + corner_size), 4)
+        
+        # Coin supérieur droit
+        pygame.draw.line(self.screen, (150, 200, 255), (shop_width - corner_size, shop_y), (shop_width, shop_y), 4)
+        pygame.draw.line(self.screen, (150, 200, 255), (shop_width, shop_y), (shop_width, shop_y + corner_size), 4)
+        
+        # Motifs décoratifs sur les côtés
+        for i in range(3):
+            offset = 30 + i * 40
+            pygame.draw.circle(self.screen, (100, 150, 200, 100), (offset, shop_y + BAR_HEIGHT // 2), 3)
+            pygame.draw.circle(self.screen, (100, 150, 200, 100), (shop_width - offset, shop_y + BAR_HEIGHT // 2), 3)
+        
         num_ships = len(self.ships)
         total_width = num_ships * (ICON_SIZE + 2 * CASE_PADDING) + (num_ships - 1) * ICON_MARGIN
         start_x = (self.screen.get_width() - total_width) // 2
@@ -106,17 +138,17 @@ class Shop:
             pygame.draw.rect(self.screen, border_color, case_rect, border_radius=8, width=2)
             
             # Dessin de l'icône avec glow effect au survol
-            icon_size = ICON_SIZE + 10 if hovered else ICON_SIZE
+            icon_size = ICON_SIZE + 8 if hovered else ICON_SIZE
             icon_img = pygame.transform.scale(ship["image"], (icon_size, icon_size))
             icon_x = x + CASE_PADDING + (ICON_SIZE - icon_size) // 2
             icon_y = y + CASE_PADDING + (ICON_SIZE - icon_size) // 2
             
             # Effet de lueur au survol
             if hovered:
-                glow_surface = pygame.Surface((icon_size + 10, icon_size + 10), pygame.SRCALPHA)
+                glow_surface = pygame.Surface((icon_size + 8, icon_size + 8), pygame.SRCALPHA)
                 pygame.draw.circle(glow_surface, (255, 255, 255, 30), 
-                                 (icon_size // 2 + 5, icon_size // 2 + 5), icon_size // 2 + 5)
-                self.screen.blit(glow_surface, (icon_x - 5, icon_y - 5))
+                                 (icon_size // 2 + 4, icon_size // 2 + 4), icon_size // 2 + 4)
+                self.screen.blit(glow_surface, (icon_x - 4, icon_y - 4))
             
             self.screen.blit(icon_img, (icon_x, icon_y))
             
@@ -162,22 +194,22 @@ class Shop:
         pygame.draw.rect(self.screen, border_color, case_rect, border_radius=8, width=3)
         
         # Dessin de l'icône de base
-        icon_size = ICON_SIZE + 10 if hovered else ICON_SIZE
+        icon_size = ICON_SIZE + 8 if hovered else ICON_SIZE
         
         # Redimensionner l'image de base
         base_icon = pygame.transform.scale(self.base_image, (icon_size, icon_size))
         
         # Effet de lueur au survol
         if hovered:
-            glow_surface = pygame.Surface((icon_size + 20, icon_size + 20), pygame.SRCALPHA)
+            glow_surface = pygame.Surface((icon_size + 12, icon_size + 12), pygame.SRCALPHA)
             color_filter = self.get_base_color_filter()
             for i in range(3):
-                radius = (icon_size // 2) + 10 - i * 3
+                radius = (icon_size // 2) + 6 - i * 2
                 alpha = 30 - i * 10
                 pygame.draw.circle(glow_surface, (*color_filter, alpha), 
-                                 (icon_size // 2 + 10, icon_size // 2 + 10), radius)
-            self.screen.blit(glow_surface, (base_x + CASE_PADDING - 10 + (ICON_SIZE - icon_size) // 2, 
-                                           y + CASE_PADDING - 10 + (ICON_SIZE - icon_size) // 2))
+                                 (icon_size // 2 + 6, icon_size // 2 + 6), radius)
+            self.screen.blit(glow_surface, (base_x + CASE_PADDING - 6 + (ICON_SIZE - icon_size) // 2, 
+                                           y + CASE_PADDING - 6 + (ICON_SIZE - icon_size) // 2))
         
         icon_x = base_x + CASE_PADDING + (ICON_SIZE - icon_size) // 2
         icon_y = y + CASE_PADDING + (ICON_SIZE - icon_size) // 2
