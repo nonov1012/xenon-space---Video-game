@@ -25,6 +25,7 @@
 import pygame
 
 # Import classes
+from classes.HUD.HUD import HUD
 import menu.menuPrincipal
 from classes.Turn import Turn
 from classes.Map import Map
@@ -308,12 +309,12 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
     PlanetAnimator.update_all()
     ShipAnimator.update_all()
     ProjectileAnimator.update_all()
+    HUD.update_and_draw()
 
     if selection_ship:
         info_text = f"{selection_ship.__class__.__name__} - PV: {selection_ship.pv_actuel}/{selection_ship.pv_max}"
         ecran.blit(font.render(info_text, True, (255, 255, 255)), (10, 40))
 
-    ecran.blit(font.render(f"Coins: {player.economie.solde}", True, (255, 255, 0)), (10, 10))
     shop.draw()
     ecran.blit(new_cursor, position_souris)
 
@@ -517,7 +518,7 @@ def start_game(ecran, parametres, random_active):
     Turn.players[0].ships.append(smm1)
 
     smm2 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(25,47), 
+                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(25,46), 
                       id=next_uid[0], path=img_base_dir, joueur = Turn.players[1].id)
     next_uid[0] += 1
     Turn.players[1].ships.append(smm2)
@@ -546,6 +547,9 @@ def start_game(ecran, parametres, random_active):
     # --- Placer vaisseaux sur la grille ---
     for s in Turn.get_players_ships():
         s.occuper_plateau(map_obj.grille, Type.VAISSEAU)
+
+    # --- initialisation du HUD ---
+    HUD.init(ecran)
 
     # --- Variables de sélection et contrôle ---
     selection_ship = None

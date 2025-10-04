@@ -1,5 +1,6 @@
 from classes.Economie import Economie
 from classes.Ship import Ship, Foreuse
+from classes.MotherShip import MotherShip
 
 class Player:
     def __init__(self, name: str, solde_initial: int = 500, id : int = 1) -> None:
@@ -46,6 +47,12 @@ class Player:
         Utilise Player.buy() comme fonction de paiement.
         """
         return self.base.upgrade(self.buy)
+    
+    def getMotherShip(self) -> MotherShip:
+        for ship in self.ships:
+            if isinstance(ship, MotherShip):
+                return ship
+        return
 
     # ---------- Gestion des vaisseaux ----------
     #def add_ship(self, ship: Ship) -> None:
