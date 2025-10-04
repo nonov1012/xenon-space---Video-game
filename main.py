@@ -25,6 +25,7 @@
 import pygame
 
 # Import classes
+from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
 import menu.menuPrincipal
 from classes.Turn import Turn
@@ -97,6 +98,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             ship.gain += 100
                         if ship.est_autour_asteroide(map_obj.grille):
                             ship.gain += 75
+
                 Turn.players[0].gain()
                 Turn.next()
                 HUD.change_turn()
@@ -224,18 +226,9 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
 
     return running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid
 
-
-def update_game(ships, map_obj, player, sf1):
-    for vaisseau in ships[:]:
-        if vaisseau.est_mort():
-            vaisseau.liberer_position(map_obj.grille)
-            player.economie.ajouter(vaisseau.valeur_mort)
-            ships.remove(vaisseau)
-
-
 def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_cargo,
               interface_transport_active, case_souris, font, player, shop, new_cursor, position_souris,
-              afficher_grille):
+              afficher_grille, dt):
     ecran.fill((0, 0, 0, 0))
     stars.update()
     stars.draw(ecran)
@@ -312,6 +305,7 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
     PlanetAnimator.update_all()
     ShipAnimator.update_all()
     ProjectileAnimator.update_all()
+    FloatingText.update_and_draw_all(ecran, dt)
     HUD.update_and_draw()
 
     if selection_ship:
@@ -572,14 +566,14 @@ def start_game(ecran, parametres, random_active):
             handle_events(running, selection_ship, selection_cargo, interface_transport_active,
                         afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris,
                         next_uid, images, paths)  # Ajout des nouveaux paramètres
-
-        update_game(Turn.get_players_ships(), map_obj, Turn.players[0], sf1)
         
         shop.player = Turn.players[0]  # Mettre à jour le joueur actuel dans le shop
+
+        dt = clock.tick(60) / 1000.0
         
         draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
                 interface_transport_active, case_souris, font, Turn.players[0], shop, new_cursor, position_souris,
-                afficher_grille)
+                afficher_grille, dt)
 
         clock.tick(60)
 
