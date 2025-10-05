@@ -38,13 +38,7 @@ class Animator:
     screen = None
 
     @staticmethod
-    def set_screen(screen: pygame.Surface) -> None:
-        """
-        Fixe l'écran sur lequel seront affichés les animations.
-        
-        :param screen: L'écran sur lequel seront affichés les animations
-        :type screen: pygame.Surface
-        """
+    def set_screen(screen: pygame.Surface):
         Animator.screen = screen
 
     """

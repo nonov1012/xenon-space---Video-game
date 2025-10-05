@@ -1,6 +1,6 @@
 # ShipSelector.py
 import pygame
-from parametre import vaisseaux_sliders
+from menu.modifShips import vaisseaux_sliders
 
 class ShipSelector:
     def __init__(self, ecran, police):

@@ -1,3 +1,4 @@
+from pickle import TRUE
 import pygame
 import sys
 from classes.PlanetAnimator import PlanetAnimator
@@ -100,10 +101,20 @@ hover_states = {}
 # -------------------------------
 en_cours = True
 while en_cours:
-    souris = pygame.mouse.get_pos()
+    try:
+        souris = pygame.mouse.get_pos()
+    except pygame.error:
+        # Retourne une position par défaut si pygame n'est pas initialisé
+        souris = (0, 0)
+
 
     # --- Fond + planetes + vaisseau ---
-    ecran.fill((0,0,0))
+    if ecran is None:
+        ecran = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        largeur_ecran, hauteur_ecran = ecran.get_size()
+    if ecran.get_locked() is False:  # simple check
+        ecran.fill((0,0,0))
+
 
     stars.update()
     stars.draw(ecran)
@@ -157,18 +168,13 @@ while en_cours:
     for evenement in pygame.event.get():
         if evenement.type == pygame.QUIT:
             en_cours = False
-        elif evenement.type == pygame.KEYDOWN:
-            if evenement.key == pygame.K_ESCAPE:
-                # Appelle le menu pause
-                pause_menu = menu.menuPause.PauseMenu(ecran, sm)
-                pause_menu.run()
         elif evenement.type == pygame.MOUSEBUTTONDOWN:
             if bouton_jouer.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 menu.menuJouer.draw(ecran)
             elif bouton_param.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
-                menu.menuParam.main(ecran)
+                menu.menuParam.main(ecran,True)
             elif bouton_succes.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 menu.menuSucces.main(ecran)
