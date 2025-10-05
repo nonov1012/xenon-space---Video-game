@@ -73,6 +73,7 @@ class Ship:
         self.peut_transporter = peut_transporter
         self.joueur = joueur
         self.gain = 0
+        self.projectile_type = "laser"
 
         # Inventaire (3 slots si transport possible)
         self.cargaison = [None, None, None]
@@ -154,7 +155,7 @@ class Ship:
                 target_y = (cible.cordonner.x * TAILLE_CASE) + (hauteur * TAILLE_CASE) / 2
 
                 self.animator.fire(
-                    projectile_type="laser",
+                    projectile_type=self.projectile_type,
                     target=(target_x, target_y),
                     is_fired=True,
                     projectile_speed=3
@@ -659,6 +660,7 @@ class Petit(Ship):
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
         self.animator.speed = 10
+        self.projectile_type = "bullet"
 
 class Moyen(Ship):
     """Vaisseau équilibré."""
@@ -670,6 +672,7 @@ class Moyen(Ship):
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
         self.animator.speed = 7
+        self.projectile_type = "bullet"
 
 
 class Lourd(Ship):
@@ -682,6 +685,7 @@ class Lourd(Ship):
                          taille, peut_miner, peut_transporter, image,
                          tier, cordonner, id, path, joueur)
         self.animator.speed = 5
+        self.projectile_type = "torpedo"
 
 class Foreuse(Ship):
     """Vaisseau spécialisé dans le minage."""
@@ -708,6 +712,7 @@ class Transport(Ship):
         # Cargaison pour transporter d'autres vaisseaux
         self.cargaison: List[Optional[Ship]] = [None, None, None]
         self.peut_transporter = True
+        self.projectile_type = "torpedo"
         self.animator.speed = 7
 
     def ajouter_cargo(self, ship: Ship) -> bool:

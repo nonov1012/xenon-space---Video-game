@@ -1,50 +1,71 @@
+from blazyck import *
+
+def calcul_vie(ratio: float) -> int:
+    """
+    Calcule les points de vie (pv_max) d'un vaisseau selon une constante totale et un ratio.
+    
+    ratio : rapport entre vie et portée.
+            - Si ratio > 1, le vaisseau privilégie la vie.
+            - Si ratio < 1, il privilégie la vitesse.
+    """
+    return int((CSTE * ratio) / (1 + ratio))
+
+
+def calcul_portee(ratio: float) -> int:
+    """
+    Calcule la portée (ou vitesse) d'un vaisseau selon une constante totale et un ratio.
+    
+    ratio : rapport entre vie et portée.
+    """
+    return int(CSTE / ((1 + ratio) * 10))
+
 # parametre.py
 SHIP_STATS = {
     "Lourd": {
-        "pv_max": 200,
+        "pv_max": calcul_vie(4.0),
         "attaque": 50,
         "port_attaque": 5,
-        "port_deplacement": 3,
+        "port_deplacement": calcul_portee(4.0),
         "cout": 5000,
         "taille": (3, 3),
         "peut_miner": False,
         "peut_transporter": False
     },
     "Moyen": {
-        "pv_max": 120,
+        "pv_max": calcul_vie(1.5),
         "attaque": 30,
         "port_attaque": 3,
-        "port_deplacement": 5,
+        "port_deplacement": calcul_portee(1.5),
         "cout": 3000,
         "taille": (2, 2),
         "peut_miner": False,
         "peut_transporter": False
     },
     "Petit": {
-        "pv_max": 60,
+        "pv_max": calcul_vie(0.5),
         "attaque": 10,
         "port_attaque": 1,
-        "port_deplacement": 8,
+        "port_deplacement": calcul_portee(0.5),
         "cout": 1000,
         "taille": (1, 1),
         "peut_miner": False,
         "peut_transporter": False
     },
     "Foreuse": {
-        "pv_max": 80,
+        "pv_max": calcul_vie(1.0),
         "attaque": 5,
         "port_attaque": 1,
-        "port_deplacement": 4,
+        "port_deplacement": calcul_portee(1.0),
         "cout": 4000,
         "taille": (2, 2),
         "peut_miner": True,
         "peut_transporter": False
     },
     "Transport": {
-        "pv_max": 100,
+        "pv_max": calcul_vie(3.0),
         "attaque": 5,
         "port_attaque": 1,
-        "port_deplacement": 6,
+        "port_deplacement": calcul_portee(3.0),
         "cout": 2000,
         "taille": (2, 2),
         "peut_miner": False,
