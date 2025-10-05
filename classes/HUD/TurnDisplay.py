@@ -4,7 +4,27 @@ from classes.Turn import Turn
 from blazyck import *
 
 class TurnDisplay:
+    """
+    Classe TurnDisplay qui permet d'afficher le panneau du tour.
+
+    Attributs:
+    - screen: Surface de l'écran
+    - width: Largeur du panneau
+    - height: Hauteur du panneau
+    - margin: Marge entre le panneau et le bord de l'écran
+
+    Méthodes:
+    - __init__: Initialisation de la classe
+    - update: Mise à jour des éléments du panneau
+    - draw: Dessin du panneau
+    """
+
     def __init__(self, screen: pygame.Surface):
+        """
+        Initialisation de la classe TurnDisplay.
+
+        :param screen: Surface de l'écran
+        """
         self.screen = screen
         self.width = 160
         self.height = 60
@@ -21,10 +41,18 @@ class TurnDisplay:
         self.warn_color = (255, 80, 80)
 
     def update(self):
+        """
+        Met à jour les éléments du panneau du tour.
+
+        Cette méthode est actuellement vide, mais elle sera utilisée à l'avenir pour mettre à jour les éléments du panneau.
+        """
         pass
 
     def draw(self):
-        """Dessine le panneau du tour avec transparence"""
+        """Dessine le panneau du tour avec transparence
+
+        Ce panneau affiche le nombre du tour en cours ainsi que le nom du joueur courant.
+        """
         x = self.screen.get_width() // 2 - self.width // 2
         y = self.margin
 
