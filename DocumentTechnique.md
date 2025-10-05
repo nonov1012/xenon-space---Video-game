@@ -2,7 +2,7 @@
 
 ## 📝 Introduction
 
-Cette documentation technique décrit **Xenon Space**, un jeu de stratégie **tour par tour**, où deux factions s'affrontent pour le contrôle de ressources spatiales limitées. Le jeu a été développé dans le cadre d'un **projet scolaire**.
+Cette documentation technique décrit **Xenon Space**, un jeu de stratégie **tour par tour**, où deux factions s'affrontent pour le contrôle de ressources spatiales limitées.
 
 ---
 
