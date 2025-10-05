@@ -640,4 +640,4 @@ def draw(ecran):
     if lancer_partie == True:
         ShipAnimator.clear_list()
         PlanetAnimator.clear_list()
-        start_game(ecran, parametres, random_active, vaisseaux_sliders)
+        start_game(ecran, parametres, random_active)

@@ -163,3 +163,41 @@ for name, params in SHIP_STATS.items():
             copy_params["taille_largeur"] = largeur
             copy_params["taille_hauteur"] = hauteur
         vaisseaux_sliders[name] = copy_params
+        
+def appliquer_modifications_sliders():
+    """
+    Applique les modifications de vaisseaux_sliders vers SHIP_STATS.
+    Convertit taille_largeur et taille_hauteur en tuple taille.
+    """
+    global SHIP_STATS
+    
+    for ship_name, params in vaisseaux_sliders.items():
+        if ship_name == "MotherShip":
+            # Pour MotherShip, parcourir chaque tier
+            for tier, tier_params in params.items():
+                for key, value in tier_params.items():
+                    SHIP_STATS[ship_name][tier][key] = value
+        else:
+            # Pour les autres vaisseaux
+            # Copier tous les paramètres sauf taille_largeur et taille_hauteur
+            for key, value in params.items():
+                if key == "taille_largeur":
+                    # On le traite avec taille_hauteur
+                    continue
+                elif key == "taille_hauteur":
+                    # Reconstruire le tuple taille
+                    largeur = params.get("taille_largeur", 1)
+                    hauteur = value
+                    SHIP_STATS[ship_name]["taille"] = (largeur, hauteur)
+                else:
+                    SHIP_STATS[ship_name][key] = value
+    
+    print("✅ Stats des vaisseaux mises à jour depuis vaisseaux_sliders")
+    # Debug: afficher les nouvelles stats
+    for ship_name, stats in SHIP_STATS.items():
+        if ship_name == "MotherShip":
+            print(f"  {ship_name}:")
+            for tier, tier_stats in stats.items():
+                print(f"    Tier {tier}: {tier_stats}")
+        else:
+            print(f"  {ship_name}: {stats}")

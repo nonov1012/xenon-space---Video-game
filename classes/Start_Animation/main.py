@@ -21,49 +21,44 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
 
     # --- Gestion des étoiles ---
     stars = StarField(
-        screen_width,            # largeur de l'écran
-        screen_height,           # hauteur de l'écran
-        num_stars=num_stars,     # nombre d'étoiles
-        min_radius=1,            # rayon minimum des étoiles
-        max_radius=3,            # rayon maximum des étoiles
-        size_distribution="small-biased",  # distribution aléatoire des tailles
-        move_amplitude=0,          # amplitude de mouvement des étoiles
-        move_horizontal=1           # mouvement horizontal des étoiles
+        screen_width,
+        screen_height,
+        num_stars=num_stars,
+        min_radius=1,
+        max_radius=3,
+        size_distribution="small-biased",
+        move_amplitude=0,
+        move_horizontal=1
     )
 
     # --- Gestionnaire de planètes ---
     planet_manager = PlanetManager(
-        speed_range=(1, int(2 * screen_ratio)),  # vitesse aléatoire des planètes
-        planet_size_range=(1, int(5 * screen_ratio)),  # taille aléatoire des planètes
-        prob_increment=1           # probabilité d'ajout d'une planète
+        speed_range=(1, int(2 * screen_ratio)),
+        planet_size_range=(1, int(5 * screen_ratio)),
+        prob_increment=1
     )
 
-    # --- Vaisseau centré ---
+    # --- Vaisseau centré avec taille personnalisée ---
     center_x = (screen_width / TAILLE_CASE) / 2
     center_y = (screen_height / TAILLE_CASE) / 2
-    vaisseau_w = 4 * screen_ratio  # largeur du vaisseau
-    vaisseau_h = 5 * screen_ratio  # hauteur du vaisseau
-    x = int(center_x - vaisseau_w / 1.30)  # position x du vaisseau
-    y = int(center_y - vaisseau_h / 2.30)  # position y du vaisseau
+    vaisseau_w = int(4 * screen_ratio)  # largeur en cases
+    vaisseau_h = int(5 * screen_ratio)  # hauteur en cases
+    x = int(center_x - vaisseau_w / 1.30)
+    y = int(center_y - vaisseau_h / 2.30)
 
     B1 = MotherShip(
-        pv_max=5000,          # Points de vie max
-        attaque=0,            # Pas d'attaque pour le vaisseau du menu
-        port_attaque=0,       # Portée d'attaque
-        port_deplacement=0,   # Portée de déplacement (immobile)
-        cout=0,               # Coût
-        taille=(vaisseau_w, vaisseau_h),  # Taille en tuples
-        tier=1,               # Niveau
-        cordonner=Point(y, x),  # Position
-        id=999,               # ID unique pour le menu
-        path="assets/img/ships/base",  # Chemin des assets
-        show_health=False
+        tier=1,
+        cordonner=Point(y, x),
+        id=999,
+        path="assets/img/ships/base",
+        show_health=False,
+        joueur=0,
+        taille=(vaisseau_w, vaisseau_h)  # Taille personnalisée pour le menu
     )
 
-
-    B1.animator.set_angle(90)  # angle de rotation du vaisseau
-    B1.animator.play("base")  # animation du vaisseau
-    B1.animator.play("engine")  # animation du vaisseau
+    B1.animator.set_angle(90)
+    B1.animator.play("base")
+    B1.animator.play("engine")
 
     return stars, planet_manager, B1
 

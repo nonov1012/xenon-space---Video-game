@@ -1,26 +1,3 @@
-#################################################################
-#  __   __ __                      _____                        #
-#  \ \ / //_/                     / ____|                       #
-#   \ V / ___ _ __   ___  _ __   | (___  _ __   __ _  ___ ___   #
-#    > < / _ \ '_ \ / _ \| '_ \   \___ \| '_ \ / _` |/ __/ _ \  #
-#   / . \  __/ | | | (_) | | | |  ____) | |_) | (_| | (_|  __/  #
-#  /_/ \_\___|_| |_|\___/|_| |_| |_____/| .__/ \__,_|\___\___|  #
-#                                       | |                     #
-#                                       |_|                     #
-#################################################################
-# Développé par :                                               #
-# - nonov1012                                                   #
-# - brian62100                                                  #
-# - DAVID Gabriel                                               #
-# - 
-# - 
-# -
-#################################################################
-# Copyright (c) 2025                                            #
-# Tous droits réservés. Merci de ne pas reproduire              #
-# ou modifier le code sans autorisation.                        #
-#################################################################
-
 import pygame
 from typing import Tuple, List, Optional
 from classes.ShipAnimator import ShipAnimator
@@ -29,6 +6,7 @@ from classes.Point import Point, Type
 from classes.Economie import *
 from heapq import heappush, heappop
 from classes.FloatingText import FloatingText
+from menu.modifShips import SHIP_STATS
 
 # =======================
 # Classe Ship = Vaisseau
@@ -652,68 +630,151 @@ class Ship:
 
 class Petit(Ship):
     """Vaisseau rapide et fragile."""
-    def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, 
-                 cout: int, taille: Tuple[int,int], peut_miner: bool, 
-                 peut_transporter: bool, image: pygame.Surface, tier: int, 
-                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path, joueur)
+    def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None, 
+                 image: Optional[pygame.Surface] = None, joueur: int = 1):
+        stats = SHIP_STATS["Petit"]
+        
+        # Créer l'image si non fournie
+        if image is None:
+            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+        
+        super().__init__(
+            pv_max=stats["pv_max"],
+            attaque=stats["attaque"],
+            port_attaque=stats["port_attaque"],
+            port_deplacement=stats["port_deplacement"],
+            cout=stats["cout"],
+            taille=stats["taille"],
+            peut_miner=stats["peut_miner"],
+            peut_transporter=stats["peut_transporter"],
+            image=image,
+            tier=1,
+            cordonner=cordonner,
+            id=id,
+            path=path,
+            joueur=joueur
+        )
         self.animator.speed = 10
         self.projectile_type = "bullet"
 
+
 class Moyen(Ship):
     """Vaisseau équilibré."""
-    def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
-                 cout: int, taille: Tuple[int,int], peut_miner: bool,
-                 peut_transporter: bool, image: pygame.Surface, tier: int,
-                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path, joueur)
+    def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None,
+                 image: Optional[pygame.Surface] = None, joueur: int = 1):
+        stats = SHIP_STATS["Moyen"]
+        
+        if image is None:
+            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+        
+        super().__init__(
+            pv_max=stats["pv_max"],
+            attaque=stats["attaque"],
+            port_attaque=stats["port_attaque"],
+            port_deplacement=stats["port_deplacement"],
+            cout=stats["cout"],
+            taille=stats["taille"],
+            peut_miner=stats["peut_miner"],
+            peut_transporter=stats["peut_transporter"],
+            image=image,
+            tier=1,
+            cordonner=cordonner,
+            id=id,
+            path=path,
+            joueur=joueur
+        )
         self.animator.speed = 7
         self.projectile_type = "bullet"
 
 
 class Lourd(Ship):
     """Vaisseau résistant mais lent."""
-    def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
-                 cout: int, taille: Tuple[int,int], peut_miner: bool,
-                 peut_transporter: bool, image: pygame.Surface, tier: int,
-                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path, joueur)
+    def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None,
+                 image: Optional[pygame.Surface] = None, joueur: int = 1):
+        stats = SHIP_STATS["Lourd"]
+        
+        if image is None:
+            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+        
+        super().__init__(
+            pv_max=stats["pv_max"],
+            attaque=stats["attaque"],
+            port_attaque=stats["port_attaque"],
+            port_deplacement=stats["port_deplacement"],
+            cout=stats["cout"],
+            taille=stats["taille"],
+            peut_miner=stats["peut_miner"],
+            peut_transporter=stats["peut_transporter"],
+            image=image,
+            tier=1,
+            cordonner=cordonner,
+            id=id,
+            path=path,
+            joueur=joueur
+        )
         self.animator.speed = 5
         self.projectile_type = "torpedo"
 
+
 class Foreuse(Ship):
     """Vaisseau spécialisé dans le minage."""
-    def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
-                 cout: int, taille: Tuple[int,int], peut_miner: bool,
-                 peut_transporter: bool, image: pygame.Surface, tier: int,
-                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path, joueur)
-        # Les foreuses peuvent toujours miner
-        self.peut_miner = True
+    def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None,
+                 image: Optional[pygame.Surface] = None, joueur: int = 1):
+        stats = SHIP_STATS["Foreuse"]
+        
+        if image is None:
+            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+        
+        super().__init__(
+            pv_max=stats["pv_max"],
+            attaque=stats["attaque"],
+            port_attaque=stats["port_attaque"],
+            port_deplacement=stats["port_deplacement"],
+            cout=stats["cout"],
+            taille=stats["taille"],
+            peut_miner=True,  # Toujours True pour les foreuses
+            peut_transporter=stats["peut_transporter"],
+            image=image,
+            tier=1,
+            cordonner=cordonner,
+            id=id,
+            path=path,
+            joueur=joueur
+        )
         self.animator.speed = 10
 
+
 class Transport(Ship):
-    """Vaisseau pouvant transporter d’autres vaisseaux (3 slots)."""
-    def __init__(self, pv_max: int, attaque: int, port_attaque: int, port_deplacement: int,
-                 cout: int, taille: Tuple[int,int], peut_miner: bool,
-                 peut_transporter: bool, image: pygame.Surface, tier: int,
-                 cordonner: Point, id: Optional[int] = None, path: str = None, joueur : int = 1):
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement, cout,
-                         taille, peut_miner, peut_transporter, image,
-                         tier, cordonner, id, path, joueur)
-        # Cargaison pour transporter d'autres vaisseaux
-        self.cargaison: List[Optional[Ship]] = [None, None, None]
-        self.peut_transporter = True
+    """Vaisseau pouvant transporter d'autres vaisseaux."""
+    def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None,
+                 image: Optional[pygame.Surface] = None, joueur: int = 1):
+        stats = SHIP_STATS["Transport"]
+        
+        if image is None:
+            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+        
+        super().__init__(
+            pv_max=stats["pv_max"],
+            attaque=stats["attaque"],
+            port_attaque=stats["port_attaque"],
+            port_deplacement=stats["port_deplacement"],
+            cout=stats["cout"],
+            taille=stats["taille"],
+            peut_miner=stats["peut_miner"],
+            peut_transporter=True,  # Toujours True pour les transports
+            image=image,
+            tier=1,
+            cordonner=cordonner,
+            id=id,
+            path=path,
+            joueur=joueur
+        )
+        # Nombre de slots selon les stats
+        nb_slots = stats.get("nb_vaisseaux", 3)
+        self.cargaison: List[Optional[Ship]] = [None] * nb_slots
         self.projectile_type = "torpedo"
         self.animator.speed = 7
+
 
     def ajouter_cargo(self, ship: Ship) -> bool:
         """Ajoute un vaisseau à la cargaison."""

@@ -6,54 +6,53 @@ from classes.Animator import Animator
 from classes.ShipAnimator import ShipAnimator
 from classes.ProjectileAnimator import ProjectileAnimator
 from blazyck import *
+from menu.modifShips import SHIP_STATS
 
-LEVELS = {
-    1: {"cout_upgrade": 1000, "pv_max": 500, "gains": 300, "attaque": 0, "port_attaque": 0},
-    2: {"cout_upgrade": 2000, "pv_max": 800, "gains": 350, "attaque": 0, "port_attaque": 0},
-    3: {"cout_upgrade": 6000, "pv_max": 1300, "gains": 400, "attaque": 0, "port_attaque": 0},
-    4: {"cout_upgrade": None, "pv_max": 1700, "gains": 450, "attaque": 100, "port_attaque": 3},
-}
+LEVELS = SHIP_STATS["MotherShip"]
 
 class MotherShip(Ship):
     """Base fixe du joueur, ne peut pas se déplacer ni tourner."""
 
-    def __init__(self,
-                 pv_max: int,
-                 attaque: int,
-                 port_attaque: int,
-                 port_deplacement: int,
-                 cout: int,
-                 taille: Tuple[int,int],
-                 tier: int,
-                 cordonner: Point,
-                 id: Optional[int] = None,
-                 path: str = None,
-                 show_health : bool = False,
-                 joueur : int = 1):
+    def __init__(self, tier: int, cordonner: Point, id: Optional[int] = None,
+                 path: str = None, show_health: bool = False, joueur: int = 1,
+                 taille: Optional[Tuple[int, int]] = None):
         """
         Constructeur de la classe MotherShip.
         
-        :param pv_max: Points de vie maximum
-        :param attaque: Dégâts infligés par attaque
-        :param port_attaque: Portée d'attaque en cases
-        :param port_deplacement: Portée de déplacement (points de mouvement)
-        :param cout: Coût d'achat
-        :param taille: Dimensions du vaisseau (largeur, hauteur en cases)
-        :param tier: Niveau technologique
-        :param cordonner: Position initiale (coin haut-gauche du vaisseau)
+        :param tier: Niveau de la base (1-4)
+        :param cordonner: Position initiale
         :param id: Identifiant unique
         :param path: Chemin vers les assets
         :param show_health: Afficher les points de vie
         :param joueur: Numéro du joueur propriétaire
+        :param taille: Taille personnalisée (largeur, hauteur). Si None, utilise celle des stats
         """
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement,
-                         cout, taille, peut_miner=False,
-                         peut_transporter=False, image=pygame.Surface((taille[1]*TAILLE_CASE, taille[0]*TAILLE_CASE)),
-                         tier=tier, cordonner=cordonner, id=id, path=path, joueur=joueur)
+        stats = LEVELS[tier]
+        
+        # Utiliser la taille des stats par défaut, ou celle fournie
+        taille_finale = taille if taille is not None else stats["taille"]
+        
+        super().__init__(
+            pv_max=stats["pv_max"],
+            attaque=stats["attaque"],
+            port_attaque=stats["port_attaque"],
+            port_deplacement=stats["port_deplacement"],
+            cout=stats["cout"],
+            taille=taille_finale,
+            peut_miner=stats["peut_miner"],
+            peut_transporter=stats["peut_transporter"],
+            image=pygame.Surface((taille_finale[1]*TAILLE_CASE, taille_finale[0]*TAILLE_CASE)),
+            tier=tier,
+            cordonner=cordonner,
+            id=id,
+            path=path,
+            joueur=joueur
+        )
         
         self.prevision.alpha = 0
         self.animator.show_health = show_health
-        self.gain = 300 # TODO : modifié par une valeur paramétrable
+        self.gain = stats.get("gain", 300)
+
 
     # ---------------- Déplacement et rotation désactivés ----------------
     def deplacement(self, *args, **kwargs):
