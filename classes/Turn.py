@@ -33,6 +33,12 @@ class Turn:
     @classmethod
     def get_nb_turns(cls) -> int:
         return int(cls._nb_turns)
+    
+    @classmethod
+    def get_player_with_id(cls, id : int) -> Player:
+        for player in cls.players:
+            if player.id == id:
+                return player
 
 if __name__ == "__main__":
     Turn.players = [Player("Alice"), Player("Bob")]

@@ -30,7 +30,6 @@ from classes.Economie import *
 from heapq import heappush, heappop
 from classes.FloatingText import FloatingText
 
-
 # =======================
 # Classe Ship = Vaisseau
 # =======================
@@ -40,7 +39,7 @@ class Ship:
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, cordonner: Optional[Point] = None, id: Optional[int] = None,
-                 path: str = None, joueur : int = 1):
+                 path: str = None, joueur : int = 0):
         """
         Classe de base pour tous les vaisseaux.
         
@@ -65,7 +64,9 @@ class Ship:
         self.pv_actuel = pv_max
         self.attaque = attaque
         self.port_attaque = port_attaque
+        self.port_attaque_max = port_attaque
         self.port_deplacement = port_deplacement
+        self.port_deplacement_max = port_deplacement
         self.cout = cout
         self.taille = tuple(taille)
         self.peut_miner = peut_miner
@@ -130,6 +131,10 @@ class Ship:
         """Convertit la position du centre en coordonnées du coin haut-gauche."""
         largeur, hauteur = self.donner_dimensions(direction)
         return int(round(centre_l-(hauteur-1)/2)), int(round(centre_c-(largeur-1)/2))
+    
+    def reset_porters(self):
+        self.port_attaque = self.port_attaque_max
+        self.port_deplacement = self.port_deplacement_max
 
     # ------------ COMBAT ------------
     def attaquer(self, cible: "Ship"):
@@ -158,7 +163,8 @@ class Ship:
             self.gain += cible.cout * POURCENT_DEATH_REWARD
 
     def subir_degats(self, degats):
-        """Réduit les PV et joue les animations appropriées (bouclier ou destruction)."""
+        from classes.Turn import Turn # import fait ici pour eviter boucle import
+
         self.pv_actuel = max(0, self.pv_actuel - max(0, degats))
         self.animator.PV_actuelle = self.pv_actuel
         if self.pv_actuel > 0:
@@ -168,6 +174,13 @@ class Ship:
             self.animator.idle = False
             self.animator.play("destruction", reset=True)
             self.animator.alive = False
+            # Supprimer de la liste des vaisseaux vivants
+            player_ships = Turn.get_player_with_id(self.joueur).ships
+            if self in player_ships:  # ou la liste globale de ships
+                print(player_ships)
+                player_ships.remove(self)
+                print(player_ships)
+
 
     def est_mort(self):
         """Retourne True si le vaisseau est détruit."""
@@ -272,72 +285,112 @@ class Ship:
 
 
     # ------------ DÉPLACEMENT / ATTAQUE ------------
-    def positions_possibles_adjacentes(self, grille: List[List[Point]], direction=None):
-        """
-        Calcule toutes les positions atteignables par le vaisseau avec un coût variable.
-        - VIDE = 1 point
-        - ATMOSPHERE = 2 points
-        - autres types = bloquant
-        Utilise une recherche de type Dijkstra.
-        """
 
+    def a_star(self, grille, start, goal, direction, max_portee):
+        """
+        A* limité à max_portee de déplacement.
+        Retourne (chemin, cout_total) ou (None, inf).
+        """
+        largeur, hauteur = self.donner_dimensions(direction)
+        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2}
+
+        def heuristique(pos1, pos2):
+            return abs(pos1[0]-pos2[0]) + abs(pos1[1]-pos2[1])
+
+        open_set = []
+        heappush(open_set, (heuristique(start, goal), 0, start, [start]))
+        visited = {}
+
+        while open_set:
+            f, g, current, path = heappop(open_set)
+            if current in visited and visited[current] <= g:
+                continue
+            visited[current] = g
+
+            if current == goal:
+                return path, g
+
+            l, c = current
+            for dl, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
+                nl, nc = l + dl, c + dc
+                if 0 <= nl <= len(grille)-hauteur and 0 <= nc <= len(grille[0])-largeur:
+                    if not self.verifier_collision(grille, nl, nc, direction, ignorer_self=True):
+                        continue
+
+                    max_cost = 0
+                    valide = True
+                    for yy in range(nl, nl+hauteur):
+                        for xx in range(nc, nc+largeur):
+                            point = grille[yy][xx]
+                            if point.type in cout_case:
+                                max_cost = max(max_cost, cout_case[point.type])
+                            elif point.type == Type.VAISSEAU:
+                                continue
+                            else:
+                                valide = False
+                                break
+                        if not valide:
+                            break
+
+                    if valide:
+                        g_next = g + max_cost
+                        if g_next > max_portee:  # Limiter A* à la portée du vaisseau
+                            continue
+                        f_next = g_next + heuristique((nl,nc), goal)
+                        heappush(open_set, (f_next, g_next, (nl,nc), path + [(nl,nc)]))
+
+        return None, float('inf')
+
+    def positions_possibles_adjacentes(self, grille, *, direction=None):
         if direction is None:
             direction = self.direction
 
-        nb_lignes = len(grille)
-        nb_colonnes = len(grille[0])
+        reachable = []
         largeur, hauteur = self.donner_dimensions(direction)
-
-        # Coût des cases
+        nb_lignes, nb_colonnes = len(grille), len(grille[0])
         cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2}
 
-        # Positions atteignables avec leur coût minimal
-        reachable = {}
+        from collections import deque
+        queue = deque()
+        start = (self.cordonner.x, self.cordonner.y)
+        queue.append((start, 0))
+        visited = {start: 0}
 
-        # File de priorité
-        heap = []
-
-        start_pos = (self.cordonner.x, self.cordonner.y)
-        heappush(heap, (0, start_pos))
-
-        while heap:
-            cout_actuel, (l, c) = heappop(heap)
-
-            if (l, c) in reachable and reachable[(l, c)] <= cout_actuel:
-                continue
-            reachable[(l, c)] = cout_actuel
-
-            # 4 directions cardinales
+        while queue:
+            (l, c), g = queue.popleft()
             for dl, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
                 nl, nc = l + dl, c + dc
-
-                # Vérifier limites
                 if 0 <= nl <= nb_lignes - hauteur and 0 <= nc <= nb_colonnes - largeur:
-                    # Vérifier collision en ignorant ses propres cases
-                    if self.verifier_collision(grille, nl, nc, direction, ignorer_self=True):
-                        # Calculer coût du déplacement pour l’emprise du vaisseau
-                        max_cost = 0
-                        valide = True
-                        for yy in range(nl, nl + hauteur):
-                            for xx in range(nc, nc + largeur):
-                                point = grille[yy][xx]
-                                if point.type in cout_case:
-                                    max_cost = max(max_cost, cout_case[point.type])
-                                elif point.type == Type.VAISSEAU:
-                                    # Autoriser si c'est le même vaisseau (ignorer_self=True déjà gère ça)
-                                    continue
-                                else:
-                                    valide = False
-                                    break
-                            if not valide:
+                    if not self.verifier_collision(grille, nl, nc, direction, ignorer_self=True):
+                        continue
+
+                    max_cost = 0
+                    valide = True
+                    for yy in range(nl, nl+hauteur):
+                        for xx in range(nc, nc+largeur):
+                            point = grille[yy][xx]
+                            if point.type in cout_case:
+                                max_cost = max(max_cost, cout_case[point.type])
+                            elif point.type == Type.VAISSEAU:
+                                continue
+                            else:
+                                valide = False
                                 break
+                        if not valide:
+                            break
 
-                        if valide and max_cost > 0:
-                            cout_total = cout_actuel + max_cost
-                            if cout_total <= self.port_deplacement:
-                                heappush(heap, (cout_total, (nl, nc)))
+                    if valide:
+                        g_next = g + max_cost
+                        if g_next > self.port_deplacement:
+                            continue
+                        if ((nl, nc) not in visited) or (g_next < visited[(nl,nc)]):
+                            visited[(nl,nc)] = g_next
+                            queue.append(((nl,nc), g_next))
+                            if (nl, nc) != start:
+                                reachable.append((nl, nc))
 
-        return [pos for pos in reachable if pos != start_pos]
+        return reachable
+
 
 
     def positions_possibles_attaque(self, grille: List[List[Point]], direction=None):
@@ -388,107 +441,161 @@ class Ship:
                     
                     grille[l][c].type = Type.ATMOSPHERE if est_atmosphere else Type.VIDE
 
+    def est_dans_atmosphere(self, grille, l, c):
+        """Retourne True si la case (l, c) est dans ou proche d'une planète."""
+        for dl in range(-1, 2):
+            for dc in range(-1, 2):
+                nl, nc = l + dl, c + dc
+                if 0 <= nl < len(grille) and 0 <= nc < len(grille[0]):
+                    if grille[nl][nc].type == Type.PLANETE:
+                        return True
+        return False
+
+
     def deplacement(self, case_cible: Tuple[int, int], grille: List[List[Point]], ships: List["Ship"]):
         """
         Exécute un déplacement ou une attaque :
         - Si case cible est attaquable → attaque
         - Sinon, si case cible atteignable → déplace le vaisseau
-        Met à jour la grille et les animations.
+        Met à jour la grille et les animations, et réduit la portée en fonction du terrain.
         """
-        if self.id is None: 
+
+        if self.id is None:
             raise ValueError("Ship.id non défini")
-            
+
+        if self.port_deplacement <= 0:
+            return False
+
         ligne, colonne = case_cible
         cible_direction = self.aperçu_direction
 
         # ---- Attaque ----
         positions_attaque = self.positions_possibles_attaque(grille, direction=cible_direction)
         if case_cible in positions_attaque:
-            # Chercher un vaisseau ennemi à cette position
             cible_ship = self.trouver_vaisseau_a_position(ships, ligne, colonne)
             if cible_ship and cible_ship.id != self.id:
                 self.attaquer(cible_ship)
+                self.port_attaque = 0
                 self.prevision.alpha = 0
                 if cible_ship.est_mort():
-                    # Restaurer le terrain sous le vaisseau détruit
                     cible_ship.liberer_position(grille)
                     ships.remove(cible_ship)
                 return True
-            
-            # Si c'est un astéroïde et qu'on peut miner
+
             if grille[ligne][colonne].type == Type.ASTEROIDE and self.peut_miner:
                 self.miner_asteroide(grille, colonne, ligne)
                 return True
 
         # ---- Déplacement ----
-        positions_deplacement = self.positions_possibles_adjacentes(grille, direction=cible_direction)
-        if case_cible not in positions_deplacement:
+        # On récupère toutes les positions atteignables et leur coût via BFS limité
+        reachable = self.positions_possibles_adjacentes(grille, direction=cible_direction)
+        if (ligne, colonne) not in reachable:
             return False
-        
-        # Sauvegarder les types de terrain actuels sous le vaisseau
-        terrain_sous_vaisseau = []
-        ancienne_largeur, ancienne_hauteur = self.donner_dimensions(self.direction)
-        for l in range(self.cordonner.x, self.cordonner.x + ancienne_hauteur):
-            for c in range(self.cordonner.y, self.cordonner.y + ancienne_largeur):
-                if 0 <= l < len(grille) and 0 <= c < len(grille[0]):
-                    # Déterminer le type de terrain à restaurer
-                    if grille[l][c].type == Type.VAISSEAU:
-                        # Vérifier si c'est une case d'atmosphère
-                        est_atmosphere = False
-                        for dl in range(-1, 2):
-                            for dc in range(-1, 2):
-                                nl, nc = l + dl, c + dc
-                                if (0 <= nl < len(grille) and 0 <= nc < len(grille[0]) and 
-                                    grille[nl][nc].type == Type.PLANETE):
-                                    est_atmosphere = True
-                                    break
-                            if est_atmosphere:
+
+        # Reconstituer le chemin vers la case cible (BFS + dictionnaire de parents)
+        from collections import deque
+        queue = deque()
+        start = (self.cordonner.x, self.cordonner.y)
+        queue.append(start)
+        parent = {start: None}
+        visited = {start: 0}
+
+        while queue:
+            current = queue.popleft()
+            if current == (ligne, colonne):
+                break
+            l, c = current
+            for dl, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
+                nl, nc = l + dl, c + dc
+                if 0 <= nl <= len(grille)-self.donner_dimensions(cible_direction)[1] and \
+                0 <= nc <= len(grille[0])-self.donner_dimensions(cible_direction)[0]:
+
+                    if not self.verifier_collision(grille, nl, nc, cible_direction, ignorer_self=True):
+                        continue
+
+                    max_cost = 0
+                    valide = True
+                    largeur, hauteur = self.donner_dimensions(cible_direction)
+                    for yy in range(nl, nl+hauteur):
+                        for xx in range(nc, nc+largeur):
+                            point = grille[yy][xx]
+                            if point.type == Type.VIDE:
+                                max_cost = max(max_cost, 1)
+                            elif point.type == Type.ATMOSPHERE:
+                                max_cost = max(max_cost, 2)
+                            elif point.type == Type.VAISSEAU:
+                                continue
+                            else:
+                                valide = False
                                 break
-                        
-                        terrain_type = Type.ATMOSPHERE if est_atmosphere else Type.VIDE
-                    else:
-                        terrain_type = grille[l][c].type
-                    
-                    terrain_sous_vaisseau.append((l, c, terrain_type))
-        
-        # Libérer l'ancienne position avec les bons types de terrain
-        for l, c, terrain_type in terrain_sous_vaisseau:
-            grille[l][c].type = terrain_type
-        
-        # Vérifier la collision à la nouvelle position
-        if self.verifier_collision(grille, ligne, colonne, cible_direction, ignorer_self=False):
-            # Mettre à jour la position
-            self.cordonner._x = ligne
-            self.cordonner._y = colonne
-            self.direction = cible_direction
-            
-            # Occuper la nouvelle position
-            self.occuper_plateau(grille, Type.VAISSEAU)
-            
-            # Mise à jour de l'animator
-            largeur, hauteur = self.donner_dimensions(self.direction)
-            x = colonne * TAILLE_CASE + OFFSET_X
-            y = ligne * TAILLE_CASE
+                        if not valide:
+                            break
 
-            self.prevision.x = ligne
-            self.prevision.y = colonne
-            self.animator.set_target((x, y))
-            self.animator.pixel_w = largeur * TAILLE_CASE
-            self.animator.pixel_h = hauteur * TAILLE_CASE
-            
-            angles = {"haut": 0, "droite": -90, "gauche": 90, "bas": 180}
-            if cible_direction in angles:
-                self.animator.target_angle = angles[cible_direction]
-                self.prevision.target_angle = angles[cible_direction]
+                    if valide:
+                        g_next = visited[(l,c)] + max_cost
+                        if g_next <= self.port_deplacement and ((nl, nc) not in visited or g_next < visited[(nl,nc)]):
+                            visited[(nl, nc)] = g_next
+                            parent[(nl, nc)] = (l, c)
+                            queue.append((nl, nc))
 
-            # Mise à jour des angles
-            self.prevision.angle = self.animator.angle
-            self.prevision.alpha = 0
-            return True
-        else:
-            # Remettre l'occupation à l'ancienne position en cas d'échec
-            self.occuper_plateau(grille, Type.VAISSEAU)
+        # Reconstituer le chemin
+        chemin = []
+        node = (ligne, colonne)
+        while node:
+            chemin.append(node)
+            node = parent.get(node)
+        chemin.reverse()
+
+        if not chemin or len(chemin) < 2:
             return False
+        
+        # Réduire la portée selon le chemin parcouru, case par case
+        for nl, nc in chemin[1:]:  # ignorer la case de départ
+            largeur, hauteur = self.donner_dimensions(cible_direction)
+            max_cost = 0
+            for yy in range(nl, nl + hauteur):
+                for xx in range(nc, nc + largeur):
+                    point = grille[yy][xx]
+                    if point.type == Type.VIDE:
+                        max_cost = max(max_cost, 1)
+                    elif point.type == Type.ATMOSPHERE:
+                        max_cost = max(max_cost, 2)
+                    elif point.type == Type.VAISSEAU:
+                        continue
+            self.port_deplacement -= max_cost
+            if self.port_deplacement < 0:
+                self.port_deplacement = 0
+
+        # Libérer l'ancienne position
+        self.liberer_position(grille)
+
+        # Mettre à jour la position finale
+        self.cordonner._x = ligne
+        self.cordonner._y = colonne
+        self.direction = cible_direction
+        self.occuper_plateau(grille, Type.VAISSEAU)
+
+        # Mise à jour de l'animator
+        largeur, hauteur = self.donner_dimensions(self.direction)
+        x = colonne * TAILLE_CASE + OFFSET_X
+        y = ligne * TAILLE_CASE
+
+        self.prevision.x = ligne
+        self.prevision.y = colonne
+        self.animator.set_target((x, y))
+        self.animator.pixel_w = largeur * TAILLE_CASE
+        self.animator.pixel_h = hauteur * TAILLE_CASE
+
+        angles = {"haut": 0, "droite": -90, "gauche": 90, "bas": 180}
+        if cible_direction in angles:
+            self.animator.target_angle = angles[cible_direction]
+            self.prevision.target_angle = angles[cible_direction]
+
+        self.prevision.angle = self.animator.angle
+        self.prevision.alpha = 0
+
+        return True
+
 
     # ------------ ROTATION (aperçu) ------------
     def rotation_aperçu(self, grille: List[List[Point]]):
