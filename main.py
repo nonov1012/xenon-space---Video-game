@@ -424,7 +424,7 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     else:
         return None
 
-def start_game(ecran, parametres, random_active):
+def start_game(ecran, parametres, random_active, vaisseaux_sliders):
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 30)
     
