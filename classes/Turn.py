@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from classes.Ship import Ship
 from classes.Player import Player
 
@@ -8,13 +8,18 @@ class Turn:
     _nb_turns : float = 1
 
     @classmethod
-    def next(cls):
+    def next(cls) -> Optional[Player]:
         if not cls.players:
             print("Aucun joueur")
-            return
+            return None
+
+        if len(Turn.players) > 1 and not Turn.players[1].getMotherShip():
+            return Turn.players[0]
+
         player = cls.players.pop(0)
         cls.players.append(player)
         cls._nb_turns += 1 / len(cls.players)
+        return None
 
     @classmethod
     def describe(cls):

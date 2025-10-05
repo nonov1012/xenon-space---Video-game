@@ -101,8 +101,11 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             ship.gain += ASTEROIDES_REWARD
 
                 Turn.players[0].gain()
-                Turn.next()
+                res = Turn.next()
                 HUD.change_turn()
+                if res:
+                    pass
+                    # TODO
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

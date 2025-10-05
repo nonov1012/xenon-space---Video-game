@@ -1,3 +1,4 @@
+from typing import Optional
 from classes.Economie import Economie
 from classes.Ship import Ship, Foreuse
 from classes.MotherShip import MotherShip
@@ -51,11 +52,11 @@ class Player:
         """
         return self.base.upgrade(self.buy)
     
-    def getMotherShip(self) -> MotherShip:
+    def getMotherShip(self) -> Optional[MotherShip]:
         for ship in self.ships:
             if isinstance(ship, MotherShip):
                 return ship
-        return
+        return None
 
     # ---------- Gestion des vaisseaux ----------
     #def add_ship(self, ship: Ship) -> None:
