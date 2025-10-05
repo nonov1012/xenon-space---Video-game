@@ -64,7 +64,7 @@ class BarDisplay:
         :param dt: Temps écoulé depuis la dernière mise à jour (en secondes)
         """
         self.set_money(self.player.economie.solde)
-        self.set_health(self.player.getMotherShip().pv_actuel)
+        self.set_health(self.player.getMotherShip().pv_actuel if self.player.getMotherShip() else 0)
         # Incrémente le temps interne pour l'animation
         self._time += dt
 
