@@ -13,9 +13,6 @@ from classes.PlanetAnimator import PlanetAnimator
 from classes.ShipAnimator import ShipAnimator
 from classes.Start_Animation.main import create_space_background
 
-sm = SoundManager()
-sm.play_music("assets/sounds/musics/music_ingame.mp3")
-
 credits = [
     "NOEL CLEMENT",
     "VOITURIER NOA",

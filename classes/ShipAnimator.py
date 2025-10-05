@@ -176,9 +176,10 @@ class ShipAnimator(Animator):
 
     def display_health(self):
         """
-        Dessine la barre de vie du vaisseau.
+        Dessine la barre de vie du vaisseau avec un contour coloré selon le joueur.
 
         La barre de vie est une barre horizontale qui montre la quantité de vie actuelle du vaisseau.
+        Un contour coloré entoure la barre pour identifier le joueur propriétaire.
         """
         # dimensions de la barre de vie
         bar_w = int(self.pixel_w)
@@ -188,13 +189,29 @@ class ShipAnimator(Animator):
         x = self.x
         y = self.y + self.pixel_h - bar_h
 
+        # Couleurs selon le joueur (récupérer depuis la classe Ship parente si disponible)
+        couleurs_joueurs = {
+            0: (100, 150, 255),  # Bleu pour joueur 1
+            1: (255, 100, 100),  # Rouge pour joueur 2
+        }
+        
+        # Déterminer la couleur du contour selon le joueur
+        # Vous devrez passer l'info du joueur depuis Ship
+        couleur_contour = couleurs_joueurs.get(getattr(self, 'joueur_id', 0), (255, 255, 255))
+        
+        # Dessiner un contour épais autour de la barre
+        contour_epaisseur = 2
+        rect_contour = pygame.Rect(x - contour_epaisseur, y - contour_epaisseur, 
+                                    bar_w + contour_epaisseur * 2, bar_h + contour_epaisseur * 2)
+        pygame.draw.rect(Animator.screen, couleur_contour, rect_contour, contour_epaisseur)
+
         # dessine le fond de la barre de vie
         pygame.draw.rect(Animator.screen, (255, 0, 0), (x, y, bar_w, bar_h))
 
-        # calcul de la largeur de la partie de la barre qui repésente la quantité de vie actuelle
+        # calcul de la largeur de la partie de la barre qui représente la quantité de vie actuelle
         cur_w = int(self.PV_actuelle * bar_w / self.PV_max) if self.PV_max > 0 else 0
 
-        # dessine la partie de la barre qui repésente la quantité de vie actuelle
+        # dessine la partie de la barre qui représente la quantité de vie actuelle
         pygame.draw.rect(Animator.screen, self.color, (x, y, cur_w, bar_h))
 
     def disepear(self, duration_ms: int = 1000) -> bool:
