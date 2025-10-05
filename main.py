@@ -105,6 +105,9 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             ship.gain += ASTEROIDES_REWARD
 
                 Turn.players[0].gain()
+                selection_ship = None
+                HUD.hide_ship()
+                HUD.ship_display.reset()
                 Turn.next()
                 HUD.change_turn()
                 for player in Turn.players:
@@ -165,15 +168,20 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                         success = selection_ship.deplacement(case_souris, map_obj.grille, ships)
                         if success:
                             selection_ship, selection_cargo = None, None
+                            HUD.hide_ship()
+                            HUD.ship_display.reset()
 
                     # 🟥 Si on clique sur le vaisseau sélectionné → on le désélectionne
                     elif (case_souris[0] == selection_ship.cordonner.x and
                           case_souris[1] == selection_ship.cordonner.y):
                         selection_ship, selection_cargo = None, None
-
+                        HUD.hide_ship()
+                        HUD.ship_display.reset()
                     # ⚪ Sinon → clic en dehors de toute zone utile → désélection
                     else:
                         selection_ship, selection_cargo = None, None
+                        HUD.hide_ship()
+                        HUD.ship_display.reset()
 
                 else:
                     # Tentative de sélection d'un nouveau vaisseau
@@ -186,6 +194,10 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                                 selection_ship.aperçu_direction = ship.direction
                                 selection_ship.aperçu_cordonner._x = ship.cordonner.x
                                 selection_ship.aperçu_cordonner._y = ship.cordonner.y
+                                if Turn.players[0].id == 0:
+                                    HUD.show_ship(selection_ship)
+                                else:
+                                    HUD.show_ship(selection_ship, False)
                             else:
                                 print(f"Ce vaisseau appartient au joueur {ship.joueur}")
                             break
@@ -313,13 +325,9 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
     ShipAnimator.update_all()
     ProjectileAnimator.update_all()
     FloatingText.update_and_draw_all(ecran, dt)
-    HUD.update_and_draw()
-
-    if selection_ship:
-        info_text = f"{selection_ship.__class__.__name__} - PV: {selection_ship.pv_actuel}/{selection_ship.pv_max}"
-        ecran.blit(font.render(info_text, True, (255, 255, 255)), (10, 40))
-
     shop.draw()
+    HUD.update_and_draw()
+    
     ecran.blit(new_cursor, position_souris)
 
     pygame.display.flip()

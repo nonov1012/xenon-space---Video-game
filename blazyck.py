@@ -30,6 +30,7 @@ IMG_PATH = os.path.join(BASE_DIR, "assets", "img")
 PLANETES_PATH = os.path.join(IMG_PATH, "planets")
 PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
 ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
+ICONES_PATH = os.path.join(BASE_DIR, "assets", "icons")
 
 # Stats des vaisseaux
 CSTE : int = 200
