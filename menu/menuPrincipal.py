@@ -6,7 +6,6 @@ from classes.ShipAnimator import ShipAnimator
 import menu.menuJouer
 import menu.menuParam
 import menu.menuSucces
-import menu.menuPause
 import menu.credit
 
 from classes.TitreAnime import TitreAnime
@@ -34,12 +33,12 @@ Animator.set_screen(ecran) # initialisation de la classe Animator
 
 # Curseur personnalise
 new_cursor = pygame.image.load('assets/img/menu/cursor.png')
-new_cursor = pygame.transform.scale(new_cursor, (40, 40))
+new_cursor = pygame.transform.scale(new_cursor, (48, 48))
 pygame.mouse.set_visible(False)
 
 # Sons
 sm = SoundManager()
-# sm.play_music("assets/sounds/musics/music_ingame.mp3")
+sm.play_music("assets/sounds/musics/music_ingame.mp3")
 sm.load_sfx("son_hover", "assets/sounds/menu/buttons/button_hover.mp3")
 sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
