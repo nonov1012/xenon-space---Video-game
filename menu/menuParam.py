@@ -162,15 +162,19 @@ def main(ecran, animation=True):
         # Fond selon le paramètre animation
         # -------------------------------
         ecran.fill(NOIR)
-        
+
         # Toujours afficher les étoiles
         stars.update()
         stars.draw(ecran)
-        
-        # Afficher planètes seulement si animation=True (vaisseau supprimé)
+
+        # Afficher planètes seulement si animation=True
         if animation:
             planet_manager.update_and_draw()
             PlanetAnimator.update_all()
+        else:
+            # Clear quand on ne montre pas l'animation pour éviter de laisser le vaisseau
+            Animator.clear_list()
+            PlanetAnimator.clear_list()
 
         # Titre
         titre_surface = police_titre.render("Parametres", True, BLANC)
@@ -364,7 +368,3 @@ def main(ecran, animation=True):
 
         pygame.display.flip()
         horloge.tick(60)
-    
-
-    Animator.clear_list()
-    PlanetAnimator.clear_list()
