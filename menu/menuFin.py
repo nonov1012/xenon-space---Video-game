@@ -17,7 +17,8 @@ def main(ecran, player, victoire=True, sound_manager=None):
     Returns:
         str: "menu" pour retour au menu, "quitter" pour fermer le jeu
     """
-
+    ShipAnimator.clear_list()
+    PlanetAnimator.clear_list()
     # -------------------------------
     # Couleurs et polices
     # -------------------------------
@@ -158,7 +159,9 @@ def main(ecran, player, victoire=True, sound_manager=None):
         ecran.blit(titre_surface, rect_titre.topleft)
 
         # Nom du joueur en dessous
-        sous_titre = police_sous_titre.render(player.name, True, BLANC)
+        player_name = player.name if player is not None else ""
+        sous_titre = police_sous_titre.render(player_name, True, BLANC)
+
         rect_sous_titre = sous_titre.get_rect(center=(largeur_ecran // 2, 
                                                        panneau_y + panneau_hauteur // 2 + 50))
         ecran.blit(sous_titre, rect_sous_titre.topleft)
@@ -193,19 +196,14 @@ def main(ecran, player, victoire=True, sound_manager=None):
 
         # Événements
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                en_cours = False
-                choix = "quitter"
-            
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 for _, rect, action, _ in boutons:
                     if rect.collidepoint(event.pos):
-                        sm.play_sfx("son_click")
+                        import menu.menuPrincipal
                         en_cours = False
+                        
                         choix = action
 
-    # Nettoyage
-    ShipAnimator.clear_list()
-    PlanetAnimator.clear_list()
+
     
     return choix if choix else "menu"

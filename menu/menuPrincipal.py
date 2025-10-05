@@ -100,10 +100,20 @@ hover_states = {}
 # -------------------------------
 en_cours = True
 while en_cours:
-    souris = pygame.mouse.get_pos()
+    try:
+        souris = pygame.mouse.get_pos()
+    except pygame.error:
+        # Retourne une position par défaut si pygame n'est pas initialisé
+        souris = (0, 0)
+
 
     # --- Fond + planetes + vaisseau ---
-    ecran.fill((0,0,0))
+    if ecran is None:
+        ecran = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        largeur_ecran, hauteur_ecran = ecran.get_size()
+    if ecran.get_locked() is False:  # simple check
+        ecran.fill((0,0,0))
+
 
     stars.update()
     stars.draw(ecran)

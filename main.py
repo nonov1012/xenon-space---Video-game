@@ -28,6 +28,7 @@ import pygame
 from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
 import menu.menuPrincipal
+import menu.menuFin
 from classes.Turn import Turn
 from classes.Map import Map
 from classes.Start_Animation.StarField import StarField
@@ -43,6 +44,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
@@ -103,9 +105,15 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                 Turn.players[0].gain()
                 res = Turn.next()
                 HUD.change_turn()
-                if res:
-                    pass
-                    # TODO
+                for player in Turn.players:
+                    mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and s.pv_actuel > 0]
+                    if len(mother_ships) == 0:
+                        print(f"Le joueur {player.name} a perdu !")
+                        gagnant = [p for p in Turn.players if p != player][0]
+                        menu.menuFin.main(ecran, gagnant, victoire=True)
+                        running = False
+                        break
+
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -571,6 +579,8 @@ def start_game(ecran, parametres, random_active, vaisseaux_sliders):
         draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
                 interface_transport_active, case_souris, font, Turn.players[0], shop, new_cursor, position_souris,
                 afficher_grille, dt)
+
+
 
         clock.tick(60)
 
