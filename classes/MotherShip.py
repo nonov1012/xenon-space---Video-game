@@ -6,40 +6,53 @@ from classes.Animator import Animator
 from classes.ShipAnimator import ShipAnimator
 from classes.ProjectileAnimator import ProjectileAnimator
 from blazyck import *
+from menu.modifShips import SHIP_STATS
 
-LEVELS = {
-    1: {"cout_upgrade": 1000, "pv_max": 500, "gains": 300, "attaque": 0, "port_attaque": 0},
-    2: {"cout_upgrade": 2000, "pv_max": 800, "gains": 350, "attaque": 0, "port_attaque": 0},
-    3: {"cout_upgrade": 6000, "pv_max": 1300, "gains": 400, "attaque": 0, "port_attaque": 0},
-    4: {"cout_upgrade": None, "pv_max": 1700, "gains": 450, "attaque": 100, "port_attaque": 3},
-}
+LEVELS = SHIP_STATS["MotherShip"]
 
 class MotherShip(Ship):
     """Base fixe du joueur, ne peut pas se déplacer ni tourner."""
 
-    def __init__(self,
-                 pv_max: int,
-                 attaque: int,
-                 port_attaque: int,
-                 port_deplacement: int,
-                 cout: int,
-                 valeur_mort: int,
-                 taille: Tuple[int,int],
-                 tier: int,
-                 cordonner: Point,
-                 id: Optional[int] = None,
-                 path: str = None,
-                 show_health : bool = True,
-                 joueur : int = 1):
-
-        super().__init__(pv_max, attaque, port_attaque, port_deplacement,
-                         cout, valeur_mort, taille, peut_miner=False,
-                         peut_transporter=False, image=pygame.Surface((taille[1]*TAILLE_CASE, taille[0]*TAILLE_CASE)),
-                         tier=tier, cordonner=cordonner, id=id, path=path, joueur=joueur)
+    def __init__(self, tier: int, cordonner: Point, id: Optional[int] = None,
+                 path: str = None, show_health: bool = False, joueur: int = 1,
+                 taille: Optional[Tuple[int, int]] = None):
+        """
+        Constructeur de la classe MotherShip.
+        
+        :param tier: Niveau de la base (1-4)
+        :param cordonner: Position initiale
+        :param id: Identifiant unique
+        :param path: Chemin vers les assets
+        :param show_health: Afficher les points de vie
+        :param joueur: Numéro du joueur propriétaire
+        :param taille: Taille personnalisée (largeur, hauteur). Si None, utilise celle des stats
+        """
+        stats = LEVELS[tier]
+        
+        # Utiliser la taille des stats par défaut, ou celle fournie
+        taille_finale = taille if taille is not None else stats["taille"]
+        
+        super().__init__(
+            pv_max=stats["pv_max"],
+            attaque=stats["attaque"],
+            port_attaque=stats["port_attaque"],
+            port_deplacement=stats["port_deplacement"],
+            cout=stats["cout"],
+            taille=taille_finale,
+            peut_miner=stats["peut_miner"],
+            peut_transporter=stats["peut_transporter"],
+            image=pygame.Surface((taille_finale[1]*TAILLE_CASE, taille_finale[0]*TAILLE_CASE)),
+            tier=tier,
+            cordonner=cordonner,
+            id=id,
+            path=path,
+            joueur=joueur
+        )
         
         self.prevision.alpha = 0
         self.animator.show_health = show_health
-        self.gain = 300 # TODO : modifié par une valeur paramétrable
+        self.gain = stats.get("gain", 300)
+
 
     # ---------------- Déplacement et rotation désactivés ----------------
     def deplacement(self, *args, **kwargs):
@@ -78,62 +91,4 @@ class MotherShip(Ship):
         if price is None or not payer_fct(price): return False
         self.apply_level(self.tier + 1)
         return True
-
-
-"""
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((1000, 800))
-    clock = pygame.time.Clock()
-    pygame.display.set_caption("Test affichage Vaisseau mère")
-
-    Animator.set_screen(screen)
-
-    # Créer un objet à tester
-    B1 = MotherShip(Point(0, 0), tier=1, show_health=True, largeur=4, hauteur=5)
-    B1.animator.play("base")
-    B1.animator.update_and_draw()
-    B1.animator.play("engine")
-
-    running = True
-    while running:
-        if 'B1' not in locals(): 
-            running = False
-        else:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 3:  # clic droit : dégâts
-                        B1.take_damage(100)
-                        print(f"PV actuels : {B1.PV_actuelle}")
-                        B1.animator.set_target(pygame.mouse.get_pos())
-                    elif event.button == 1:  # clic gauche : arme
-                        B1.animator.fire("laser", pygame.mouse.get_pos(), True, 10)
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                    B1.animator.set_target_angle(B1.animator.target_angle + 90)
-
-            # Mettre à jour l'animation courante
-            screen.fill((0, 0, 0))
-
-            Animator.update_all()
-            ShipAnimator.update_all()
-            ProjectileAnimator.update_all()
-
-            if B1.dead():
-                # Joue l'animation de destruction + fade
-                if B1.animator.play_with_fade("destruction", fade_duration=1000):
-                    del B1
-
-        pygame.display.flip()
-        clock.tick(60)
-
-    pygame.quit()
-    sys.exit()
-
-
-if __name__ == "__main__":
-    main()
-"""
+    

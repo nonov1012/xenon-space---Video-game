@@ -9,40 +9,80 @@ from blazyck import *
 
 class HUD:
     # --- Attributs de classe ---
+    """
+    Les attributs de classe suivants contiennent les éléments du HUD :
+    - La barre de gauche qui affiche le joueur 0
+    - La barre de droite qui affiche le joueur 1
+    - L'affichage du tour actuel
+    """
     left_bar: BarDisplay = None
     right_bar: BarDisplay = None
     turn_display: TurnDisplay = None
 
     @classmethod
     def init(cls, screen: pygame.Surface):
-        """Initialise les éléments du HUD (à appeler une seule fois au démarrage)"""
+        """
+        Initialise les éléments du HUD (à appeler une seule fois au démarrage).
+
+        Les éléments initialisés sont :
+        - La barre de gauche qui affiche le joueur 0
+        - La barre de droite qui affiche le joueur 1
+        - L'affichage du tour actuel
+        """
         cls.left_bar = BarDisplay(Turn.players[0], left=True)
-        cls.left_bar.highlight = True
+        cls.left_bar.highlight = True  # La barre de gauche est mise en évidence
         cls.right_bar = BarDisplay(Turn.players[1], left=False)
         cls.turn_display = TurnDisplay(screen)
 
     @classmethod
     def update(cls):
+        """
+        Mettre à jour les éléments du HUD.
+
+        Appelle les méthodes update() des barres et de l'affichage du tour actuel.
+        """
+        # Mettre à jour les barres de gauche et de droite
         cls.left_bar.update()
         cls.right_bar.update()
+        # Mettre à jour l'affichage du tour actuel
         cls.turn_display.update()
 
     @classmethod
     def change_turn(cls):
-        """Inverse la mise en évidence des barres lors d'un changement de tour"""
-        cls.left_bar.highlight = not cls.left_bar.highlight
-        cls.right_bar.highlight = not cls.right_bar.highlight
+        """
+        Inverse la mise en évidence des barres lors d'un changement de tour.
+
+        Les barres de gauche et de droite sont mises en évidence à tour de rôle.
+        """
+        # Inverse la mise en évidence des barres
+        cls.left_bar.highlight = not cls.right_bar.highlight
+        cls.right_bar.highlight = not cls.left_bar.highlight
 
     @classmethod
     def draw(cls):
+        """
+        Dessine les éléments du HUD.
+
+        Dessine les barres de gauche et de droite, ainsi que l'affichage du tour actuel.
+        """
         cls.left_bar.draw(cls.turn_display.screen)
         cls.right_bar.draw(cls.turn_display.screen)
         cls.turn_display.draw()
 
     @classmethod
     def update_and_draw(cls):
+        """
+        Mettre à jour et dessine les éléments du HUD.
+
+        Appelle les méthodes update() et draw() pour mettre à jour et dessiner
+        les éléments du HUD.
+
+        La méthode update() met à jour l'argent et les points de vie du vaisseau mère du joueur,
+        tandis que la méthode draw() dessine les éléments du HUD sur l'écran.
+        """
         cls.update()
         cls.draw()
+
 
 if __name__ == "__main__":
     pygame.init()
@@ -53,12 +93,23 @@ if __name__ == "__main__":
     P1 = Player("Alice")
     P2 = Player("Bob")
     Turn.players = [P1, P2]
-    P1.ships.append(MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
-                      id=0, path="assets/img/ships/base", joueur = Turn.players[0].id))
-    P2.ships.append(MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
-                      id=1, path="assets/img/ships/base", joueur = Turn.players[1].id))
+    
+    # Création simplifiée des MotherShip
+    P1.ships.append(MotherShip(
+        tier=1,
+        cordonner=Point(0, 0),
+        id=0,
+        path="assets/img/ships/base",
+        joueur=Turn.players[0].id
+    ))
+    
+    P2.ships.append(MotherShip(
+        tier=1,
+        cordonner=Point(0, 0),
+        id=1,
+        path="assets/img/ships/base",
+        joueur=Turn.players[1].id
+    ))
     
     # Initialisation du HUD
     HUD.init(screen)

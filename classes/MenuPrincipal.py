@@ -45,7 +45,7 @@ class MenuPrincipal:
 
         # Sons
         self.sm = SoundManager()
-        self.sm.play_music("../assets/sounds/musics/music_ingame.mp3")
+        # self.sm.play_music("../assets/sounds/musics/music_ingame.mp3")
         self.sm.load_sfx("son_hover", "../assets/sounds/menu/buttons/button_hover.mp3")
         self.sm.load_sfx("son_click", "../assets/sounds/menu/buttons/button_pressed.mp3")
 

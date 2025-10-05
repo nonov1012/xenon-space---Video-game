@@ -12,7 +12,7 @@
 # - nonov1012                                                   #
 # - DAVID Gabriel                                               #
 # - brian62100                                                  #
-# - 
+# - NOEL Clément
 # - 
 # -
 #################################################################
@@ -22,12 +22,15 @@
 #################################################################
 
 # Import lib
+from pickle import NONE
 import pygame
 
 # Import classes
 from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
+import menu.menuPause
 import menu.menuPrincipal
+import menu.menuFin
 from classes.Turn import Turn
 from classes.Map import Map
 from classes.Start_Animation.StarField import StarField
@@ -43,6 +46,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
@@ -75,7 +79,7 @@ def draw_glowing_rect(ecran, x, y, color, size=TAILLE_CASE, thickness=2):
 
 def handle_events(running, selection_ship, selection_cargo, interface_transport_active,
                   afficher_grille, map_obj, ships, shop, ecran, position_souris, case_souris,
-                  next_uid, images, paths):  # Ajout des nouveaux paramètres
+                  next_uid, images, paths):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -83,7 +87,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
         # --- Touches clavier ---
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                running = False
+                menu.menuPause.main_pause(ecran)
             elif event.key == pygame.K_LCTRL:
                 afficher_grille = not afficher_grille
             elif event.key == pygame.K_LSHIFT:
@@ -91,17 +95,27 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             elif event.key == pygame.K_r and selection_ship:
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
             elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                # on finit son tour
+                # Fin de tour
                 for ship in Turn.players[0].ships:
-                    if isinstance(ship, Foreuse):  # si foreuse
+                    ship.reset_porters()
+                    if isinstance(ship, Foreuse):
                         if ship.est_a_cote_planete(map_obj.grille):
-                            ship.gain += 100
+                            ship.gain += PLANETES_REWARD
                         if ship.est_autour_asteroide(map_obj.grille):
-                            ship.gain += 75
+                            ship.gain += ASTEROIDES_REWARD
 
                 Turn.players[0].gain()
-                Turn.next()
+                res = Turn.next()
                 HUD.change_turn()
+                for player in Turn.players:
+                    mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and s.pv_actuel > 0]
+                    if len(mother_ships) == 0:
+                        print(f"Le joueur {player.name} a perdu !")
+                        gagnant = [p for p in Turn.players if p != player][0]
+                        menu.menuFin.main(ecran, gagnant, victoire=True)
+                        running = False
+                        break
+
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -110,14 +124,10 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             for ship_data in shop.ships:
                 if "rect" in ship_data and ship_data["rect"].collidepoint(event.pos):
                     shop_clicked = True
-                    # Tenter d'acheter le vaisseau
                     type_vaisseau = shop.buy_ship(ship_data)
                     
-                    if type_vaisseau:  # Si l'achat a réussi
-                        # Déterminer le joueur actuel
+                    if type_vaisseau:
                         joueur_actuel = Turn.players[0]
-                        
-                        # Trouver la taille du vaisseau à créer
                         tailles = {
                             "Petit": (2, 2),
                             "Moyen": (2, 2),
@@ -125,58 +135,52 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             "Foreuse": (2, 2),
                             "Transporteur": (3, 4)
                         }
-                        
-                        # Trouver une position libre près de la base du joueur
-                        position = trouver_position_libre_base(
-                            map_obj, 
-                            joueur_actuel.id,
-                            tailles[type_vaisseau]
-                        )
+                        position = trouver_position_libre_base(map_obj, joueur_actuel.id, tailles[type_vaisseau])
                         
                         if position:
-                            # Créer le nouveau vaisseau
                             nouveau_vaisseau = creer_vaisseau_achete(
-                                type_vaisseau,
-                                position,
-                                next_uid[0],  # Utiliser la valeur actuelle
-                                joueur_actuel.id,
-                                images,
-                                paths
+                                type_vaisseau, position, next_uid[0],
+                                joueur_actuel.id, images, paths
                             )
-                            
                             if nouveau_vaisseau:
-                                next_uid[0] += 1  # Incrémenter l'ID
-                                
-                                # Ajouter le vaisseau aux listes
+                                next_uid[0] += 1
                                 joueur_actuel.ships.append(nouveau_vaisseau)
                                 ships.append(nouveau_vaisseau)
-                                
-                                # Placer le vaisseau sur la grille
                                 nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
-                                
                                 print(f"Nouveau {type_vaisseau} spawné en position ({position.x}, {position.y})")
                         else:
                             print(f"Impossible de trouver une position libre pour le {type_vaisseau}")
-                            # Rembourser le joueur
                             joueur_actuel.economie.ajouter(ship_data["price"])
                     break
-            
-            # Si on n'a pas cliqué sur le shop, gérer les autres clics
+
+            # Si on n'a pas cliqué sur le shop
             if not shop_clicked:
                 if selection_ship and not interface_transport_active:
-                    if (case_souris[0] == selection_ship.cordonner.x and 
-                        case_souris[1] == selection_ship.cordonner.y):
-                        selection_ship, selection_cargo = None, None
-                    else:
+                    # Vérifier si on a cliqué sur une case de déplacement possible ou d'attaque
+                    positions_deplacement = selection_ship.positions_possibles_adjacentes(map_obj.grille, direction=selection_ship.aperçu_direction)
+                    positions_attaque = selection_ship.positions_possibles_attaque(map_obj.grille, direction=selection_ship.aperçu_direction)
+
+                    # 🟦 Si on clique sur une case valide (déplacement ou attaque)
+                    if case_souris in positions_deplacement or case_souris in positions_attaque:
                         success = selection_ship.deplacement(case_souris, map_obj.grille, ships)
                         if success:
                             selection_ship, selection_cargo = None, None
+
+                    # 🟥 Si on clique sur le vaisseau sélectionné → on le désélectionne
+                    elif (case_souris[0] == selection_ship.cordonner.x and
+                          case_souris[1] == selection_ship.cordonner.y):
+                        selection_ship, selection_cargo = None, None
+
+                    # ⚪ Sinon → clic en dehors de toute zone utile → désélection
+                    else:
+                        selection_ship, selection_cargo = None, None
+
                 else:
+                    # Tentative de sélection d'un nouveau vaisseau
                     for ship in ships[:]:
                         largeur, hauteur = ship.donner_dimensions(ship.direction)
                         if (ship.cordonner.x <= case_souris[0] < ship.cordonner.x + hauteur and
                             ship.cordonner.y <= case_souris[1] < ship.cordonner.y + largeur):
-                            # Vérifier que le vaisseau appartient au joueur actuel
                             if ship.joueur == Turn.players[0].id:
                                 selection_ship = ship
                                 selection_ship.aperçu_direction = ship.direction
@@ -185,6 +189,9 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             else:
                                 print(f"Ce vaisseau appartient au joueur {ship.joueur}")
                             break
+                    else:
+                        # Aucun vaisseau cliqué → désélection
+                        selection_ship, selection_cargo = None, None
 
         # --- Clic droit ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and selection_ship:
@@ -205,13 +212,13 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                     positions_valides = selection_ship.positions_debarquement(selection_cargo, map_obj.grille)
                     if case_souris in positions_valides:
                         index = selection_ship.cargaison.index(selection_cargo)
-                        success = selection_ship.retirer_cargo(index, case_souris[0], case_souris[1], 
-                                                             map_obj.grille, ships)
+                        success = selection_ship.retirer_cargo(index, case_souris[0], case_souris[1],
+                                                               map_obj.grille, ships)
                         if success:
                             selection_cargo, interface_transport_active = None, False
             else:
                 for target in ships:
-                    if target == selection_ship: 
+                    if target == selection_ship:
                         continue
                     largeur, hauteur = target.donner_dimensions(target.direction)
                     if (target.cordonner.x <= case_souris[0] < target.cordonner.x + hauteur and
@@ -325,7 +332,7 @@ def trouver_position_libre_base(map_obj, joueur_id, taille_vaisseau):
     grille = map_obj.grille
     
     # Définir la zone de recherche selon le joueur
-    if joueur_id == 1:
+    if joueur_id == 0:
         # Base en haut à gauche (0,0 à 5,4)
         start_y, end_y = 0, 15  # Chercher dans une zone plus large autour de la base
         start_x, end_x = 0, 15
@@ -381,48 +388,30 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     """
     Crée une instance du vaisseau acheté selon son type.
     """
-    if type_vaisseau == "Petit":
-        return Petit(
-            pv_max=300, attaque=100, port_attaque=3, port_deplacement=6,
-            cout=325, valeur_mort=int(325*0.6), taille=(2,2),
-            peut_miner=False, peut_transporter=False,
-            image=images['petit'], tier=1, cordonner=position,
-            id=next_uid, path=paths['petit'], joueur=joueur_id
-        )
-    elif type_vaisseau == "Moyen":
-        return Moyen(
-            pv_max=500, attaque=200, port_attaque=4, port_deplacement=5,
-            cout=650, valeur_mort=int(650*0.6), taille=(2,2),
-            peut_miner=False, peut_transporter=False,
-            image=images['moyen'], tier=1, cordonner=position,
-            id=next_uid, path=paths['moyen'], joueur=joueur_id
-        )
-    elif type_vaisseau == "Grand":  # Correspond au Lourd
-        return Lourd(
-            pv_max=800, attaque=300, port_attaque=5, port_deplacement=3,
-            cout=1050, valeur_mort=int(1050*0.6), taille=(3,3),
-            peut_miner=False, peut_transporter=False,
-            image=images['lourd'], tier=1, cordonner=position,
-            id=next_uid, path=paths['lourd'], joueur=joueur_id
-        )
-    elif type_vaisseau == "Foreuse":
-        return Foreuse(
-            pv_max=400, attaque=0, port_attaque=0, port_deplacement=4,
-            cout=400, valeur_mort=int(400*0.6), taille=(2,2),
-            peut_miner=True, peut_transporter=False,
-            image=images['foreuse'], tier=1, cordonner=position,
-            id=next_uid, path=paths['foreuse'], joueur=joueur_id
-        )
-    elif type_vaisseau == "Transporteur":
-        return Transport(
-            pv_max=600, attaque=50, port_attaque=3, port_deplacement=5,
-            cout=500, valeur_mort=int(500*0.6), taille=(3,4),
-            peut_miner=False, peut_transporter=True,
-            image=images['transport'], tier=1, cordonner=position,
-            id=next_uid, path=paths['transport'], joueur=joueur_id
-        )
-    else:
+    classes_vaisseaux = {
+        "Petit": Petit,
+        "Moyen": Moyen,
+        "Grand": Lourd,  # Grand dans le shop correspond à Lourd | TODO : modifier celui du shop
+        "Foreuse": Foreuse,
+        "Transporteur": Transport
+    }
+    
+    classe = classes_vaisseaux.get(type_vaisseau)
+    if classe is None:
         return None
+    
+    # Type simplifié selon le vaisseau
+    type_key = "lourd" if type_vaisseau == "Grand" else type_vaisseau.lower()
+    if type_vaisseau == "Transporteur":
+        type_key = "transport"
+    
+    return classe(
+        cordonner=position,
+        id=next_uid,
+        path=paths.get(type_key, paths['petit']),
+        image=images.get(type_key, images['petit']),
+        joueur=joueur_id
+    )
 
 def start_game(ecran, parametres, random_active):
     clock = pygame.time.Clock()
@@ -468,7 +457,7 @@ def start_game(ecran, parametres, random_active):
     shop = Shop(player, font, ecran)
 
     # ===== Player =====
-    Turn.players = [Player("P1"), Player("P2", id=2)]
+    Turn.players = [Player("P1", id=0), Player("P2", id=1)]
 
     # ===== Images et chemins pour les vaisseaux =====
     # Dictionnaires pour stocker les images et chemins
@@ -507,37 +496,58 @@ def start_game(ecran, parametres, random_active):
     # --- Création vaisseaux ---
     next_uid = [1]
 
-    # MotherShip du joueur (zone de base)
-    smm1 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(0,0), 
-                      id=next_uid[0], path=img_base_dir, joueur = Turn.players[0].id)
+    # MotherShip du joueur 1
+    smm1 = MotherShip(
+        tier=1,
+        cordonner=Point(0, 0),
+        id=next_uid[0],
+        path=img_base_dir,
+        joueur=Turn.players[0].id
+    )
     next_uid[0] += 1
     Turn.players[0].ships.append(smm1)
 
-    smm2 = MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      valeur_mort=0, taille=(4,5), tier=1, cordonner=Point(25,46), 
-                      id=next_uid[0], path=img_base_dir, joueur = Turn.players[1].id)
+    # MotherShip du joueur 2
+    smm2 = MotherShip(
+        tier=1,
+        cordonner=Point(25, 46),
+        id=next_uid[0],
+        path=img_base_dir,
+        joueur=Turn.players[1].id
+    )
     next_uid[0] += 1
     Turn.players[1].ships.append(smm2)
 
-    # Vaisseaux de départ du joueur (dans la zone de base)
-    # Petit vaisseau de reconnaissance
-    sp1 = Petit(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
-                valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
-                image=img_petit, tier=1, cordonner=Point(5,1), id=next_uid[0], path=img_petit_dir, joueur = Turn.players[0].id)
+    # Petit vaisseau joueur 1
+    sp1 = Petit(
+        cordonner=Point(5, 1),
+        id=next_uid[0],
+        path=img_petit_dir,
+        image=img_petit,
+        joueur=Turn.players[0].id
+    )
     next_uid[0] += 1
     Turn.players[0].ships.append(sp1)
 
-    sp1 = Lourd(pv_max=300, attaque=1000, port_attaque=3, port_deplacement=6, cout=200,
-                valeur_mort=int(200*0.6), taille=(2,2), peut_miner=False, peut_transporter=False,
-                image=img_Lourd, tier=1, cordonner=Point(5,5), id=next_uid[0], path=img_lourd_dir, joueur = Turn.players[1].id)
+    # Vaisseau lourd joueur 2
+    sl1 = Lourd(
+        cordonner=Point(5, 5),
+        id=next_uid[0],
+        path=img_lourd_dir,
+        image=img_Lourd,
+        joueur=Turn.players[1].id
+    )
     next_uid[0] += 1
-    Turn.players[1].ships.append(sp1)
+    Turn.players[1].ships.append(sl1)
 
-    # Foreuse de départ
-    sf1 = Foreuse(pv_max=500, attaque=0, port_attaque=0, port_deplacement=3, cout=500,
-                  valeur_mort=int(500*0.6), taille=(2,2), peut_miner=True, peut_transporter=False,
-                  image=img_foreuse, tier=1, cordonner=Point(1,5), id=next_uid[0], path=img_foreuse_dir, joueur = Turn.players[0].id)
+    # Foreuse joueur 1
+    sf1 = Foreuse(
+        cordonner=Point(1, 5),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[0].id
+    )
     next_uid[0] += 1
     Turn.players[0].ships.append(sf1)
 
@@ -559,7 +569,7 @@ def start_game(ecran, parametres, random_active):
         discord.update("En jeu")
         position_souris = pygame.mouse.get_pos()
         case_souris = ((position_souris[1]) // TAILLE_CASE, 
-                    (position_souris[0] - OFFSET_X) // TAILLE_CASE)
+                       (position_souris[0] - OFFSET_X) // TAILLE_CASE)        
 
         # Appeler handle_events avec les nouveaux paramètres
         running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid = \
@@ -574,6 +584,8 @@ def start_game(ecran, parametres, random_active):
         draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
                 interface_transport_active, case_souris, font, Turn.players[0], shop, new_cursor, position_souris,
                 afficher_grille, dt)
+
+
 
         clock.tick(60)
 

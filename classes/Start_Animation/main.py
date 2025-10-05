@@ -14,12 +14,12 @@ from classes.Achievements import AchievementManager
 
 def create_space_background(num_stars=100, screen_ratio=1.0):
     """
-    Initialise le fond spatial avec étoiles et planètes.
-    Retourne : stars, planet_manager, B1 (vaisseau centré)
+    Initialise le fond spatial avec des étoiles et des planètes.
+    Retourne : les étoiles, le gestionnaire de planètes, B1 (vaisseau centré)
     """
     screen_width, screen_height = Animator.screen.get_size()
 
-    # --- Étoiles ---
+    # --- Gestion des étoiles ---
     stars = StarField(
         screen_width,
         screen_height,
@@ -38,29 +38,23 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
         prob_increment=1
     )
 
-    # --- Vaisseau centré ---
+    # --- Vaisseau centré avec taille personnalisée ---
     center_x = (screen_width / TAILLE_CASE) / 2
     center_y = (screen_height / TAILLE_CASE) / 2
-    vaisseau_w = 4 * screen_ratio
-    vaisseau_h = 5 * screen_ratio
+    vaisseau_w = int(4 * screen_ratio)  # largeur en cases
+    vaisseau_h = int(5 * screen_ratio)  # hauteur en cases
     x = int(center_x - vaisseau_w / 1.30)
     y = int(center_y - vaisseau_h / 2.30)
 
     B1 = MotherShip(
-        pv_max=5000,          # Points de vie max
-        attaque=0,            # Pas d'attaque pour le vaisseau du menu
-        port_attaque=0,       # Portée d'attaque
-        port_deplacement=0,   # Portée de déplacement (immobile)
-        cout=0,               # Coût
-        valeur_mort=0,        # Valeur à la mort
-        taille=(vaisseau_w, vaisseau_h),  # Taille en tuples
-        tier=1,               # Niveau
-        cordonner=Point(y, x),  # Position
-        id=999,               # ID unique pour le menu
-        path="assets/img/ships/base",  # Chemin des assets
-        show_health=False
+        tier=1,
+        cordonner=Point(y, x),
+        id=999,
+        path="assets/img/ships/base",
+        show_health=False,
+        joueur=0,
+        taille=(vaisseau_w, vaisseau_h)  # Taille personnalisée pour le menu
     )
-
 
     B1.animator.set_angle(90)
     B1.animator.play("base")
