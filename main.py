@@ -105,7 +105,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             ship.gain += ASTEROIDES_REWARD
 
                 Turn.players[0].gain()
-                res = Turn.next()
+                Turn.next()
                 HUD.change_turn()
                 for player in Turn.players:
                     mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and s.pv_actuel > 0]

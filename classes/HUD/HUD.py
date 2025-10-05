@@ -55,8 +55,8 @@ class HUD:
         Les barres de gauche et de droite sont mises en évidence à tour de rôle.
         """
         # Inverse la mise en évidence des barres
-        cls.left_bar.highlight = not cls.right_bar.highlight
-        cls.right_bar.highlight = not cls.left_bar.highlight
+        cls.left_bar.highlight = not cls.left_bar.highlight
+        cls.right_bar.highlight = not cls.right_bar.highlight
 
     @classmethod
     def draw(cls):
@@ -127,8 +127,7 @@ if __name__ == "__main__":
         P2.getMotherShip().pv_actuel -= 10
 
         screen.fill((10, 10, 20))
-        HUD.update()
-        HUD.draw()
+        HUD.update_and_draw()
         pygame.display.flip()
         clock.tick(60)
 
