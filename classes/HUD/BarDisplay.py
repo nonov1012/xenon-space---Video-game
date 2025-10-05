@@ -1,12 +1,6 @@
 import pygame
 from blazyck import OFFSET_X, SCREEN_WIDTH, SCREEN_HEIGHT
-from classes.Player import Player
-from classes.Point import Point
-from classes.Turn import Turn
-from classes.MotherShip import MotherShip
-
 import math
-import pygame
 
 class BarDisplay:
     def __init__(self, player, left=True):
@@ -15,8 +9,17 @@ class BarDisplay:
         self.width = OFFSET_X // 2
         self.height = SCREEN_HEIGHT // 2
         self.margin = 30
-        self.health_max = self.player.getMotherShip().pv_actuel
-        self.health = self.player.getMotherShip().pv_actuel
+
+        # Vérifie si le joueur a une MotherShip
+        mother_ship = self.player.getMotherShip()
+        if mother_ship is not None:
+            self.health_max = mother_ship.pv_actuel
+            self.health = mother_ship.pv_actuel
+        else:
+            self.health_max = 0
+            self.health = 0
+            print(f"[DEBUG] {self.player.name} n'a pas de MotherShip !")
+
         self.money = self.player.economie.solde
 
         pygame.font.init()
@@ -34,7 +37,9 @@ class BarDisplay:
 
     def update(self, dt=0):
         self.set_money(self.player.economie.solde)
-        self.set_health(self.player.getMotherShip().pv_actuel)
+        mother_ship = self.player.getMotherShip()
+        health = mother_ship.pv_actuel if mother_ship else 0
+        self.set_health(health)
         self._time += dt
 
     def draw(self, surface):
@@ -58,7 +63,7 @@ class BarDisplay:
         pygame.draw.rect(surface, (80, 210, 255), (x, y, self.width, self.height), 2)
 
         # --- Barre de vie ---
-        ratio = self.health / self.health_max
+        ratio = self.health / self.health_max if self.health_max > 0 else 0
         life_height = int(self.height * ratio)
         life_y = y + (self.height - life_height)
         inner_rect = pygame.Rect(x + 4, life_y + 4, self.width - 8, life_height - 8)
@@ -77,46 +82,3 @@ class BarDisplay:
         # --- Texte PV ---
         txt_hp = self.font_small.render(f"{self.health}/{self.health_max}", True, (255, 255, 255))
         surface.blit(txt_hp, (x + self.width // 2 - txt_hp.get_width() // 2, y + self.height + 10))
-
-# --- Exemple d’utilisation ---
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    clock = pygame.time.Clock()
-    running = True
-
-    P1 = Player("Alice")
-    P2 = Player("Bob")
-    Turn.players = [P1, P2]
-    P1.ships.append(MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      taille=(4,5), tier=1, cordonner=Point(0,0), 
-                      id=0, path="assets/img/ships/base", joueur = Turn.players[0].id))
-    P2.ships.append(MotherShip(pv_max=5000, attaque=11, port_attaque=10, port_deplacement=0, cout=0,
-                      taille=(4,5), tier=1, cordonner=Point(0,0), 
-                      id=1, path="assets/img/ships/base", joueur = Turn.players[1].id))
-
-    hud_left = BarDisplay(left=True, player=Turn.players[0])
-    hud_right = BarDisplay(left=False, player=Turn.players[1])
-    hud_right.set_money(128)
-    hud_right.set_health(620)
-
-    while running:
-        dt = clock.tick(60) / 1000.0
-        for e in pygame.event.get():
-            if e.type == pygame.QUIT:
-                running = False
-
-        hud_left.update()
-        hud_right.update()
-
-        # affichage
-        screen.fill((10, 10, 15))
-        hud_left.draw(screen)
-        hud_right.draw(screen)
-
-        pygame.display.flip()
-
-    pygame.quit()
-
-if __name__ == "__main__":
-    main()

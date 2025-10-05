@@ -86,15 +86,15 @@ class PauseMenu:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.buttons[0].collidepoint(event.pos):  # REPRENDRE
                         self.sm.play_sfx("son_click")
-                        running = False
+                        running = False 
                     elif self.buttons[1].collidepoint(event.pos):  # PARAMETRES
                         self.sm.play_sfx("son_click")
-                        menuParam.main(self.screen)
+                        menu.menuParam.main(self.screen)
                     elif self.buttons[2].collidepoint(event.pos):  # QUITTER
                         self.sm.play_sfx("son_click")
                         pygame.quit()
                         sys.exit()
                     elif self.buttons[3].collidepoint(event.pos):  # RETOUR AU MENU
                         self.sm.play_sfx("son_click")
-                        menuJouer.main(self.screen)
+                        menu.menuJouer
                         running = False
