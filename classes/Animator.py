@@ -29,7 +29,7 @@ class Animator:
     screen = None
 
     @staticmethod
-    def set_screen(screen: pygame.surface):
+    def set_screen(screen: pygame.Surface):
         Animator.screen = screen
 
     """

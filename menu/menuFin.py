@@ -204,6 +204,5 @@ def main(ecran, player, victoire=True, sound_manager=None):
                         
                         choix = action
 
-
     
     return choix if choix else "menu"

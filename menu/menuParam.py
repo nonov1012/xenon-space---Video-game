@@ -8,7 +8,6 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from classes.Animator import Animator
 from classes.PlanetAnimator import PlanetAnimator
-from classes.ShipAnimator import ShipAnimator
 from classes.Start_Animation.main import create_space_background
 
 # Fichier de sauvegarde
@@ -59,8 +58,14 @@ def dessiner_slider(ecran, valeur, min_val, max_val, x, y, largeur, hauteur,
     pygame.draw.ellipse(ecran, couleur_curseur, (curseur_x - 8, y - 5, 16, hauteur + 10))
 
 
-def main(ecran):
-    """Menu Paramètres avec configuration des touches et sauvegarde"""
+def main(ecran, animation=True):
+    """Menu Paramètres avec configuration des touches et sauvegarde
+    
+    Args:
+        ecran: Surface Pygame principale
+        animation: bool - True = fond complet (étoiles + planètes + vaisseau)
+                         False = seulement étoiles
+    """
 
     # Charger les paramètres
     settings = charger_parametres()
@@ -75,10 +80,11 @@ def main(ecran):
     VERT = (0, 200, 100)
     BLEU_ACCENT = (70, 130, 255)
     ORANGE = (255, 165, 0)
+    NOIR = (0, 0, 0)
 
     police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 60)
     police_param = pygame.font.Font("assets/fonts/SpaceNova.otf", 22)
-    police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 24)
+    police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 28)
 
     # -------------------------------
     # Curseur personnalisé
@@ -88,16 +94,17 @@ def main(ecran):
     pygame.mouse.set_visible(False)
 
     # -------------------------------
-    # Fond animé
+    # Fond animé (sans vaisseau)
     # -------------------------------
     largeur_ecran, hauteur_ecran = ecran.get_size()
     screen_ratio = (largeur_ecran * 100 / 600) / 100
-    stars, planet_manager, vaisseau_fond = create_space_background(
+    stars, planet_manager, _ = create_space_background(
         num_stars=100, screen_ratio=screen_ratio
     )
+    # Le vaisseau n'est pas utilisé, on l'ignore avec _
 
     # -------------------------------
-    # Boutons
+    # Boutons - Taille augmentée
     # -------------------------------
     image_bouton_base = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
     def creer_image_bouton(largeur, hauteur):
@@ -107,12 +114,12 @@ def main(ecran):
     texte_reset = police_bouton.render("RESET", True, BLANC)
     texte_retour = police_bouton.render("RETOUR", True, BLANC)
 
-    image_sauv = creer_image_bouton(texte_sauv.get_width() + 120, texte_sauv.get_height() + 100)
-    image_reset = creer_image_bouton(texte_reset.get_width() + 120, texte_reset.get_height() + 100)
-    image_retour = creer_image_bouton(texte_retour.get_width() + 120, texte_retour.get_height() + 100)
+    image_sauv = creer_image_bouton(texte_sauv.get_width() + 160, texte_sauv.get_height() + 130)
+    image_reset = creer_image_bouton(texte_reset.get_width() + 160, texte_reset.get_height() + 130)
+    image_retour = creer_image_bouton(texte_retour.get_width() + 160, texte_retour.get_height() + 130)
 
     espacement = 50
-    y_boutons = hauteur_ecran - 150
+    y_boutons = hauteur_ecran - 170
     total_largeur = image_sauv.get_width() + image_reset.get_width() + image_retour.get_width() + espacement * 2
     x_depart = (largeur_ecran - total_largeur) // 2
 
@@ -138,7 +145,7 @@ def main(ecran):
     onglet_actif = "Touches"
 
     # État de capture de touche
-    capture_touche = None  # None ou nom de la touche en cours de capture
+    capture_touche = None
 
     # -------------------------------
     # Boucle principale
@@ -151,14 +158,19 @@ def main(ecran):
         souris = pygame.mouse.get_pos()
         clic = pygame.mouse.get_pressed()[0]
 
-        # Fond animé
-        ecran.fill((0, 0, 0))
+        # -------------------------------
+        # Fond selon le paramètre animation
+        # -------------------------------
+        ecran.fill(NOIR)
+        
+        # Toujours afficher les étoiles
         stars.update()
         stars.draw(ecran)
-        planet_manager.update_and_draw()
-        Animator.update_all()
-        PlanetAnimator.update_all()
-        ShipAnimator.update_all()
+        
+        # Afficher planètes seulement si animation=True (vaisseau supprimé)
+        if animation:
+            planet_manager.update_and_draw()
+            PlanetAnimator.update_all()
 
         # Titre
         titre_surface = police_titre.render("Parametres", True, BLANC)
@@ -332,8 +344,8 @@ def main(ecran):
                             sauvegarder_parametres(settings)
                             print("Parametres sauvegardes dans", SAVE_FILE)
                         elif label == "RESET":
-                            settings = copy.deepcopy(DEFAULT_SETTINGS)  # Copie complète de tous les sous-dictionnaires
-                            capture_touche = None  # Annule la capture en cours
+                            settings = copy.deepcopy(DEFAULT_SETTINGS)
+                            capture_touche = None
                             print("Paramètres réinitialisés")
                         elif label == "RETOUR":
                             en_cours = False
@@ -352,3 +364,7 @@ def main(ecran):
 
         pygame.display.flip()
         horloge.tick(60)
+    
+
+    Animator.clear_list()
+    PlanetAnimator.clear_list()

@@ -251,5 +251,6 @@ class ShipAnimator(Animator):
             else:
                 if animation.play_with_fade("destruction"):
                     animation.remove_from_list()
-                    
+    
+
     

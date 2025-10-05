@@ -22,11 +22,13 @@
 #################################################################
 
 # Import lib
+from pickle import NONE
 import pygame
 
 # Import classes
 from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
+import menu.menuPause
 import menu.menuPrincipal
 import menu.menuFin
 from classes.Turn import Turn
@@ -85,7 +87,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
         # --- Touches clavier ---
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                running = False
+                menu.menuPause.main_pause(ecran)
             elif event.key == pygame.K_LCTRL:
                 afficher_grille = not afficher_grille
             elif event.key == pygame.K_LSHIFT:
@@ -564,7 +566,7 @@ def start_game(ecran, parametres, random_active, vaisseaux_sliders):
         discord.update("En jeu")
         position_souris = pygame.mouse.get_pos()
         case_souris = ((position_souris[1]) // TAILLE_CASE, 
-                    (position_souris[0] - OFFSET_X) // TAILLE_CASE)
+                       (position_souris[0] - OFFSET_X) // TAILLE_CASE)        
 
         # Appeler handle_events avec les nouveaux paramètres
         running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid = \
