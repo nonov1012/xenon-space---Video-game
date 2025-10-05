@@ -2,144 +2,149 @@
 
 ## 📝 Introduction
 
-Cette documentation technique décrit **Xenon Space**, un jeu de stratégie **tour par tour**, où deux factions s'affrontent pour le contrôle de ressources spatiales limitées.
+Cette documentation technique décrit l'architecture et le fonctionnement interne de **Xenon Space**, un jeu de stratégie **tour par tour**. Le jeu oppose deux factions dans une lutte pour le contrôle de ressources spatiales limitées.
 
 ---
 
 ## 🛠️ Architecture du projet
 
-Le projet est organisé en plusieurs dossiers et fichiers, chacun ayant un rôle bien défini. L'architecture est principalement basée sur des classes pour structurer les différentes fonctionnalités du jeu.
+Le projet est organisé de manière modulaire, avec une architecture basée sur des classes pour structurer les différentes fonctionnalités du jeu. Les principaux composants se trouvent dans les dossiers `classes` et `assets`, ainsi que dans plusieurs fichiers à la racine.
 
 ### 📁 Dossier *`classes`*
 
-Ce dossier contient toutes les classes du projet, qui gèrent les mécaniques de jeu principales.
+Ce dossier contient les classes essentielles qui gèrent les mécaniques de jeu.
 
 #### `Ship.py`
-Le fichier `Ship.py` définit la classe **`Ship`**, la classe mère de tous les vaisseaux. Elle regroupe les méthodes fondamentales pour :
-- **Déplacement**
-  
-  le déplacement fonctionne grace a trois fonction principale:
-  
-  * **a_star** : Trouver le chemin le plus court et le moins coûteux entre la position actuelle du vaisseau et une position cible sur la grille.
-  * **positions_possibles_adjacentes** : Déterminer toutes les positions accessibles par le vaisseau selon sa portée de déplacement
-  * **deplacement**  : Gérer le déplacement réel du vaisseau sur la grille
 
-- **Attaque**
+Le fichier `Ship.py` définit la classe mère **`Ship`**, qui sert de base à tous les vaisseaux du jeu. Elle inclut des méthodes pour gérer les actions fondamentales des vaisseaux :
 
-  le Attaque fonctionne grace a deux fonction principale:
+* **Déplacement** :
+    * **`a_star(start, end)`** : Utilise l'algorithme A* pour trouver le chemin le plus court et le moins coûteux entre la position actuelle du vaisseau (`start`) et la position cible (`end`) sur la grille de jeu.
+    * **`positions_possibles_adjacentes(position)`** : Détermine toutes les cases accessibles par le vaisseau depuis une `position` donnée, en tenant compte de sa portée de déplacement.
+    * **`deplacement()`** : Exécute le déplacement réel du vaisseau sur la grille en suivant le chemin calculé.
+* **Attaque** :
+    * **`attaquer(cible)`** : Gère l'attaque du vaisseau sur une cible ennemie. Cette méthode calcule les dégâts infligés, lance l'animation d'attaque et appelle la fonction pour créer un projectile.
+* **Destruction** :
+    * **`est_mort()`** : Une méthode de vérification qui renvoie `True` si les points de vie du vaisseau sont inférieurs ou égaux à zéro.
+    * **`supprimer()`** : Si le vaisseau est `mort`, cette fonction le retire de la grille de jeu et le supprime de la liste des vaisseaux actifs.
+* **Rotation** :
+    * **`rotation_aperçu(direction)`** : Prépare l'aperçu visuel de la rotation du vaisseau dans une `direction` spécifique.
+    * **`rotation_aperçu_si_possible()`** : Vérifie si le vaisseau peut pivoter vers une direction donnée.
 
-  * **deplacement** : Gérer l'attaque du vaisseau si clique sur un vaisseau ennemie lance attaquer
-  * **attaquer** : Gérer les dégàts infigeur mais aussi lancer l'ainimation d'attaque et l'appel de la fonction pour crée un projectile
+Ce fichier regroupe également la majorité des classes filles de `Ship`, à l'exception de `Mothership` :
 
-
-- **Destruction**
-
-  le déplacement fonctionne grace a trois fonction principale:
-
-  * **est_mort** : verifie si le vaisseau et mort
-  * **deplacement** : si le vaisseau et mort il le supprime de la grille
-
-
-- **Rotation**
-
-  le déplacement fonctionne grace a trois fonction principale:
-
-  * **rotation_aperçu** : il prevois la rotation
-  * **rotation_aperçu_si_possible** : il verifie qu'on peut tourner
-
-Ce fichier contient également la majorité des sous-classes de `Ship`, à l'exception de **`Mothership`**.
-
-Les sous-classes de `Ship` sont :
-- **`Petit`** : Vaisseau de combat de petite taille.
-- **`Moyen`** : Vaisseau de combat de taille moyenne.
-- **`Lourd`** : Vaisseau de combat lourd.
-- **`Foreuse`** : Vaisseau non-combattant, utilisé pour miner des planètes et générer des ressources. Il est incapable d'attaquer.
-- **`Transport`** : Vaisseau capable de transporter d'autres vaisseaux (soit trois `Petit`, soit un `Moyen` et un `Petit`).
+* **`Petit`** : Vaisseau de combat léger, rapide et maniable.
+* **`Moyen`** : Vaisseau de combat de taille moyenne, plus résistant et puissant.
+* **`Lourd`** : Vaisseau de combat lourd, avec une armure et une puissance de feu supérieures.
+* **`Foreuse`** : Vaisseau non-combattant, spécialisé dans la récolte de ressources. Sa portée d'attaque doit être fixée à `0` pour éviter les erreurs.
+* **`Transport`** : Vaisseau utilitaire capable de transporter d'autres vaisseaux (soit trois `Petit`, soit un `Moyen` et un `Petit`).
 
 ---
 
 #### `MotherShip.py`
-Le fichier `MotherShip.py` définit la classe **`MotherShip`**, une classe fille de **`Ship`**. Elle gère les fonctionnalités spécifiques aux bases de chaque joueur, incluant leur **animation** et leurs **attaques**.
+
+Ce fichier définit la classe **`Mothership`**, une classe fille de `Ship`. Le `Mothership` représente la base principale de chaque joueur et est un élément central du gameplay. En plus des fonctionnalités de base héritées de `Ship`, cette classe gère des logiques spécifiques :
+
+* **Rôle de base** : Il sert de point de départ pour la création de nouveaux vaisseaux et est l'objectif principal de l'ennemi. Sa destruction entraîne la défaite du joueur.
+* **Attaques de base** : Bien que dérivé de `Ship`, le `Mothership` possède des capacités d'attaque uniques, généralement plus puissantes que celles des vaisseaux standards.
+* **Animations spécifiques** : Étant une entité unique, il dispose de ses propres animations pour l'attaque, les dégâts et la destruction, distinctes de celles des autres vaisseaux.
 
 ---
 
 #### `Point.py`
-Le fichier `Point.py` contient deux classes : **`Type`** et **`Point`**.
-- La classe **`Type`** est une énumération qui définit les différents types de cases sur la carte : `VIDE`, `PLANETE`, `ATMOSPHERE`, `ASTEROIDE`, `BASE`, `VAISSEAU`.
-- La classe **`Point`** utilise cette énumération pour stocker les **coordonnées (x, y)** et le **type** de chaque case de la carte.
+
+Ce fichier contient deux classes fondamentales pour la représentation de la carte :
+
+* **`Type`** : Une énumération (`Enum`) qui définit les différents types de cases sur la carte, tels que `VIDE`, `PLANETE`, `ASTEROIDE`, `BASE` et `VAISSEAU`.
+* **`Point`** : Une classe qui stocke les **coordonnées (x, y)** et le **type** de chaque case de la grille de jeu.
 
 ---
 
 #### `Map.py`
-Le fichier `Map.py` contient la classe **`Map`**, qui gère la création et le stockage de la carte de jeu en utilisant la classe **`Point`**. Ses fonctionnalités principales incluent :
-- **Création des planètes** : Utilise les méthodes `generer_planet`, `peut_placer` et `placer_planete`.
-- **Création des astéroïdes** : Utilise les méthodes `generer_asteroides` et `placer_asteroide`.
-- **Génération de la grille** : La méthode `generer_grille` initialise la carte avec des cases de type `VIDE` avant de la peupler de planètes et d'astéroïdes.
-- **Réservation de zones** : Au début de la génération, la carte réserve deux zones (en haut à gauche et en bas à droite) pour empêcher la génération d'obstacles à l'emplacement des bases.
+
+Le fichier `Map.py` contient la classe **`Map`**, qui est responsable de la création, du stockage et de la gestion de la carte de jeu. Ses principales fonctionnalités incluent :
+
+* **`generer_grille()`** : Initialise la carte avec des cases de type `VIDE`.
+* **`generer_planet()`**, **`peut_placer(x, y, taille)`**, et **`placer_planete(x, y)`** : Ces méthodes travaillent ensemble pour générer et placer des planètes de manière aléatoire sur la carte, tout en s'assurant qu'elles ne se chevauchent pas ou ne bloquent pas les zones de départ.
+* **`generer_asteroides()`** et **`placer_asteroide()`** : Gèrent la génération et le placement des champs d'astéroïdes.
+* **Réservation de zones** : Au début de la génération, deux zones sont réservées (en haut à gauche et en bas à droite) pour garantir que les bases des joueurs ne sont pas entravées par des obstacles.
 
 ---
 
 #### `Player.py`
-Le fichier `Player.py` contient la classe **`Player`**, qui gère les aspects liés aux joueurs. Elle permet notamment de :
-- Gérer l'argent du joueur via les méthodes `buy` (pour retirer de l'argent) et `gain` (pour en ajouter), en s'appuyant sur la classe **`Economie`**.
-- Attribuer chaque vaisseau au joueur correspondant.
+
+La classe **`Player`** gère tous les aspects liés à un joueur. Elle inclut :
+
+* La gestion de la monnaie du joueur à travers les méthodes **`buy(montant)`** et **`gain(montant)`**, qui interagissent avec la classe `Economie`.
+* Le lien entre chaque vaisseau et son joueur propriétaire.
 
 ---
 
 #### `Economie.py`
-Ce fichier contient la classe **`Economie`**, qui gère la monnaie du jeu. Elle dispose de quatre fonctions :
-- **`ajouter`** : Ajoute une somme d'argent.
-- **`retirer`** : Retire une somme d'argent.
-- **`peut_payer`** : Vérifie si le joueur possède suffisamment de fonds.
-- **`etat`** : Renvoie le solde actuel du joueur.
 
----
+Ce fichier contient la classe **`Economie`**, qui gère la monnaie du jeu. Elle dispose de plusieurs fonctions :
 
-#### `Animator`
-Les fichiers dont le nom contient le mot **`Animator`** gèrent les animations du jeu pour les vaisseaux, les planètes et les projectiles. Ils contiennent tout le code nécessaire pour la lecture des différentes séquences d'animation.
+* **`ajouter(montant)`** : Ajoute un `montant` d'argent au solde du joueur.
+* **`retirer(montant)`** : Retire un `montant` d'argent du solde.
+* **`peut_payer(montant)`** : Une fonction de vérification qui renvoie `True` si le joueur possède suffisamment de fonds pour effectuer un achat.
+* **`etat()`** : Renvoie le solde actuel du joueur.
 
 ---
 
 #### `Shop.py`
-Le fichier `Shop.py` gère la boutique du jeu. La classe **`Shop`** permet aux joueurs d'acheter de nouveaux vaisseaux.
+
+Le fichier `Shop.py` définit la classe **`Shop`**, qui gère la boutique du jeu. Cette classe est l'interface par laquelle les joueurs peuvent étendre leur flotte. Ses responsabilités principales sont :
+
+* **Catalogue de vaisseaux** : Elle contient la liste des types de vaisseaux disponibles à l'achat, avec leurs coûts associés.
+* **Gestion des transactions** : Lorsque le joueur sélectionne un vaisseau, le `Shop` vérifie, en utilisant la classe `Economie`, si le joueur a les fonds nécessaires.
+* **Création de vaisseaux** : Une fois la transaction validée, le `Shop` instancie le nouveau vaisseau et l'assigne au joueur correspondant, le préparant à être placé sur la carte.
 
 ---
 
 #### `Turn.py`
-La classe **`Turn`** est responsable de la gestion du déroulement des tours pendant la partie, s'assurant que chaque joueur joue à son tour.
+
+La classe **`Turn`** est un gestionnaire d'état crucial pour le déroulement du jeu. Elle est responsable de la gestion du déroulement des tours pendant la partie, s'assurant que chaque joueur joue à son tour. Ses fonctions clés incluent :
+
+* **Suivi du joueur actif** : Elle garde en mémoire l'identité du joueur dont c'est le tour de jeu.
+* **Passage de tour** : Une méthode principale permet de passer le tour au joueur suivant une fois le tour du joueur actuel terminé.
+* **Déclenchement d'événements** : Elle peut être responsable du déclenchement d'événements de fin de tour (par exemple, la génération de ressources) ou de début de tour.
+
+---
+
+#### Fichiers `*Animator.py`
+
+Contrairement à un seul fichier, cette mention désigne un ensemble de fichiers (comme `ShipAnimator.py`, `ProjectileAnimator.py`, etc.) qui sont spécifiquement conçus pour gérer les animations des différents éléments du jeu. Leur rôle est essentiel pour le rendu visuel et le dynamisme du jeu :
+
+* **Lecture de séquences d'images** : Chaque animateur est programmé pour lire et afficher les séquences d'images (sprites) stockées dans le dossier `assets/img`.
+* **Gestion des états d'animation** : Ils gèrent les différentes animations de chaque objet (par exemple, l'animation de déplacement, d'attaque, de destruction) et s'assurent que la bonne animation est jouée au bon moment.
+* **Synchronisation** : Ils synchronisent les animations avec les actions des objets (un vaisseau qui se déplace, un projectile qui vole, une explosion) pour un rendu fluide et réaliste.
 
 ---
 
 ### 📁 Dossier *`assets`*
 
-Le dossier **`assets`** contient l'ensemble des ressources multimédia du jeu, comme les images et les sons. Il est organisé de la manière suivante :
+Le dossier **`assets`** centralise toutes les ressources multimédia utilisées dans le jeu. Il est organisé de manière thématique pour faciliter la gestion.
 
-- Le dossier `img` contient les images et les animations. Il est subdivisé en plusieurs sous-dossiers thématiques :
-    - `asteroides`
-    - `menu`
-    - `planets`
-    - `projectiles`
-    - `ships`
-        - Le dossier `ships` contient un sous-dossier pour chaque type de vaisseau. Chaque sous-dossier de vaisseau est organisé comme suit :
-            - `base.png` : Image du vaisseau au repos.
-            - `destruction.png` : Séquence d'images pour l'animation de destruction.
-            - `engine.png` : Séquence d'images pour l'animation de déplacement ou au repos.
-            - `shield.png` : Séquence d'images pour l'animation de prise de dégâts.
-            - `weapons.png` : Séquence d'images pour l'animation d'attaque.
-
----
-
-### ⚠️ Problème de la Foreuse
-
-Le vaisseau `Foreuse` est une exception et n'a pas d'animation d'attaque. Pour éviter que le programme ne plante si ce vaisseau est amené à attaquer, sa portée d'attaque doit être impérativement fixée à **`0`**. Cela l'empêche d'exécuter l'animation manquante.
+* `img` : Contient toutes les images et les animations.
+    * `asteroides`
+    * `menu`
+    * `planets`
+    * `projectiles`
+    * `ships` : Chaque sous-dossier de vaisseau est structuré comme suit :
+        * **`base.png`** : Image statique du vaisseau.
+        * **`destruction.png`** : Séquence d'images pour l'animation de destruction.
+        * **`engine.png`** : Séquence d'images pour l'animation de déplacement et au repos.
+        * **`shield.png`** : Séquence d'images pour l'animation de prise de dégâts.
+        * **`weapons.png`** : Séquence d'images pour l'animation d'attaque.
 
 ---
 
-## 📄 Les fichiers principaux
+### 📄 Fichiers principaux
 
-### main.py
-le main.py permet le fonctionnement du programme entier permetant de lancer le jeu
+#### `main.py`
 
+Le fichier `main.py` est le point d'entrée du programme. C'est lui qui lance l'application et initialise la boucle de jeu principale.
 
-### blazyck.py
-blazyck.py contient toute les variable qu'on puisse les modifier pourpouvoir tester le jeu sans avoir besoin d'allez dans les différent programme
+#### `blazyck.py`
+
+Ce fichier agit comme un **fichier de configuration central**. Il contient l'ensemble des variables et paramètres modifiables, ce qui permet de tester et d'ajuster le jeu sans avoir à modifier directement le code des différentes classes.
