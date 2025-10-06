@@ -1,24 +1,30 @@
 import os
 import pygame
 
+# Constantes
+
 pygame.init()
 
 info = pygame.display.Info()
-screen_width = info.current_w
-screen_height = info.current_h
+SCREEN_WIDTH = info.current_w
+SCREEN_HEIGHT = info.current_h
 
 pygame.quit()
-# Constantes
+
+# Shop
+BAR_HEIGHT = 85
+ICON_SIZE = 50
+ICON_MARGIN = 20
+CASE_PADDING = 8
 
 # Taille de la map
 NB_CASE_X = 50 # Nombre de cases en largeur
 NB_CASE_Y = 30 # Nombre de cases en hauteur
-TAILLE_CASE = screen_height // (NB_CASE_Y + 2) # Taille d'une case en pixels
+TAILLE_CASE = (SCREEN_HEIGHT - BAR_HEIGHT) // NB_CASE_Y # Taille d'une case en pixels
 
 # Adapté l'écran
 GRID_WIDTH = NB_CASE_X * TAILLE_CASE
-OFFSET_X = (screen_width - GRID_WIDTH) // 2
-SCREEN_WIDTH, SCREEN_HEIGHT = screen_width, screen_height
+OFFSET_X = max((SCREEN_WIDTH - GRID_WIDTH) // 2, 100)
 
 # Planètes
 MAX_PLANETES_ANIMATIONS = 50 # Nombre d'animations de planètes différents
