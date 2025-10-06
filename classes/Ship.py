@@ -775,39 +775,77 @@ class Transport(Ship):
         self.animator.speed = 7
 
 
-    def ajouter_cargo(self, ship: Ship) -> bool:
-        """Ajoute un vaisseau à la cargaison."""
+    def ajouter_cargo(self, ship: Ship, grille: List[List[Point]]) -> bool:
+        """
+        Ajoute un vaisseau à la cargaison :
+        - Vérifie qu’il reste un slot libre
+        - Retire le vaisseau de la grille et de la liste des vaisseaux actifs
+        - Supprime son animation du rendu
+        """
         if not self.peut_transporter:
             return False
-            
+
         for i in range(len(self.cargaison)):
             if self.cargaison[i] is None:
+                if ship.est_mort():
+                    return False
+
+                # Libérer les cases sur la grille
+                ship.liberer_position(grille)
+                
+                ship.animator.alpha = 0  # totalement transparent
+                ship.animator.show_health = False
+                
+
+                # Ajouter dans la cargaison
                 self.cargaison[i] = ship
+
                 return True
+
         return False
 
+
     def retirer_cargo(self, index: int, ligne: int, colonne: int, grille: List[List[Point]], ships: List[Ship]) -> bool:
-        """Retire un vaisseau de la cargaison et le place sur la grille."""
+        """
+        Retire un vaisseau de la cargaison et le replace sur la grille :
+        - Vérifie la validité de la position
+        - Réactive l’animation et le rend visible
+        - Réinsère dans la liste des vaisseaux actifs
+        """
         if 0 <= index < len(self.cargaison):
             ship = self.cargaison[index]
             if ship is None:
                 return False
-                
-            # Vérifier si la position est libre
+
+            # Vérifier que la position est valide
             if not ship.verifier_collision(grille, ligne, colonne, ship.direction):
                 return False
-                
-            self.cargaison[index] = None
+
+            # Placer le vaisseau sur la carte
             ship.cordonner._x = ligne
             ship.cordonner._y = colonne
             ship.direction = "haut"
             ship.occuper_plateau(grille, Type.VAISSEAU)
-            
-            # Remettre le vaisseau dans la liste des vaisseaux actifs
-            if ship not in ships:
-                ships.append(ship)
+
+            # Réactiver animations
+            ship.animator.alpha = 255  # totalement transparent*
+            ship.animator.show_health = True
+
+
+            # Repositionner le sprite
+            largeur, hauteur = ship.donner_dimensions(ship.direction)
+            ship.animator.x = colonne * TAILLE_CASE + OFFSET_X
+            ship.animator.y = ligne * TAILLE_CASE
+            ship.animator.pixel_w = largeur * TAILLE_CASE
+            ship.animator.pixel_h = hauteur * TAILLE_CASE
+
+            # Retirer du cargo
+            self.cargaison[index] = None
+
             return True
+
         return False
+
 
     def _taille_vaisseau(self, ship: Ship) -> int:
         """Détermine la taille d'un vaisseau pour l'affichage."""

@@ -237,7 +237,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                     if (target.cordonner.x <= case_souris[0] < target.cordonner.x + hauteur and
                         target.cordonner.y <= case_souris[1] < target.cordonner.y + largeur):
                         if isinstance(target, Transport):
-                            success = target.ajouter_cargo(selection_ship)
+                            success = target.ajouter_cargo(selection_ship, map_obj.grille)
                             if success:
                                 selection_ship.liberer_position(map_obj.grille)
                                 ships.remove(selection_ship)
