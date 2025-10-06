@@ -727,8 +727,8 @@ class Foreuse(Ship):
         
         super().__init__(
             pv_max=stats["pv_max"],
-            attaque=stats["attaque"],
-            port_attaque=stats["port_attaque"],
+            attaque=0,
+            port_attaque=0,
             port_deplacement=stats["port_deplacement"],
             cout=stats["cout"],
             taille=stats["taille"],

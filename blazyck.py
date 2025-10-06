@@ -32,7 +32,7 @@ PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
 ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
 
 # Stats des vaisseaux
-CSTE : int = 200
+CSTE : int = 10
 # Gains
 PLANETES_REWARD = 100
 ASTEROIDES_REWARD = 75
