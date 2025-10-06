@@ -1,9 +1,5 @@
 import pygame
-
-BAR_HEIGHT = 85
-ICON_SIZE = 50
-ICON_MARGIN = 20
-CASE_PADDING = 8
+from blazyck import *
 
 class Shop:
     def __init__(self, player, font, screen):
