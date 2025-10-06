@@ -343,13 +343,13 @@ def trouver_position_libre_base(map_obj, joueur_id, taille_vaisseau):
     # Définir la zone de recherche selon le joueur
     if joueur_id == 0:
         # Base en haut à gauche (0,0 à 5,4)
-        start_y, end_y = 0, 15  # Chercher dans une zone plus large autour de la base
-        start_x, end_x = 0, 15
+        start_y, end_y = 0, 7  # Chercher dans une zone plus large autour de la base
+        start_x, end_x = 0, 7
     else:  # joueur_id == 2
         # Base en bas à droite
-        start_y = max(0, NB_CASE_Y - 15)
+        start_y = max(0, NB_CASE_Y - 7)
         end_y = NB_CASE_Y
-        start_x = max(0, NB_CASE_X - 15)
+        start_x = max(0, NB_CASE_X - 7)
         end_x = NB_CASE_X
     
     largeur, hauteur = taille_vaisseau
