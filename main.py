@@ -12,9 +12,9 @@
 # - nonov1012                                                   #
 # - DAVID Gabriel                                               #
 # - brian62100                                                  #
-# - NOEL Clément
-# - Tom Vanhove
-# - CAVEL Ugo
+# - NOEL Clément                                                #
+# - Tom Vanhove                                                 #
+# - CAVEL Ugo                                                   #
 #################################################################
 # Copyright (c) 2025                                            #
 # Tous droits réservés. Merci de ne pas reproduire              #

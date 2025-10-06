@@ -23,7 +23,9 @@ from classes.Start_Animation.main import create_space_background
 # Initialisation Pygame
 # -------------------------------
 pygame.init()
-ecran = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.NOFRAME)
+screen_info = pygame.display.Info()
+screen_width, screen_height = screen_info.current_w, screen_info.current_h
+ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 pygame.display.set_caption("Xénon Space")
 clock = pygame.time.Clock()
 
