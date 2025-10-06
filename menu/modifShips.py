@@ -19,52 +19,53 @@ def calcul_portee(ratio: float) -> int:
     """
     return int(CSTE / ((1 + ratio) * 10))
 
+def attributs(value, weight):
+    return value * weight
+
 # parametre.py
 SHIP_STATS = {
     "Lourd": {
-        "pv_max": calcul_vie(4.0),
-        "attaque": 50,
-        "port_attaque": 5,
-        "port_deplacement": calcul_portee(4.0),
-        "cout": 5000,
-        "taille": (3, 3),
+        "pv_max": attributs(8, 100),
+        "attaque": 200,
+        "port_attaque": 6,
+        "port_deplacement": attributs(2, 1),
+        "cout": 4000,
+        "taille": (3, 4),
         "peut_miner": False,
         "peut_transporter": False
     },
     "Moyen": {
-        "pv_max": calcul_vie(1.5),
-        "attaque": 30,
-        "port_attaque": 3,
-        "port_deplacement": calcul_portee(1.5),
-        "cout": 3000,
+        "pv_max": attributs(4, 100),
+        "attaque": 100,
+        "port_attaque": 4,
+        "port_deplacement": attributs(6, 1),
+        "cout": 1000,
         "taille": (2, 2),
         "peut_miner": False,
         "peut_transporter": False
     },
     "Petit": {
-        "pv_max": calcul_vie(0.5),
-        "attaque": 10,
+        "pv_max": attributs(4, 25),
+        "attaque": 50,
         "port_attaque": 1,
-        "port_deplacement": calcul_portee(0.5),
-        "cout": 1000,
+        "port_deplacement": attributs(6, 1),
+        "cout": 250,
         "taille": (1, 1),
         "peut_miner": False,
         "peut_transporter": False
     },
     "Foreuse": {
-        "pv_max": calcul_vie(1.0),
-        "attaque": 5,
-        "port_attaque": 1,
-        "port_deplacement": calcul_portee(1.0),
-        "cout": 4000,
-        "taille": (2, 2),
+        "pv_max": attributs(4, 50),
+        "port_deplacement": attributs(6, 0.5),
+        "cout": 700,
+        "taille": (1, 1),
         "peut_miner": True,
         "peut_transporter": False
     },
     "Transport": {
-        "pv_max": calcul_vie(3.0),
-        "attaque": 5,
-        "port_attaque": 1,
+        "pv_max": attributs(4, 150),
+        "attaque": 100,
+        "port_attaque": 3,
         "port_deplacement": calcul_portee(3.0),
         "cout": 2000,
         "taille": (2, 2),
@@ -137,11 +138,11 @@ noms_affichage = {
 
 # Limites des paramètres modifiables pour les sliders
 limites_params = {
-    "pv_max": {"min": 10, "max": 10000},
+    "pv_max": {"min": 10, "max": 2000},
     "attaque": {"min": 0, "max": 500},
     "port_attaque": {"min": 0, "max": 20},
     "port_deplacement": {"min": 0, "max": 15},
-    "cout": {"min": 100, "max": 20000},
+    "cout": {"min": 100, "max": 10000},
     "taille_largeur": {"min": 1, "max": 10},
     "taille_hauteur": {"min": 1, "max": 10},
     "gain": {"min": 1, "max": 10000},

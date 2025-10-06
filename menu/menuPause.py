@@ -104,7 +104,7 @@ def main_pause(ecran, jeu_surface=None):
                     if rect.collidepoint(event.pos):
                         if label == "REPRENDRE":
                             en_cours = False
-                        elif label == "PARAMÈTRES":
+                        elif label == "PARAMETRES":
                             menuParam.main(ecran, False)
                         elif label == "QUITTER":
                             pygame.quit()
