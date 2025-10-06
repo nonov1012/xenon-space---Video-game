@@ -2,7 +2,7 @@ import os
 import random
 from blazyck import *
 
-from main import start_game
+
 from classes.ShipAnimator import ShipAnimator
 from classes.PlanetAnimator import PlanetAnimator
 from classes.Animator import Animator
@@ -640,4 +640,5 @@ def draw(ecran):
     if lancer_partie == True:
         ShipAnimator.clear_list()
         PlanetAnimator.clear_list()
+        from main import start_game
         start_game(ecran, parametres, random_active)
