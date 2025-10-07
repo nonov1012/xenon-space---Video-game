@@ -1,6 +1,18 @@
 from PIL import Image, ImageSequence
 
 def gif_to_spritesheet(gif_path, output_path, rows=None, cols=None):
+    """
+    Convertit un fichier GIF en une spritesheet.
+
+    Le GIF est chargé et toutes les frames sont extraites.
+    Les frames sont ensuite collées dans une grille qui est sauvegardée
+    dans le fichier output_path.
+
+    :param gif_path: Chemin du fichier GIF
+    :param output_path: Chemin du fichier de sortie
+    :param rows: Nombre de lignes dans la grille (défaut = None)
+    :param cols: Nombre de colonnes dans la grille (défaut = None)
+    """
     # Charger le GIF
     gif = Image.open(gif_path)
 
@@ -9,7 +21,7 @@ def gif_to_spritesheet(gif_path, output_path, rows=None, cols=None):
     frame_width, frame_height = frames[0].size
     num_frames = len(frames)
 
-    # Si pas de grille imposée → une seule ligne
+    # Si pas de grille imposée -> une seule ligne
     if not cols:
         cols = num_frames
     if not rows:

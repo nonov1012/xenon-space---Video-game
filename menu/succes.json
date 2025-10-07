@@ -1,0 +1,37 @@
+[
+  {
+    "id": "victoire_supreme",
+    "titre": "Victoire Supreme",
+    "description": "Remportez votre premiere victoire",
+    "image": "assets/img/succes/victoire.png",
+    "debloque": false
+  },
+  {
+    "id": "explorateur_cosmique",
+    "titre": "Explorateur Cosmique",
+    "description": "Parcourez chaque recoin de la galaxie",
+    "image": "assets/img/succes/explorateur.png",
+    "debloque": false
+  },
+  {
+    "id": "maitre_flotte",
+    "titre": "Maitre de Flotte",
+    "description": "Pilotez tous les types de vaisseaux.",
+    "image": "assets/img/succes/flotte.png",
+    "debloque": false
+  },
+  {
+    "id": "architecte_stellaire",
+    "titre": "Architecte Stellaire",
+    "description": "Ameliorez votre base au niveau maximum.",
+    "image": "assets/img/succes/base.png",
+    "debloque": false
+  },
+  {
+    "id": "chasseur_elite",
+    "titre": "Chasseur d'elite",
+    "description": "eliminez 10 ennemis.",
+    "image": "assets/img/succes/chasseur.png",
+    "debloque": false
+  }
+]

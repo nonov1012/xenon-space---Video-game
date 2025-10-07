@@ -1,3 +1,4 @@
+from pickle import TRUE
 import pygame
 import sys
 from classes.PlanetAnimator import PlanetAnimator
@@ -5,7 +6,7 @@ from classes.ShipAnimator import ShipAnimator
 import menu.menuJouer
 import menu.menuParam
 import menu.menuSucces
-import menu.menuPause
+import menu.credit
 
 from classes.TitreAnime import TitreAnime
 from classes.Sounds import SoundManager
@@ -24,7 +25,7 @@ from classes.Start_Animation.main import create_space_background
 pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
-ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN, pygame.SRCALPHA)
+ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 pygame.display.set_caption("Xénon Space")
 clock = pygame.time.Clock()
 
@@ -32,12 +33,12 @@ Animator.set_screen(ecran) # initialisation de la classe Animator
 
 # Curseur personnalise
 new_cursor = pygame.image.load('assets/img/menu/cursor.png')
-new_cursor = pygame.transform.scale(new_cursor, (40, 40))
+new_cursor = pygame.transform.scale(new_cursor, (48, 48))
 pygame.mouse.set_visible(False)
 
 # Sons
 sm = SoundManager()
-# sm.play_music("assets/sounds/musics/music_ingame.mp3")
+sm.play_music("assets/sounds/musics/music_ingame.mp3")
 sm.load_sfx("son_hover", "assets/sounds/menu/buttons/button_hover.mp3")
 sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
@@ -99,10 +100,20 @@ hover_states = {}
 # -------------------------------
 en_cours = True
 while en_cours:
-    souris = pygame.mouse.get_pos()
+    try:
+        souris = pygame.mouse.get_pos()
+    except pygame.error:
+        # Retourne une position par défaut si pygame n'est pas initialisé
+        souris = (0, 0)
+
 
     # --- Fond + planetes + vaisseau ---
-    ecran.fill((0,0,0))
+    if ecran is None:
+        ecran = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        largeur_ecran, hauteur_ecran = ecran.get_size()
+    if ecran.get_locked() is False:  # simple check
+        ecran.fill((0,0,0))
+
 
     stars.update()
     stars.draw(ecran)
@@ -156,23 +167,20 @@ while en_cours:
     for evenement in pygame.event.get():
         if evenement.type == pygame.QUIT:
             en_cours = False
-        elif evenement.type == pygame.KEYDOWN:
-            if evenement.key == pygame.K_ESCAPE:
-                # Appelle le menu pause
-                pause_menu = menu.menuPause.PauseMenu(ecran, sm)
-                pause_menu.run()
         elif evenement.type == pygame.MOUSEBUTTONDOWN:
             if bouton_jouer.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 menu.menuJouer.draw(ecran)
             elif bouton_param.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
-                menu.menuParam.main(ecran)
+                menu.menuParam.main(ecran,True)
             elif bouton_succes.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 menu.menuSucces.main(ecran)
+            elif bouton_credit.collidepoint(evenement.pos):
+                sm.play_sfx("son_click")
+                menu.credit.main(ecran)
             elif bouton_quitter.collidepoint(evenement.pos):
                 sm.play_sfx("son_click")
                 pygame.quit()
                 sys.exit()
-
