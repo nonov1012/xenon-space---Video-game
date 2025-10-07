@@ -832,6 +832,8 @@ class Transport(Ship):
             ship.animator.alpha = 255  # totalement transparent*
             ship.animator.show_health = True
 
+            ship.port_deplacement = 0
+
 
             # Repositionner le sprite
             largeur, hauteur = ship.donner_dimensions(ship.direction)
