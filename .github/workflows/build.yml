@@ -1,0 +1,141 @@
+name: Build & Release Xenon Space
+
+on:
+  push:
+    branches: 
+      - after_deadline  # Se déclenche UNIQUEMENT sur after_deadline
+  workflow_dispatch:  # Permet aussi de lancer manuellement
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Build Windows executable
+      run: |
+        python -m PyInstaller xenon_space.spec --clean
+    
+    - name: Upload Windows build
+      uses: actions/upload-artifact@v3
+      with:
+        name: XenonSpace-Windows
+        path: dist/XenonSpace/
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pygame python3-pil
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Build Linux executable
+      run: |
+        python -m PyInstaller xenon_space.spec --clean
+    
+    - name: Upload Linux build
+      uses: actions/upload-artifact@v3
+      with:
+        name: XenonSpace-Linux
+        path: dist/XenonSpace/
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Build macOS executable
+      run: |
+        python -m PyInstaller xenon_space.spec --clean
+    
+    - name: Upload macOS build
+      uses: actions/upload-artifact@v3
+      with:
+        name: XenonSpace-macOS
+        path: dist/XenonSpace/
+
+  create-release:
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Create Release ZIP files
+      run: |
+        cd XenonSpace-Windows && zip -r ../XenonSpace-Windows.zip . && cd ..
+        cd XenonSpace-Linux && zip -r ../XenonSpace-Linux.zip . && cd ..
+        cd XenonSpace-macOS && zip -r ../XenonSpace-macOS.zip . && cd ..
+    
+    - name: Generate release info
+      id: release_info
+      run: |
+        echo "date=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+        echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "commit_msg=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: release-${{ steps.release_info.outputs.date }}-${{ steps.release_info.outputs.short_sha }}
+        name: "Xenon Space - Build ${{ steps.release_info.outputs.date }}"
+        body: |
+          🚀 **Build automatique depuis after_deadline**
+          
+          📅 Date: ${{ steps.release_info.outputs.date }}
+          🔖 Commit: ${{ steps.release_info.outputs.short_sha }}
+          📝 Message: ${{ steps.release_info.outputs.commit_msg }}
+          
+          ## 📦 Téléchargements
+          - **Windows** : XenonSpace-Windows.zip
+          - **Linux** : XenonSpace-Linux.zip
+          - **macOS** : XenonSpace-macOS.zip
+          
+          ## 🎮 Installation
+          1. Téléchargez le fichier pour votre OS
+          2. Décompressez le ZIP
+          3. Lancez l'exécutable XenonSpace
+        files: |
+          XenonSpace-Windows.zip
+          XenonSpace-Linux.zip
+          XenonSpace-macOS.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
