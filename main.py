@@ -516,18 +516,7 @@ def start_game(ecran, parametres, random_active):
     next_uid[0] += 1
     Turn.players[0].ships.append(smm1)
 
-    # MotherShip du joueur 2
-    smm2 = MotherShip(
-        tier=1,
-        cordonner=Point(25, 46),
-        id=next_uid[0],
-        path=img_base_dir,
-        joueur=Turn.players[1].id
-    )
-    next_uid[0] += 1
-    Turn.players[1].ships.append(smm2)
-
-    # Petit vaisseau joueur 1
+        # Petit vaisseau joueur 1
     sp1 = Petit(
         cordonner=Point(5, 1),
         id=next_uid[0],
@@ -537,17 +526,6 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[0].ships.append(sp1)
-
-    # Vaisseau lourd joueur 2
-    sl1 = Lourd(
-        cordonner=Point(5, 5),
-        id=next_uid[0],
-        path=img_lourd_dir,
-        image=img_Lourd,
-        joueur=Turn.players[1].id
-    )
-    next_uid[0] += 1
-    Turn.players[1].ships.append(sl1)
 
     # Foreuse joueur 1
     sf1 = Foreuse(
@@ -559,6 +537,40 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[0].ships.append(sf1)
+
+    # MotherShip du joueur 2
+    smm2 = MotherShip(
+        tier=1,
+        cordonner=Point(25, 46),
+        id=next_uid[0],
+        path=img_base_dir,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(smm2)
+
+        # Petit vaisseau joueur 2
+    sp2 = Petit(
+        cordonner=Point(24, 45),
+        id=next_uid[0],
+        path=img_petit_dir,
+        image=img_petit,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sp2)
+
+    # Foreuse joueur 2
+    sf2 = Foreuse(
+        cordonner=Point(23, 44),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2)
+
 
     # --- Placer vaisseaux sur la grille ---
     for s in Turn.get_players_ships():
