@@ -1,100 +1,115 @@
 import pygame
 import sys
-import menu.menuParam
-import menu.menuJouer
-from classes.Sounds import SoundManager
+import os
+from blazyck import *
 
-class PauseMenu:
-    def __init__(self, screen: pygame.Surface, sound_manager: SoundManager):
-        self.screen = screen
-        self.sm = sound_manager
-        self.clock = pygame.time.Clock()
-        self.screen_width, self.screen_height = screen.get_size()
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from classes.Animator import Animator
+from classes.PlanetAnimator import PlanetAnimator
+from classes.Start_Animation.main import create_space_background
+from menu import menuParam  # Assurez-vous que menuParam.main accepte ecran en param
 
-        # Couleurs et polices
-        self.white = (255, 255, 255)
-        self.title_font = pygame.font.Font("assets/fonts/SpaceNova.otf", 80)
-        self.button_font = pygame.font.Font("assets/fonts/SpaceNova.otf", 30)
+def main_pause(ecran, jeu_surface=None):
+    pygame.mouse.set_visible(False)
 
-        # Fond noir transparent
-        self.overlay = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
-        self.overlay.fill((0, 0, 0, 180))
+    # -------------------------------
+    # Couleurs et polices
+    # -------------------------------
+    BLANC = (255, 255, 255)
+    NOIR = (0, 0, 0)
 
-        # Titre
-        self.title_text = self.title_font.render("PAUSE", True, self.white)
-        self.title_rect = self.title_text.get_rect(center=(self.screen_width // 2, 100))
+    police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 42)
+    police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 72)
 
-        # Boutons
-        self.image_bouton = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
-        self.image_bouton = pygame.transform.scale(self.image_bouton, (400, 100))
-        self.largeur_bouton, self.hauteur_bouton = self.image_bouton.get_size()
-        y_bouton = 250
-        espace = 120
-        self.texts = ["REPRENDRE", "PARAMETRES", "QUITTER", "RETOUR AU MENU"]
-        self.buttons = [pygame.Rect(self.screen_width//2 - self.largeur_bouton//2, y_bouton + i*espace,
-                                     self.largeur_bouton, self.hauteur_bouton) for i in range(len(self.texts))]
+    # -------------------------------
+    # Curseur
+    # -------------------------------
+    curseur_img = pygame.image.load('assets/img/menu/cursor.png')
+    curseur_img = pygame.transform.scale(curseur_img, (40, 40))
 
-        # Zoom et hover
-        self.zoom_states = {}
-        self.hover_states = {}
-        self.zoom_speed = 0.08
+    # -------------------------------
+    # Boutons verticaux
+    # -------------------------------
+    image_bouton_base = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
+    def creer_image_bouton(largeur, hauteur):
+        return pygame.transform.scale(image_bouton_base, (largeur, hauteur))
 
-    def run(self):
-        pygame.mouse.set_visible(True)
-        running = True
-        while running:
-            souris = pygame.mouse.get_pos()
-            self.screen.blit(self.overlay, (0,0))
-            self.screen.blit(self.title_text, self.title_rect.topleft)
+    labels = ["REPRENDRE", "PARAMÈTRES", "QUITTER"]
+    images = [creer_image_bouton(500, 100) for _ in labels]
 
-            # Dessin des boutons
-            for i, bouton in enumerate(self.buttons):
-                if i not in self.zoom_states:
-                    self.zoom_states[i] = 1.0
-                if i not in self.hover_states:
-                    self.hover_states[i] = False
+    largeur_ecran, hauteur_ecran = ecran.get_size()
+    espacement = 60
+    y_depart = hauteur_ecran // 2 - ((len(labels)-1) * (100 + espacement)) // 2
+    rects = [pygame.Rect(largeur_ecran//2 - 250, y_depart + i*(100 + espacement), 500, 100) for i in range(len(labels))]
 
-                zone_survol = bouton.inflate(0, -20)
-                est_survol = zone_survol.collidepoint(souris)
-                if est_survol and not self.hover_states[i]:
-                    self.sm.play_sfx("son_hover")
-                self.hover_states[i] = est_survol
+    boutons = list(zip(images, rects, labels))
+    zoom_etats = {label: 1.0 for label in labels}
+    vitesse_zoom = 0.08
 
-                zoom_cible = 1.1 if est_survol else 1.0
-                self.zoom_states[i] += (zoom_cible - self.zoom_states[i]) * self.zoom_speed
+    # -------------------------------
+    # Fond : uniquement étoiles (pas de planètes, pas de vaisseau)
+    # -------------------------------
+    screen_ratio = (largeur_ecran * 100 / 600) / 100
+    stars, _, _ = create_space_background(
+        num_stars=100, screen_ratio=screen_ratio
+    )
 
-                bouton_zoom = pygame.transform.scale(
-                    self.image_bouton,
-                    (int(self.largeur_bouton * self.zoom_states[i]),
-                     int(self.hauteur_bouton * self.zoom_states[i]))
-                )
-                rect_zoom = bouton_zoom.get_rect(center=bouton.center)
-                self.screen.blit(bouton_zoom, rect_zoom.topleft)
+    horloge = pygame.time.Clock()
+    en_cours = True
 
-                texte_render = self.button_font.render(self.texts[i], True, self.white)
-                rect_texte = texte_render.get_rect(center=rect_zoom.center)
-                self.screen.blit(texte_render, rect_texte.topleft)
+    while en_cours:
+        souris = pygame.mouse.get_pos()
+        clic = pygame.mouse.get_pressed()[0]
 
-            pygame.display.flip()
-            self.clock.tick(30)
+        # -------------------------------
+        # Fond animé (juste étoiles)
+        # -------------------------------
+        ecran.fill(NOIR)
+        stars.update()
+        stars.draw(ecran)
 
-            # Gestion des événements
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.buttons[0].collidepoint(event.pos):  # REPRENDRE
-                        self.sm.play_sfx("son_click")
-                        running = False
-                    elif self.buttons[1].collidepoint(event.pos):  # PARAMETRES
-                        self.sm.play_sfx("son_click")
-                        menuParam.main(self.screen)
-                    elif self.buttons[2].collidepoint(event.pos):  # QUITTER
-                        self.sm.play_sfx("son_click")
-                        pygame.quit()
-                        sys.exit()
-                    elif self.buttons[3].collidepoint(event.pos):  # RETOUR AU MENU
-                        self.sm.play_sfx("son_click")
-                        menuJouer.main(self.screen)
-                        running = False
+        # -------------------------------
+        # Dessiner boutons
+        # -------------------------------
+        for image, rect, label in boutons:
+            est_hover = rect.collidepoint(souris)
+            cible_zoom = 1.1 if est_hover else 1.0
+            zoom_etats[label] += (cible_zoom - zoom_etats[label]) * vitesse_zoom
+
+            largeur_zoom = int(image.get_width() * zoom_etats[label])
+            hauteur_zoom = int(image.get_height() * zoom_etats[label])
+            image_zoom = pygame.transform.scale(image, (largeur_zoom, hauteur_zoom))
+            rect_zoom = image_zoom.get_rect(center=rect.center)
+            ecran.blit(image_zoom, rect_zoom.topleft) 
+
+            texte_surf = police_bouton.render(label, True, BLANC)
+            texte_rect = texte_surf.get_rect(center=rect_zoom.center)
+            ecran.blit(texte_surf, texte_rect)
+
+        # -------------------------------
+        # Curseur
+        # -------------------------------
+        ecran.blit(curseur_img, souris)
+
+        # -------------------------------
+        # Évènements
+        # -------------------------------
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                for _, rect, label in boutons:
+                    if rect.collidepoint(event.pos):
+                        if label == "REPRENDRE":
+                            en_cours = False
+                        elif label == "PARAMETRES":
+                            menuParam.main(ecran, False)
+                        elif label == "QUITTER":
+                            pygame.quit()
+                            sys.exit()
+
+        pygame.display.update()
+        horloge.tick(60)
+
