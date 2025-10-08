@@ -156,9 +156,7 @@ class Ship:
             # Supprimer de la liste des vaisseaux vivants
             player_ships = Turn.get_player_with_id(self.joueur).ships
             if self in player_ships:  # ou la liste globale de ships
-                print(player_ships)
                 player_ships.remove(self)
-                print(player_ships)
 
 
     def est_mort(self):
@@ -780,12 +778,23 @@ class Transport(Ship):
         """
         Ajoute un vaisseau à la cargaison :
         - Vérifie qu’il reste un slot libre
+        - Vérifie que le vaisseau est à portée d’embarquement
         - Retire le vaisseau de la grille et de la liste des vaisseaux actifs
         - Supprime son animation du rendu
         """
         if not self.peut_transporter:
             return False
 
+        # ---- Vérification de portée ----
+        # On considère qu’un vaisseau peut entrer dans le transport s’il est adjacent
+        # (tu peux augmenter cette distance si tu veux une "portée d’embarquement" plus grande)
+        portee_embarquement = 1  
+
+        dist = abs(self.cordonner.x - ship.cordonner.x) + abs(self.cordonner.y - ship.cordonner.y)
+        if dist > portee_embarquement:
+            return False
+
+        # ---- Vérification des slots libres ----
         for i in range(len(self.cargaison)):
             if self.cargaison[i] is None:
                 if ship.est_mort():
@@ -794,13 +803,12 @@ class Transport(Ship):
                 # Libérer les cases sur la grille
                 ship.liberer_position(grille)
                 
-                ship.animator.alpha = 0  # totalement transparent
+                # Rendre invisible
+                ship.animator.alpha = 0
                 ship.animator.show_health = False
-                
 
                 # Ajouter dans la cargaison
                 self.cargaison[i] = ship
-
                 return True
 
         return False

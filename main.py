@@ -111,7 +111,6 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                 for player in Turn.players:
                     mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and s.pv_actuel > 0]
                     if len(mother_ships) == 0:
-                        print(f"Le joueur {player.name} a perdu !")
                         gagnant = [p for p in Turn.players if p != player][0]
                         menu.menuFin.main(ecran, gagnant, victoire=True)
                         running = False
@@ -148,9 +147,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                                 joueur_actuel.ships.append(nouveau_vaisseau)
                                 ships.append(nouveau_vaisseau)
                                 nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
-                                print(f"Nouveau {type_vaisseau} spawné en position ({position.x}, {position.y})")
                         else:
-                            print(f"Impossible de trouver une position libre pour le {type_vaisseau}")
                             joueur_actuel.economie.ajouter(ship_data["price"])
                     break
 
@@ -187,8 +184,6 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                                 selection_ship.aperçu_direction = ship.direction
                                 selection_ship.aperçu_cordonner._x = ship.cordonner.x
                                 selection_ship.aperçu_cordonner._y = ship.cordonner.y
-                            else:
-                                print(f"Ce vaisseau appartient au joueur {ship.joueur}")
                             break
                     else:
                         # Aucun vaisseau cliqué → désélection
