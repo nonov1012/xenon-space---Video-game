@@ -94,7 +94,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 350
+            "gain": 400
         },
         3: {
             "pv_max": 1200,
@@ -105,7 +105,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 400
+            "gain": 500
         },
         4: {
             "pv_max": 1600,
@@ -116,7 +116,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 450
+            "gain": 600
         },
     }
 }

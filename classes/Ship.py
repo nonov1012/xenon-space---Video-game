@@ -158,7 +158,6 @@ class Ship:
             if self in player_ships:  # ou la liste globale de ships
                 player_ships.remove(self)
 
-
     def est_mort(self):
         """Retourne True si le vaisseau est détruit."""
         return self.pv_actuel <= 0
