@@ -57,7 +57,6 @@ class Map:
         
         # Si pas encore chargées (mode debug), charger maintenant
         if not self.planete_images:
-            print("[Map] Images non pré-chargées, chargement maintenant...")
             resource_manager.load_planetes()
             resource_manager.load_asteroides()
             self.planete_images = resource_manager.get_planete_images()
@@ -127,10 +126,6 @@ class Map:
                 self.placer_asteroide(x, y)
                 placed += 1
 
-        if placed < nb_asteroides:
-            print(f"/!\\ Seulement {placed} astéroïdes placés sur {nb_asteroides} demandés")
-
-
     def generer_planet(self, nb_planet: int) -> None:
         """
         Générer `nb_planet` planètes carrées aléatoires.
@@ -148,9 +143,6 @@ class Map:
             if self.peut_placer(x, y, taille):
                 self.placer_planete(x, y, taille)
                 pid += 1
-
-        if pid <= nb_planet:
-            print(f"/!\\ Seulement {pid-1} planètes placées sur {nb_planet} demandées")
 
     def generer_grille(self, screen: pygame.Surface, afficher_zones: bool = False, afficher_grille: bool = True, colors: dict[Type, tuple[int, int, int, int]] = None) -> None:
         for y in range(self.nb_cases_y):
