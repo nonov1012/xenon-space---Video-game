@@ -17,17 +17,26 @@ function HomepageHeader() {
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
+
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/intro">
-            Docusaurus Tutorial - 5min ⏱️
+            to="/docs/technicals/intro"
+          >
+            📘 Documentation Technique
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/users/intro"
+          >
+            🧭 Documentation Utilisateur
           </Link>
         </div>
       </div>
     </header>
   );
 }
+
 
 export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();

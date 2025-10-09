@@ -65,6 +65,22 @@ export default function HomepageFeatures(): ReactNode {
             <Feature key={idx} {...props} />
           ))}
         </div>
+
+        {/* 🎬 Section YouTube Trailer */}
+        <div className="text--center margin-top--xl">
+          <Heading as="h3">Découvrez Xenon Space en vidéo</Heading>
+          <div className={styles.videoContainer}>
+            <iframe
+              width="800"
+              height="450"
+              src="https://www.youtube.com/embed/o76fH_eu0nM"  // 🔁 Remplace par ton ID YouTube
+              title="Xenon Space Official Trailer"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
       </div>
     </section>
   );
