@@ -353,33 +353,42 @@ C'est la **source de revenus la plus rentable** à long terme !
 
 **Revenu passif par tour**
 
-| Niveau | PV | Gain/tour | Coût upgrade |
-|--------|----|-----------|--------------
-| 1 | 500 | 300₿ | 1000₿ |
+| Niveau | PV  | Gain/tour | Coût upgrade |
+|--------|-----|-----------|--------------|
+|   1    | 500 |   300₿    |    1000₿     |
 | 2 | 700 | 350₿ | 2000₿ |
 | 3 | 1200 | 400₿ | 6000₿ |
 | 4 | 1600 | 450₿ | — |
 
 **ROI (Return on Investment) :**
-- Nv1→2 : 20 tours (1000₿ / 50₿)
-- Nv2→3 : 40 tours (2000₿ / 50₿)
-- Nv3→4 : 120 tours (6000₿ / 50₿)
 
-  </TabItem>
+<ul>
+  <li>Nv1→2 : 20 tours (1000₿ / 50₿)</li>
+  <li>Nv2→3 : 40 tours (2000₿ / 50₿)</li>
+  <li>Nv3→4 : 120 tours (6000₿ / 50₿)</li>
+</ul>
+
+</TabItem>
   
   <TabItem value="foreuses" label="⛏️ Foreuses">
 
 **Deux modes de gain**
 
 **1. Minage actif :**
-- +75₿ immédiat
-- Coûte 10% PV
-- Une fois par astéroïde
+
+<ul>
+  <li>+75₿ immédiat</li>
+  <li>Coûte 10% PV</li>
+  <li>Une fois par astéroïde</li>
+</ul>
 
 **2. Bonus planète (passif) :**
-- +150₿ par tour
-- Aucun coût
-- Infini
+
+<ul>
+  <li>+150₿ par tour</li>
+  <li>Aucun coût</li>
+  <li>Infini</li>
+</ul>
 
 :::tip Comparaison
 Bonus planète > Minage actif après seulement 1 tour !
@@ -396,9 +405,12 @@ Gain = 60% × Coût_vaisseau
 ```
 
 **Stratégie :**
-- Ciblez les vaisseaux **chers** (Lourds, Transporteurs)
-- Les éliminations financent vos achats
-- Effet boule de neige si bien géré
+
+<ul>
+  <li>Ciblez les vaisseaux **chers** (Lourds, Transporteurs)</li>
+  <li>Les éliminations financent vos achats</li>
+  <li>Effet boule de neige si bien géré</li>
+</ul>
 
   </TabItem>
 </Tabs>
@@ -444,9 +456,12 @@ Gain = 60% × Coût_vaisseau
 Le **Transporteur** peut embarquer jusqu'à **3 vaisseaux** :
 
 **Capacité :**
-- 3× Petit
-- 1× Moyen + 1× Petit
-- 1× Lourd (occupe 2 slots)
+
+<ul>
+  <li>3× Petit</li>
+  <li>1× Moyen + 1× Petit</li>
+  <li>1× Lourd (occupe 2 slots)</li>
+</ul>
 
 :::info Configuration
 Vous pouvez personnaliser le nombre de slots dans les paramètres avancés.
@@ -457,24 +472,30 @@ Vous pouvez personnaliser le nombre de slots dans les paramètres avancés.
 ### Embarquer un vaisseau
 
 **Procédure :**
-1. Déplacez le vaisseau **adjacent** au transporteur
-2. **Clic droit** sur le transporteur
-3. Le vaisseau disparaît et entre dans la cargaison
+
+<ul>
+  <ol>Déplacez le vaisseau **adjacent** au transporteur</ol>
+  <ol>**Clic droit** sur le transporteur</ol>
+  <ol>Le vaisseau disparaît et entre dans la cargaison</ol>
+</ul>
 
 **Mini-icônes :**
 Des petites icônes apparaissent **au-dessus** du transporteur pour montrer la cargaison.
 
-![Transporteur avec cargaison](./img/transporteur-cargaison.png)
+<!-- ![Transporteur avec cargaison](./img/transporteur-cargaison.png) -->
 
 ---
 
 ### Débarquer un vaisseau
 
 **Procédure :**
-1. **Clic droit** sur une mini-icône de vaisseau
-2. Des **zones jaunes** apparaissent autour du transporteur
-3. **Cliquez** sur une zone jaune
-4. Le vaisseau est déployé
+
+<ul>
+  <ol>**Clic droit** sur une mini-icône de vaisseau</ol>
+  <ol>Des **zones jaunes** apparaissent autour du transporteur</ol>
+  <ol>**Cliquez** sur une zone jaune</ol>
+  <ol>Le vaisseau est déployé</ol>
+</ul>
 
 :::caution Portée limitée
 Le débarquement utilise la portée de **déplacement** du vaisseau débarqué !
@@ -488,27 +509,35 @@ Le débarquement utilise la portée de **déplacement** du vaisseau débarqué !
   <TabItem value="colonisation" label="🌍 Colonisation" default>
 
 **Foreuses rapides**
-- Embarquer 3 foreuses
-- Les déployer sur des planètes éloignées
-- Gain : 450₿/tour sur zone lointaine
+
+  <ul>
+    <li>Embarquer 3 foreuses</li>
+    <li>Les déployer sur des planètes éloignées</li>
+    <li>Gain : 450₿/tour sur zone lointaine</li>
+  </ul>
 
   </TabItem>
   
   <TabItem value="assault" label="⚔️ Assaut">
 
 **Strike team**
-- Embarquer 2 vaisseaux lourds
-- Approche rapide de la base ennemie
-- Débarquement surprise
+<ul>
+  <li>Embarquer 2 vaisseaux lourds</li>
+  <li>Approche rapide de la base ennemie</li>
+  <li>Débarquement surprise</li>
+</ul>
 
   </TabItem>
   
   <TabItem value="retreat" label="🏃 Retraite">
 
 **Évacuation**
-- Sauver un vaisseau endommagé
-- Le ramener à la base
-- Éviter l'élimination
+
+<ul>
+  <li>Sauver un vaisseau endommagé</li>
+  <li>Le ramener à la base</li>
+  <li>Éviter l'élimination</li>
+</ul>
 
   </TabItem>
 </Tabs>
@@ -531,9 +560,12 @@ Haut → Droite → Bas → Gauche → Haut
 ### Restrictions
 
 **Conditions pour pivoter :**
-- ✅ Espace suffisant dans la nouvelle orientation
-- ✅ Pas d'obstacle à la position finale
-- ❌ Impossible si bloqué
+
+<ul>
+  <li>✅ Espace suffisant dans la nouvelle orientation</li>
+  <li>✅ Pas d'obstacle à la position finale</li>
+  <li>❌ Impossible si bloqué</li>
+</ul>
 
 **Calcul de position :**
 Le centre du vaisseau reste fixe, seule l'orientation change.
@@ -597,9 +629,12 @@ Vos 3 vaisseaux empêchent l'accès direct à la base.
 Concentrer **plusieurs attaques** sur une seule cible pour l'éliminer rapidement.
 
 **Avantages :**
-- ✅ Réduit la menace immédiatement
-- ✅ Récupère la récompense
-- ✅ Diminue la puissance de feu ennemie
+
+<ul>
+  <li>✅ Réduit la menace immédiatement</li>
+  <li>✅ Récupère la récompense</li>
+  <li>✅ Diminue la puissance de feu ennemie</li>
+</ul>
 
 :::tip Priorités
 Focus les **Lourds** et **Moyens** d'abord (menace + récompense).
@@ -613,10 +648,13 @@ Focus les **Lourds** et **Moyens** d'abord (menace + récompense).
 Attaquer puis reculer pour éviter les contre-attaques.
 
 **Exemple avec Petit (6 dép, 3 att) :**
-1. Avancer de 3 cases
-2. Attaquer (portée 3)
-3. Au tour suivant, reculer de 6 cases
-4. L'ennemi ne peut pas contre-attaquer
+<ul>
+  <ol>Avancer de 3 cases</ol>
+  <ol>Attaquer (portée 3)</ol>
+  <ol>Au tour suivant, reculer de 6 cases</ol>
+  <ol>L'ennemi ne peut pas contre-attaquer</ol>
+</ul>
+
 
 ---
 
@@ -626,9 +664,12 @@ Attaquer puis reculer pour éviter les contre-attaques.
 Échanger un vaisseau **peu coûteux** contre un ennemi **cher**.
 
 **Exemple :**
-- Sacrifier un Petit (325₿)
-- Pour éliminer un Lourd ennemi (1050₿)
-- Gain net : 630₿ - 325₿ = **+305₿**
+
+<ul>
+  <li>Sacrifier un Petit (325₿)</li>
+  <li>Pour éliminer un Lourd ennemi (1050₿)</li>
+  <li>Gain net : 630₿ - 325₿ = **+305₿**</li>
+</ul>
 
 :::caution Calculez bien
 N'échangez que si le gain est **positif** !
