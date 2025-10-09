@@ -83,6 +83,7 @@ class MotherShip(Ship):
         self.attaque = new_conf.get("attaque", self.attaque)
         self.port_attaque = new_conf.get("port_attaque", self.port_attaque)
         self.cout = new_conf.get("cout_upgrade", self.cout)
+        self.gain = new_conf.get("gain", self.gain)
         self.pv_actuel = self.pv_max
 
     def upgrade(self, payer_fct) -> bool:

@@ -39,16 +39,13 @@ class Shop:
     def buy_ship(self, ship):
         """Achète un vaisseau et retourne son nom si l'achat réussit"""
         if self.player.economie.retirer(ship["price"]):
-            print(f"Acheté: {ship['name']}")
             return ship["name"]
         else:
-            print("Pas assez de coins !")
             return None
     
     def upgrade_base(self):
         """Améliore la base si possible"""
         if self.base_level >= 4:
-            print("Base déjà au niveau maximum !")
             return False
         
         # Trouve le prix de l'amélioration suivante
@@ -56,10 +53,8 @@ class Shop:
         
         if self.player.economie.retirer(next_upgrade["price"]):
             self.base_level = next_upgrade["level"]
-            print(f"Base améliorée au niveau {self.base_level} !")
             return True
         else:
-            print("Pas assez de coins pour améliorer la base !")
             return False
     
     def get_base_color_filter(self):

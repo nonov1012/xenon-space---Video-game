@@ -27,7 +27,7 @@ SHIP_STATS = {
     "Lourd": {
         "pv_max": attributs(8, 100),
         "attaque": 200,
-        "port_attaque": 6,
+        "port_attaque": 7,
         "port_deplacement": attributs(2, 1),
         "cout": 4000,
         "taille": (3, 4),
@@ -37,7 +37,7 @@ SHIP_STATS = {
     "Moyen": {
         "pv_max": attributs(4, 100),
         "attaque": 100,
-        "port_attaque": 4,
+        "port_attaque": 5,
         "port_deplacement": attributs(6, 1),
         "cout": 1000,
         "taille": (2, 2),
@@ -47,7 +47,7 @@ SHIP_STATS = {
     "Petit": {
         "pv_max": attributs(4, 25),
         "attaque": 50,
-        "port_attaque": 1,
+        "port_attaque": 3,
         "port_deplacement": attributs(6, 1),
         "cout": 250,
         "taille": (1, 1),
@@ -66,7 +66,7 @@ SHIP_STATS = {
         "pv_max": attributs(4, 150),
         "attaque": 100,
         "port_attaque": 3,
-        "port_deplacement": calcul_portee(3.0),
+        "port_deplacement": attributs(6, 1.7),
         "cout": 2000,
         "taille": (2, 2),
         "peut_miner": False,
@@ -94,7 +94,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 350
+            "gain": 400
         },
         3: {
             "pv_max": 1200,
@@ -105,7 +105,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 400
+            "gain": 500
         },
         4: {
             "pv_max": 1600,
@@ -116,7 +116,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 450
+            "gain": 600
         },
     }
 }
