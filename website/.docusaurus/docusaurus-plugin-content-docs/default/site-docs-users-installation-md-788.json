@@ -1,0 +1,24 @@
+{
+  "id": "users/installation",
+  "title": "installation",
+  "description": "",
+  "source": "@site/docs/users/installation.md",
+  "sourceDirName": "users",
+  "slug": "/users/installation",
+  "permalink": "/xenon-space---Video-game/docs/users/installation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/users/installation.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "🎮 Gameplay",
+    "permalink": "/xenon-space---Video-game/docs/users/gameplay"
+  },
+  "next": {
+    "title": "Mécaniques du jeu",
+    "permalink": "/xenon-space---Video-game/docs/users/mechanics"
+  }
+}

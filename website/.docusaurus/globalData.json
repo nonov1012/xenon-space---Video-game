@@ -1,0 +1,98 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/xenon-space---Video-game/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/xenon-space---Video-game/docs",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "intro",
+              "path": "/xenon-space---Video-game/docs/intro",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "technicals/architecture",
+              "path": "/xenon-space---Video-game/docs/technicals/architecture",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "technicals/intro",
+              "path": "/xenon-space---Video-game/docs/technicals/intro",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "technicals/requirements",
+              "path": "/xenon-space---Video-game/docs/technicals/requirements",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/gameplay",
+              "path": "/xenon-space---Video-game/docs/users/gameplay",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/installation",
+              "path": "/xenon-space---Video-game/docs/users/installation",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/intro",
+              "path": "/xenon-space---Video-game/docs/users/intro",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/mechanics",
+              "path": "/xenon-space---Video-game/docs/users/mechanics",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/menu/fin",
+              "path": "/xenon-space---Video-game/docs/users/menu/fin",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/menu/jouer",
+              "path": "/xenon-space---Video-game/docs/users/menu/jouer",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/menu/parametre",
+              "path": "/xenon-space---Video-game/docs/users/menu/parametre",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/menu/pause",
+              "path": "/xenon-space---Video-game/docs/users/menu/pause",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/menu/succes",
+              "path": "/xenon-space---Video-game/docs/users/menu/succes",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "users/tutoriel",
+              "path": "/xenon-space---Video-game/docs/users/tutoriel",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/xenon-space---Video-game/docs/intro",
+                "label": "intro"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

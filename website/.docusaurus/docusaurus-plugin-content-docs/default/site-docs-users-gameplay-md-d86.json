@@ -1,0 +1,27 @@
+{
+  "id": "users/gameplay",
+  "title": "🎮 Gameplay",
+  "description": "Guide complet des règles et mécaniques de jeu de Xenon Space.",
+  "source": "@site/docs/users/gameplay.md",
+  "sourceDirName": "users",
+  "slug": "/users/gameplay",
+  "permalink": "/xenon-space---Video-game/docs/users/gameplay",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/users/gameplay.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "sidebar_position": 6
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "🚀 Documentation utilisateur – Xenon Space",
+    "permalink": "/xenon-space---Video-game/docs/users/intro"
+  },
+  "next": {
+    "title": "installation",
+    "permalink": "/xenon-space---Video-game/docs/users/installation"
+  }
+}

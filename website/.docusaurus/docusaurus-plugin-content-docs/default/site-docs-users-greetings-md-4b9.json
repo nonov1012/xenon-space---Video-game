@@ -1,0 +1,19 @@
+{
+  "id": "users/greetings",
+  "title": "Bienvenue, Commandant !",
+  "description": "Salutations, Commandant !",
+  "source": "@site/docs/users/greetings.md",
+  "sourceDirName": "users",
+  "slug": "/users/greetings",
+  "permalink": "/xenon-space---Video-game/docs/users/greetings",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/users/greetings.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "greetings",
+    "title": "Bienvenue, Commandant !",
+    "sidebar_label": "Bienvenue"
+  }
+}

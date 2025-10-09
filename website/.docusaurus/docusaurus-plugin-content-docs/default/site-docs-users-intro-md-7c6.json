@@ -1,0 +1,27 @@
+{
+  "id": "users/intro",
+  "title": "🚀 Documentation utilisateur – Xenon Space",
+  "description": "Salutations, Commandant !",
+  "source": "@site/docs/users/intro.md",
+  "sourceDirName": "users",
+  "slug": "/users/intro",
+  "permalink": "/xenon-space---Video-game/docs/users/intro",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/users/intro.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "⚙️ Requirements",
+    "permalink": "/xenon-space---Video-game/docs/technicals/requirements"
+  },
+  "next": {
+    "title": "🎮 Gameplay",
+    "permalink": "/xenon-space---Video-game/docs/users/gameplay"
+  }
+}

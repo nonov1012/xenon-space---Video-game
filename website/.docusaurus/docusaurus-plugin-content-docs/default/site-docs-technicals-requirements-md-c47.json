@@ -1,0 +1,24 @@
+{
+  "id": "technicals/requirements",
+  "title": "⚙️ Requirements",
+  "description": "Avant de vous lancer dans Xenon-Space, assurez-vous que votre environnement est correctement configuré.",
+  "source": "@site/docs/technicals/requirements.md",
+  "sourceDirName": "technicals",
+  "slug": "/technicals/requirements",
+  "permalink": "/xenon-space---Video-game/docs/technicals/requirements",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/requirements.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "🏗️ Architecture logicielle",
+    "permalink": "/xenon-space---Video-game/docs/technicals/architecture"
+  },
+  "next": {
+    "title": "🚀 Documentation utilisateur – Xenon Space",
+    "permalink": "/xenon-space---Video-game/docs/users/intro"
+  }
+}
