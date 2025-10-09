@@ -13,7 +13,7 @@ clock = pygame.time.Clock()
 font = pygame.font.Font(None, 30)
 
 # Joueur
-player = Player("TestPlayer", solde_initial=3000)
+player = Player("TestPlayer", solde_initial=10000)
 
 # Boutique
 shop = Shop(player, font, screen)
