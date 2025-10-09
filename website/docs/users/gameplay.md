@@ -2,6 +2,9 @@
 sidebar_position: 6
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # 🎮 Gameplay
 
 Guide complet des **règles** et **mécaniques de jeu** de Xenon Space.
