@@ -27,8 +27,8 @@ SHIP_STATS = {
     "Lourd": {
         "pv_max": attributs(8, 100),
         "attaque": 200,
-        "port_attaque": 7,
-        "port_deplacement": attributs(2, 1),
+        "port_attaque": 10,
+        "port_deplacement": attributs(3, 1),
         "cout": 4000,
         "taille": (3, 4),
         "peut_miner": False,
