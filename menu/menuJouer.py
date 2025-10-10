@@ -2,7 +2,7 @@ import os
 import random
 from blazyck import *
 
-from main import start_game
+
 from classes.ShipAnimator import ShipAnimator
 from classes.PlanetAnimator import PlanetAnimator
 from classes.Animator import Animator
@@ -383,7 +383,8 @@ def draw(ecran):
             for idx, (param, valeur) in enumerate(params_vaisseau.items()):
                 if param in ["peut_miner", "peut_transporter", "taille"]:
                     continue  # Skip les booléens et taille (tuple)
-                
+                if vaisseau_actif == "Foreuse" and param in ["port_attaque", "port_deplacement"]:
+                    continue  # Skip port_attaque et port_deplacement en Foreuse
                 y_pos = y_offset + displayed_idx * 85  # Utiliser displayed_idx au lieu de idx
                 displayed_idx += 1  # Incrémenter seulement pour les params affichés
                 
@@ -640,4 +641,5 @@ def draw(ecran):
     if lancer_partie == True:
         ShipAnimator.clear_list()
         PlanetAnimator.clear_list()
+        from main import start_game
         start_game(ecran, parametres, random_active)

@@ -156,10 +156,7 @@ class Ship:
             # Supprimer de la liste des vaisseaux vivants
             player_ships = Turn.get_player_with_id(self.joueur).ships
             if self in player_ships:  # ou la liste globale de ships
-                print(player_ships)
                 player_ships.remove(self)
-                print(player_ships)
-
 
     def est_mort(self):
         """Retourne True si le vaisseau est détruit."""
@@ -626,6 +623,101 @@ class Ship:
         self.rotation_aperçu(grille)
 
 
+
+
+    # ==================================
+    # MÉTHODE POUR L'INTELLIGENCE ARTIFICIELLE
+    # ==================================
+    def jouer_tour_ia(self, grille: List[List[Point]], tous_les_vaisseaux: List["Ship"]):
+        """
+        Exécute le tour d'un vaisseau contrôlé par l'IA selon une logique de priorités.
+        1. Attaquer l'ennemi à portée avec le plus de PV MAX.
+        2. Si personne à portée, se déplacer vers l'ennemi le plus proche.
+        3. Après le déplacement, vérifier à nouveau si une attaque est possible.
+        """        
+        # --- Étape 0 : Identification des cibles ---
+        # On ne garde que les vaisseaux ennemis qui sont encore en vie
+        ennemis = [s for s in tous_les_vaisseaux if s.joueur != self.joueur and not s.est_mort()]
+
+        # --- PRIORITÉ 1 : ATTAQUER SANS SE DÉPLACER ---
+
+        # 1.1. Trouver tous les ennemis à portée d'attaque
+        cibles_a_portee = []
+        cases_attaquables = self.positions_possibles_attaque(grille)
+        
+        for ennemi in ennemis:
+            # On vérifie si n'importe quelle case de l'ennemi est dans notre portée
+            largeur_ennemi, hauteur_ennemi = ennemi.donner_dimensions(ennemi.direction)
+            ennemi_occupe_cases = False
+            for l in range(ennemi.cordonner.x, ennemi.cordonner.x + hauteur_ennemi):
+                for c in range(ennemi.cordonner.y, ennemi.cordonner.y + largeur_ennemi):
+                    if (l, c) in cases_attaquables:
+                        cibles_a_portee.append(ennemi)
+                        ennemi_occupe_cases = True
+                        break
+                if ennemi_occupe_cases:
+                    break
+        
+        # 1.2. Si des cibles sont à portée, choisir la meilleure et attaquer
+        if cibles_a_portee:
+            # Cible = celle avec le plus de PV MAX
+            cible_finale = max(cibles_a_portee, key=lambda ship: ship.pv_max)
+                        
+            # On utilise la méthode `deplacement` qui gère aussi les attaques
+            # On cible la case "coin" du vaisseau ennemi
+            self.deplacement((cible_finale.cordonner.x, cible_finale.cordonner.y), grille, tous_les_vaisseaux)
+            return # L'action est terminée pour ce tour
+
+        # --- PRIORITÉ 2 : SE DÉPLACER VERS L'ENNEMI LE PLUS PROCHE ---
+
+        # 2.1. Trouver l'ennemi le plus proche
+        ennemi_le_plus_proche = min(ennemis, key=lambda e: abs(e.cordonner.x - self.cordonner.x) + abs(e.cordonner.y - self.cordonner.y))
+
+        # 2.2. Trouver la meilleure case où se déplacer
+        # On cherche la case atteignable qui nous rapproche le plus de la cible
+        cases_deplacement_possibles = self.positions_possibles_adjacentes(grille)
+        
+        if not cases_deplacement_possibles:
+            return # Aucune case n'est accessible
+
+        meilleure_case = None
+        distance_minimale = float('inf')
+
+        for case in cases_deplacement_possibles:
+            l, c = case
+            # Calcul de la distance depuis la case de destination potentielle vers l'ennemi
+            dist = abs(l - ennemi_le_plus_proche.cordonner.x) + abs(c - ennemi_le_plus_proche.cordonner.y)
+            if dist < distance_minimale:
+                distance_minimale = dist
+                meilleure_case = case
+
+        # 2.3. Exécuter le déplacement vers la meilleure case trouvée
+        if meilleure_case:
+            self.deplacement(meilleure_case, grille, tous_les_vaisseaux)
+
+            # --- PRIORITÉ 3 : ATTAQUER APRÈS S'ÊTRE DÉPLACÉ ---
+            # Après avoir bougé, on revérifie si une cible est à portée
+            
+            # On met à jour les cibles potentielles depuis la nouvelle position
+            cibles_a_portee_apres_mvt = []
+            cases_attaquables_apres_mvt = self.positions_possibles_attaque(grille)
+            for ennemi in ennemis:
+                largeur_ennemi, hauteur_ennemi = ennemi.donner_dimensions(ennemi.direction)
+                ennemi_occupe_cases = False
+                for l in range(ennemi.cordonner.x, ennemi.cordonner.x + hauteur_ennemi):
+                    for c in range(ennemi.cordonner.y, ennemi.cordonner.y + largeur_ennemi):
+                        if (l, c) in cases_attaquables_apres_mvt:
+                            cibles_a_portee_apres_mvt.append(ennemi)
+                            ennemi_occupe_cases = True
+                            break
+                    if ennemi_occupe_cases:
+                        break
+
+            if cibles_a_portee_apres_mvt:
+                # Si on peut attaquer, on choisit la meilleure cible et on attaque
+                cible_finale_apres_mvt = max(cibles_a_portee_apres_mvt, key=lambda ship: ship.pv_max)
+                self.deplacement((cible_finale_apres_mvt.cordonner.x, cible_finale_apres_mvt.cordonner.y), grille, tous_les_vaisseaux)
+
 # ------------ Sous-classes spécialisées ------------
 
 class Petit(Ship):
@@ -727,8 +819,8 @@ class Foreuse(Ship):
         
         super().__init__(
             pv_max=stats["pv_max"],
-            attaque=stats["attaque"],
-            port_attaque=stats["port_attaque"],
+            attaque=0,
+            port_attaque=0,
             port_deplacement=stats["port_deplacement"],
             cout=stats["cout"],
             taille=stats["taille"],
@@ -776,39 +868,89 @@ class Transport(Ship):
         self.animator.speed = 7
 
 
-    def ajouter_cargo(self, ship: Ship) -> bool:
-        """Ajoute un vaisseau à la cargaison."""
+    def ajouter_cargo(self, ship: Ship, grille: List[List[Point]]) -> bool:
+        """
+        Ajoute un vaisseau à la cargaison :
+        - Vérifie qu’il reste un slot libre
+        - Vérifie que le vaisseau est à portée d’embarquement
+        - Retire le vaisseau de la grille et de la liste des vaisseaux actifs
+        - Supprime son animation du rendu
+        """
         if not self.peut_transporter:
             return False
-            
+
+        # ---- Vérification de portée ----
+        # On considère qu’un vaisseau peut entrer dans le transport s’il est adjacent
+        # (tu peux augmenter cette distance si tu veux une "portée d’embarquement" plus grande)
+        portee_embarquement = 1  
+
+        dist = abs(self.cordonner.x - ship.cordonner.x) + abs(self.cordonner.y - ship.cordonner.y)
+        if dist > portee_embarquement:
+            return False
+
+        # ---- Vérification des slots libres ----
         for i in range(len(self.cargaison)):
             if self.cargaison[i] is None:
+                if ship.est_mort():
+                    return False
+
+                # Libérer les cases sur la grille
+                ship.liberer_position(grille)
+                
+                # Rendre invisible
+                ship.animator.alpha = 0
+                ship.animator.show_health = False
+
+                # Ajouter dans la cargaison
                 self.cargaison[i] = ship
                 return True
+
         return False
 
+
     def retirer_cargo(self, index: int, ligne: int, colonne: int, grille: List[List[Point]], ships: List[Ship]) -> bool:
-        """Retire un vaisseau de la cargaison et le place sur la grille."""
+        """
+        Retire un vaisseau de la cargaison et le replace sur la grille :
+        - Vérifie la validité de la position
+        - Réactive l’animation et le rend visible
+        - Réinsère dans la liste des vaisseaux actifs
+        """
         if 0 <= index < len(self.cargaison):
             ship = self.cargaison[index]
             if ship is None:
                 return False
-                
-            # Vérifier si la position est libre
+
+            # Vérifier que la position est valide
             if not ship.verifier_collision(grille, ligne, colonne, ship.direction):
                 return False
-                
-            self.cargaison[index] = None
+
+            # Placer le vaisseau sur la carte
             ship.cordonner._x = ligne
             ship.cordonner._y = colonne
             ship.direction = "haut"
             ship.occuper_plateau(grille, Type.VAISSEAU)
-            
-            # Remettre le vaisseau dans la liste des vaisseaux actifs
-            if ship not in ships:
-                ships.append(ship)
+
+            # Réactiver animations
+            ship.animator.alpha = 255  # totalement transparent*
+            ship.animator.show_health = True
+
+            ship.port_deplacement = 0
+
+
+            # Repositionner le sprite
+            largeur, hauteur = ship.donner_dimensions(ship.direction)
+            ship.animator.x = colonne * TAILLE_CASE + OFFSET_X
+            ship.animator.y = ligne * TAILLE_CASE
+            ship.animator.pixel_w = largeur * TAILLE_CASE
+            ship.animator.pixel_h = hauteur * TAILLE_CASE
+
+            # Retirer du cargo
+            self.cargaison[index] = None
+
             return True
+
         return False
+
 
     def _taille_vaisseau(self, ship: Ship) -> int:
         """Détermine la taille d'un vaisseau pour l'affichage."""
@@ -832,13 +974,13 @@ class Transport(Ship):
     def positions_debarquement(self, ship_stocke: Ship, grille: List[List[Point]]) -> List[Tuple[int, int]]:
         """Trouve les positions valides pour débarquer un vaisseau."""
         positions_valides = []
-        port = ship_stocke.port_deplacement
+        port_entier = int(ship_stocke.port_deplacement)
         nb_lignes = len(grille)
         nb_colonnes = len(grille[0])
 
-        for dy in range(-port, port + 1):
-            for dx in range(-port, port + 1):
-                if abs(dy) + abs(dx) > port:
+        for dy in range(-port_entier, port_entier + 1):
+            for dx in range(-port_entier, port_entier + 1):
+                if abs(dy) + abs(dx) > port_entier:
                     continue
                     
                 nl = self.cordonner.x + dy

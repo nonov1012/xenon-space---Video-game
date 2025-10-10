@@ -308,7 +308,6 @@ class ShipAnimator(Animator):
             # --- Conversion en coordonnées grille ---
             proj_x = center_x / TAILLE_CASE -4
             proj_y = center_y / TAILLE_CASE
-            print (proj_x, proj_y)
  
             # --- Animation du projectile (si pas laser) ---
             if projectile_type != "laser":
@@ -343,14 +342,16 @@ class ShipAnimator(Animator):
         Si l'animation est terminée, on la supprime de la liste des animations.
         """
         for animation in getattr(cls, "liste_animation", []):
-            if animation.alive:
-                # Mettre à jour l'état et l'affichage de l'animation
-                animation.update_and_draw()
-            else:
-                # Si l'animation est terminée, on la supprime de la liste
-                if animation.play_with_fade("destruction"):
-                    # Suppression de l'animation de la liste
-                    animation.remove_from_list()
+            if isinstance(animation, ShipAnimator):
+                if animation.alive:
+                    # Mettre à jour l'état et l'affichage de l'animation
+                    animation.update_and_draw()
+                else:
+                    # Si l'animation est terminée, on la supprime de la liste
+                    
+                    if animation.play_with_fade("destruction"):
+                        # Suppression de l'animation de la liste
+                        animation.remove_from_list()
     
 
     
