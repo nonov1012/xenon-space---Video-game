@@ -5,7 +5,7 @@ from classes.MotherShip import MotherShip
 from classes.FloatingText import FloatingText
 
 class Player:
-    def __init__(self, name: str, solde_initial: int = 500, id : int = 1) -> None:
+    def __init__(self, name: str, solde_initial: int = 500, id : int = 1, is_ia: bool = False) -> None:
         """
         Constructeur de la classe Player.
         
@@ -18,6 +18,7 @@ class Player:
         self._start_loadout()
         self.id = id
         self.ships: list[Ship] = []  # liste de vaisseaux du joueur
+        self.is_ia = is_ia
 
     def _start_loadout(self) -> list[Ship]:
         """

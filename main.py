@@ -22,6 +22,7 @@
 #################################################################
 
 
+
 # Import lib
 from pickle import NONE
 import pygame
@@ -47,6 +48,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+
 
 
 def set_prevision_for_ship(ship, case, direction):
@@ -461,8 +463,8 @@ def start_game(ecran, parametres, random_active):
     
     # TODO : refaire le shop pour que ça soit dans les players
 
-    # ===== Player =====
-    Turn.players = [Player("P1", id=0), Player("P2", id=1)]
+    # ===== Player =====a
+    Turn.players = [Player("P1", id=0, is_ia=True), Player("P2", id=1, is_ia=False)]
     shops=[Shop(Turn.players[0], font, ecran), Shop(Turn.players[1], font, ecran)]
 
     # ===== Images et chemins pour les vaisseaux =====
@@ -582,6 +584,25 @@ def start_game(ecran, parametres, random_active):
     interface_transport_active = False
     afficher_grille = False
     running = True
+    
+def joueur_tour_ia(player, map_obj, ships):
+    # Exemple basique : juste déplacer les transports
+    for ship in player.ships:
+        if isinstance(ship, Transport):
+            ship.jouer_tour(map_obj.grille, ships)
+        elif isinstance(ship, Foreuse):
+            # Cherche un astéroïde adjacent et se déplace dessus
+            positions = ship.positions_possibles_attaque(map_obj.grille, ship.direction)
+            for pos in positions:
+                if map_obj.grille[pos[0]][pos[1]].type == Type.ASTEROIDE:
+                    ship.deplacement(pos, map_obj.grille, ships)
+                    break
+        elif isinstance(ship, (Petit, Moyen, Lourd)):
+            # Ici tu peux juste faire un mouvement aléatoire pour le test
+            positions = ship.positions_possibles_adjacentes(map_obj.grille, ship.direction)
+            if positions:
+                ship.deplacement(positions[0], map_obj.grille, ships)
+
 
 
 
@@ -608,7 +629,12 @@ def start_game(ecran, parametres, random_active):
         draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
                 interface_transport_active, case_souris, font, Turn.players[0], shop, new_cursor, position_souris,
                 afficher_grille, dt)
-
+        
+        player_actuel = Turn.players[0] 
+        if player_actuel.is_ia:
+            for ship in player_actuel.ships:
+                if isinstance(ship, Transport):
+                    ship.jouer_tour(map_obj.grille, Turn.get_players_ships())
 
 
         clock.tick(60)
