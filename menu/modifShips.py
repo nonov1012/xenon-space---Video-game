@@ -27,8 +27,8 @@ SHIP_STATS = {
     "Lourd": {
         "pv_max": attributs(8, 100),
         "attaque": 200,
-        "port_attaque": 7,
-        "port_deplacement": attributs(2, 1),
+        "port_attaque": 10,
+        "port_deplacement": attributs(3, 1),
         "cout": 4000,
         "taille": (3, 4),
         "peut_miner": False,
@@ -66,7 +66,7 @@ SHIP_STATS = {
         "pv_max": attributs(4, 150),
         "attaque": 100,
         "port_attaque": 3,
-        "port_deplacement": attributs(6, 2),
+        "port_deplacement": attributs(6, 1.7),
         "cout": 2000,
         "taille": (2, 2),
         "peut_miner": False,
@@ -94,7 +94,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 350
+            "gain": 400
         },
         3: {
             "pv_max": 1200,
@@ -105,7 +105,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 400
+            "gain": 500
         },
         4: {
             "pv_max": 1600,
@@ -116,7 +116,7 @@ SHIP_STATS = {
             "taille": (4, 5),
             "peut_miner": False,
             "peut_transporter": False,
-            "gain": 450
+            "gain": 600
         },
     }
 }

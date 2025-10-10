@@ -16,7 +16,6 @@ class Turn:
         Retourne le joueur actuel si il n'y a qu'un joueur, None sinon.
         """
         if not cls.players:
-            print("Aucun joueur")
             return None
 
         # Si le joueur suivant n'a pas de vaisseau mère, le joueur actuel est mis en fin de liste
