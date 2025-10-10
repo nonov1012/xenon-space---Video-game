@@ -47,6 +47,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+from ia.foreuse.main import ForeuseBehavior
 
 
 def set_prevision_for_ship(ship, case, direction):
@@ -96,27 +97,46 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             elif event.key == pygame.K_r and selection_ship:
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
             elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                print("\n" + "="*80)
+                print("CHANGEMENT DE TOUR")
+                print("="*80)
+                
                 # Fin de tour
                 for ship in Turn.players[0].ships:
                     ship.reset_porters()
                     if isinstance(ship, Foreuse):
                         if ship.est_a_cote_planete(map_obj.grille):
                             ship.gain += PLANETES_REWARD
+                            print(f"[MINAGE AUTO] Foreuse {ship.id} gagne {PLANETES_REWARD} (planète)")
                         if ship.est_autour_asteroide(map_obj.grille):
                             ship.gain += ASTEROIDES_REWARD
+                            print(f"[MINAGE AUTO] Foreuse {ship.id} gagne {ASTEROIDES_REWARD} (astéroïde)")
 
                 Turn.players[0].gain()
+                
+                # Changement de joueur
                 res = Turn.next()
                 HUD.change_turn()
+                
+                print(f"\n>>> Tour du joueur: {Turn.players[0].name}")
+                
+                # === ACTIVER L'IA DES FOREUSES DU NOUVEAU JOUEUR ===
+                joueur_actuel = Turn.players[0]
+                joueur_actuel.activer_ia_foreuses(map_obj.grille, Turn.get_players_ships())
+                
+                # Vérifier victoire
                 for player in Turn.players:
                     mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and s.pv_actuel > 0]
                     if len(mother_ships) == 0:
-                        print(f"Le joueur {player.name} a perdu !")
                         gagnant = [p for p in Turn.players if p != player][0]
                         menu.menuFin.main(ecran, gagnant, victoire=True)
                         running = False
                         break
-
+                                
+            elif event.key == pygame.K_f:  # Touche F pour activer l'IA des foreuses
+                joueur_actuel = Turn.players[0]
+                joueur_actuel.activer_ia_foreuses(map_obj.grille, ships)
+                print("[IA] Foreuses activées manuellement")
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

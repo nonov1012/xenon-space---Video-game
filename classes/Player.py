@@ -3,6 +3,8 @@ from classes.Economie import Economie
 from classes.Ship import Ship, Foreuse
 from classes.MotherShip import MotherShip
 from classes.FloatingText import FloatingText
+from ia.foreuse.main import ForeuseBehavior
+
 
 class Player:
     def __init__(self, name: str, solde_initial: int = 500, id : int = 1) -> None:
@@ -18,6 +20,32 @@ class Player:
         self._start_loadout()
         self.id = id
         self.ships: list[Ship] = []  # liste de vaisseaux du joueur
+        self.foreuse_behaviors: dict[int, ForeuseBehavior] = {}
+        
+    def activer_ia_foreuses(self, grille, ships):
+        """
+        Active l'IA pour toutes les foreuses du joueur.
+        UNIQUEMENT pour les déplacements, pas le minage.
+        """
+        print(f"\n{'#'*60}")
+        print(f"[PLAYER {self.name}] Activation IA des foreuses")
+        print(f"{'#'*60}")
+        
+        foreuses_count = 0
+        for ship in self.ships:
+            if isinstance(ship, Foreuse):
+                foreuses_count += 1
+                
+                # Créer une IA si elle n'existe pas
+                if ship.id not in self.foreuse_behaviors:
+                    self.foreuse_behaviors[ship.id] = ForeuseBehavior(ship)
+                
+                # Exécuter le comportement
+                behavior = self.foreuse_behaviors[ship.id]
+                behavior.executer_tour(grille, ships)
+        
+        print(f"[PLAYER {self.name}] {foreuses_count} foreuse(s) traitée(s)")
+        print(f"{'#'*60}\n")
 
     def _start_loadout(self) -> list[Ship]:
         """
