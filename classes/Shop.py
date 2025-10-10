@@ -13,12 +13,13 @@ class Shop:
         
         # Liste des vaisseaux disponibles
         self.ships = [
-            {"name": "Petit", "price": 325, "image": self.load_image("assets/img/ships/shop/petit.png")},
-            {"name": "Moyen", "price": 650, "image": self.load_image("assets/img/ships/shop/moyen.png")},
-            {"name": "Grand", "price": 1050, "image": self.load_image("assets/img/ships/shop/grand.png")},
-            {"name": "Foreuse", "price": 400, "image": self.load_image("assets/img/ships/shop/foreuse.png")},
-            {"name": "Transporteur", "price": 500, "image": self.load_image("assets/img/ships/shop/transporteur.png")}
+            {"name": "Petit", "price": 325, "tier": 1, "image": self.load_image("assets/img/ships/shop/petit.png")},
+            {"name": "Moyen", "price": 650, "tier": 3, "image": self.load_image("assets/img/ships/shop/moyen.png")},
+            {"name": "Grand", "price": 1050, "tier": 4, "image": self.load_image("assets/img/ships/shop/grand.png")},
+            {"name": "Foreuse", "price": 400, "tier": 1, "image": self.load_image("assets/img/ships/shop/foreuse.png")},
+            {"name": "Transporteur", "price": 500, "tier": 2, "image": self.load_image("assets/img/ships/shop/transporteur.png")}
         ]
+
         
         # Améliorations de base
         self.base_upgrades = [
@@ -36,24 +37,26 @@ class Shop:
             placeholder.fill((150, 150, 150))
             return placeholder
     
-    def buy_ship(self, ship):
+    def buy_ship(self, ship, mothership_actuel):
         """Achète un vaisseau et retourne son nom si l'achat réussit"""
-        if self.player.economie.retirer(ship["price"]):
-            return ship["name"]
-        else:
-            return None
-    
+        if mothership_actuel.tier >= ship["tier"] :
+            if self.player.economie.retirer(ship["price"]):
+                return ship["name"]
+            else:
+                return None
+
+
     def upgrade_base(self):
         """Améliore la base si possible"""
-        if self.base_level >= 4:
-            return False
-        
-        # Trouve le prix de l'amélioration suivante
-        next_upgrade = self.base_upgrades[self.base_level - 1]
-        
-        if self.player.economie.retirer(next_upgrade["price"]):
-            self.base_level = next_upgrade["level"]
-            return True
+        if self.base_level != 4:
+            # Trouve le prix de l'amélioration suivante
+            next_upgrade = self.base_upgrades[self.base_level - 1]
+            
+            if self.player.economie.retirer(next_upgrade["price"]):
+                self.base_level = next_upgrade["level"]
+                return True
+            else:
+                return False
         else:
             return False
     
@@ -241,7 +244,7 @@ class Shop:
             bg_rect = info_bg.get_rect(center=(case_rect.centerx, case_rect.top - 22))
             self.screen.blit(info_bg, bg_rect)
     
-    def handle_click(self, pos):
+    def handle_click(self, pos, mothership_actuel):
         """Gère les clics sur les boutons du shop et retourne le type de vaisseau acheté ou 'base_upgrade'"""
         # Vérifier clic sur amélioration de base
         if hasattr(self, 'base_rect') and self.base_rect.collidepoint(pos):
@@ -252,6 +255,6 @@ class Shop:
         # Vérifier clic sur vaisseaux
         for ship in self.ships:
             if "rect" in ship and ship["rect"].collidepoint(pos):
-                return self.buy_ship(ship)
+                return self.buy_ship(ship, mothership_actuel)
         
         return None
