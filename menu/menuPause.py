@@ -128,8 +128,8 @@ class MenuPause:
         # Configuration des boutons
         button_configs = [
             ("REPRENDRE", self._action_reprendre),
-            ("PARAMÈTRES", self._action_parametres),
-            ("RETOUR AU MENU PRINCIPAL", self._action_retour_menu), # NOUVEAU BOUTON
+            ("PARAMETRES", self._action_parametres),
+            ("RETOUR AU MENU PRINCIPAL", self._action_retour_menu),
             ("QUITTER", self._action_quitter)
         ]
         
@@ -204,11 +204,8 @@ class MenuPause:
         for button in self.buttons:
             if button.is_clicked(mouse_pos):
                 if button.action:
-                    # Exécute l'action (qui met à jour self.running ou self.action_result)
                     button.action()
                     
-                    # Si l'action a pour but de fermer le menu de pause (comme Reprendre ou Retour Menu Principal),
-                    # nous devons sortir de la boucle de l'événement pour que la boucle de la pause (run) s'arrête.
                     if not self.running:
                         break
     # =====================================
@@ -234,14 +231,7 @@ class MenuPause:
         # Étoiles animées
         self.stars.update()
         self.stars.draw(self.ecran)
-        
-    def _draw_title(self):
-        """Dessine le titre (optionnel)"""
-        # Si vous voulez ajouter un titre "PAUSE"
-        # titre = self.police_titre.render("PAUSE", True, self.BLANC)
-        # rect = titre.get_rect(center=(self.largeur_ecran // 2, 100))
-        # self.ecran.blit(titre, rect)
-        pass
+
         
     def _draw_buttons(self):
         """Dessine les boutons"""
@@ -256,7 +246,6 @@ class MenuPause:
     def _render(self):
         """Effectue le rendu complet"""
         self._draw_background()
-        self._draw_title()
         self._draw_buttons()
         self._draw_cursor()
         
@@ -274,7 +263,6 @@ class MenuPause:
             self._render()
             self.clock.tick(60)
             
-        # Après la sortie de la boucle, le résultat est retourné
         return self.action_result
 
 
@@ -294,4 +282,4 @@ def main_pause(ecran, jeu_surface=None):
         str: "continue" (reprendre le jeu) ou "go_to_main_menu" (retour au menu principal).
     """
     menu = MenuPause(ecran, jeu_surface)
-    return menu.run() # Retourne l'action choisie
+    return menu.run() 

@@ -11,9 +11,6 @@ from classes.Animator import Animator
 from classes.Start_Animation.main import create_space_background
 from classes.Sounds import SoundManager
 
-# ATTENTION : Suppression de l'importation circulaire inutile.
-# import menu.menuPrincipal # <--- CETTE LIGNE EST SUPPRIMÉE !
-
 # =====================================
 # CLASSES
 # =====================================
@@ -230,7 +227,6 @@ class MenuFin:
         """Met à jour la logique du menu"""
         mouse_pos = pygame.mouse.get_pos()
         
-        # Mise à jour des boutons et sons de survol
         for button in self.buttons:
             if button.update(mouse_pos):
                 self.sm.play_sfx("son_hover")
@@ -337,7 +333,7 @@ class MenuFin:
             self._render()
             self.clock.tick(60)
             
-        return self.choix # Renvoie "menu_principal" ou "quitter"
+        return self.choix
 
 
 # =====================================
@@ -352,12 +348,8 @@ def main(ecran, player, victoire=True, sound_manager=None):
     menu = MenuFin(ecran, player, victoire, sound_manager)
     action = menu.run()
     
-    # Gère l'action "quitter" immédiatement
     if action == "quitter":
         pygame.quit()
         sys.exit()
         
-    # Retourne l'action pour que le code appelant (main.py) puisse lancer le menu principal
-    # Si action est "menu_principal", main.py lance le menu principal.
-    # Si action est None (ou autre), le jeu s'arrête.
     return action
