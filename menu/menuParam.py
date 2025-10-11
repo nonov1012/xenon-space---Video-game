@@ -285,7 +285,7 @@ class MenuParametres:
         """Réinitialise les paramètres"""
         self.settings = copy.deepcopy(DEFAULT_SETTINGS)
         self.capture_touche = None
-        self._init_sliders()  # Recréer les sliders avec les valeurs par défaut
+        self._init_sliders() 
         print("Paramètres réinitialisés")
         
     def _action_retour(self):

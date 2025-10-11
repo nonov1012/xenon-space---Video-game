@@ -324,13 +324,10 @@ def main(ecran=None, screen_width=None, screen_height=None, screen_ratio=None,
         sound_manager.load_sfx("son_hover", "assets/sounds/menu/buttons/button_hover.mp3")
         sound_manager.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
-        # --- AJOUT DU DELAI ICI ---
-        # Afficher l'écran noir de base (ou un écran de chargement)
+
         ecran.fill((0, 0, 0)) 
         pygame.display.flip()
-        
 
-        # --------------------------
     
     menu = MenuPrincipal(
         ecran, screen_width, screen_height, screen_ratio,
