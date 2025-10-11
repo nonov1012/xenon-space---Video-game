@@ -1,115 +1,297 @@
+"""
+menuPause.py
+Menu de pause - Version restructurée
+"""
+from asyncio import wait
 import pygame
 import sys
 import os
-from blazyck import *
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from blazyck import *
 from classes.Animator import Animator
 from classes.PlanetAnimator import PlanetAnimator
 from classes.Start_Animation.main import create_space_background
-from menu import menuParam  # Assurez-vous que menuParam.main accepte ecran en param
+from menu import menuParam
+import classes.ShipAnimator
 
-def main_pause(ecran, jeu_surface=None):
-    pygame.mouse.set_visible(False)
 
-    # -------------------------------
-    # Couleurs et polices
-    # -------------------------------
-    BLANC = (255, 255, 255)
-    NOIR = (0, 0, 0)
+# =====================================
+# CLASSES
+# =====================================
 
-    police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 42)
-    police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 72)
+class PauseButton:
+    """Bouton pour le menu pause"""
+    
+    def __init__(self, rect, text, font, image, action=None):
+        """
+        Initialise un bouton de pause
+        
+        Args:
+            rect: Rectangle de position
+            text: Texte du bouton
+            font: Police du texte
+            image: Image de fond
+            action: Fonction à appeler au clic
+        """
+        self.rect = rect
+        self.text = text
+        self.font = font
+        self.image = image
+        self.action = action
+        self.zoom = 1.0
+        
+    def update(self, mouse_pos):
+        """Met à jour l'animation du bouton"""
+        is_hover = self.rect.collidepoint(mouse_pos)
+        target_zoom = 1.1 if is_hover else 1.0
+        self.zoom += (target_zoom - self.zoom) * 0.08
+        
+    def draw(self, surface):
+        """Dessine le bouton"""
+        width = int(self.image.get_width() * self.zoom)
+        height = int(self.image.get_height() * self.zoom)
+        scaled = pygame.transform.scale(self.image, (width, height))
+        rect_zoom = scaled.get_rect(center=self.rect.center)
+        
+        surface.blit(scaled, rect_zoom.topleft)
+        text_surf = self.font.render(self.text, True, (255, 255, 255))
+        text_rect = text_surf.get_rect(center=rect_zoom.center)
+        surface.blit(text_surf, text_rect)
+        
+    def is_clicked(self, mouse_pos):
+        """Vérifie si le bouton est cliqué"""
+        return self.rect.collidepoint(mouse_pos)
 
-    # -------------------------------
-    # Curseur
-    # -------------------------------
-    curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-    curseur_img = pygame.transform.scale(curseur_img, (40, 40))
 
-    # -------------------------------
-    # Boutons verticaux
-    # -------------------------------
-    image_bouton_base = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
-    def creer_image_bouton(largeur, hauteur):
-        return pygame.transform.scale(image_bouton_base, (largeur, hauteur))
-
-    labels = ["REPRENDRE", "PARAMÈTRES", "QUITTER"]
-    images = [creer_image_bouton(500, 100) for _ in labels]
-
-    largeur_ecran, hauteur_ecran = ecran.get_size()
-    espacement = 60
-    y_depart = hauteur_ecran // 2 - ((len(labels)-1) * (100 + espacement)) // 2
-    rects = [pygame.Rect(largeur_ecran//2 - 250, y_depart + i*(100 + espacement), 500, 100) for i in range(len(labels))]
-
-    boutons = list(zip(images, rects, labels))
-    zoom_etats = {label: 1.0 for label in labels}
-    vitesse_zoom = 0.08
-
-    # -------------------------------
-    # Fond : uniquement étoiles (pas de planètes, pas de vaisseau)
-    # -------------------------------
-    screen_ratio = (largeur_ecran * 100 / 600) / 100
-    stars, _, _ = create_space_background(
-        num_stars=100, screen_ratio=screen_ratio
-    )
-
-    horloge = pygame.time.Clock()
-    en_cours = True
-
-    while en_cours:
-        souris = pygame.mouse.get_pos()
-        clic = pygame.mouse.get_pressed()[0]
-
-        # -------------------------------
-        # Fond animé (juste étoiles)
-        # -------------------------------
-        ecran.fill(NOIR)
-        stars.update()
-        stars.draw(ecran)
-
-        # -------------------------------
-        # Dessiner boutons
-        # -------------------------------
-        for image, rect, label in boutons:
-            est_hover = rect.collidepoint(souris)
-            cible_zoom = 1.1 if est_hover else 1.0
-            zoom_etats[label] += (cible_zoom - zoom_etats[label]) * vitesse_zoom
-
-            largeur_zoom = int(image.get_width() * zoom_etats[label])
-            hauteur_zoom = int(image.get_height() * zoom_etats[label])
-            image_zoom = pygame.transform.scale(image, (largeur_zoom, hauteur_zoom))
-            rect_zoom = image_zoom.get_rect(center=rect.center)
-            ecran.blit(image_zoom, rect_zoom.topleft) 
-
-            texte_surf = police_bouton.render(label, True, BLANC)
-            texte_rect = texte_surf.get_rect(center=rect_zoom.center)
-            ecran.blit(texte_surf, texte_rect)
-
-        # -------------------------------
-        # Curseur
-        # -------------------------------
-        ecran.blit(curseur_img, souris)
-
-        # -------------------------------
-        # Évènements
-        # -------------------------------
+class MenuPause:
+    """Menu de pause du jeu"""
+    
+    def __init__(self, ecran, jeu_surface=None):
+        """
+        Initialise le menu de pause
+        
+        Args:
+            ecran: Surface Pygame
+            jeu_surface: Surface du jeu en cours (pour overlay)
+        """
+        self.ecran = ecran
+        self.jeu_surface = jeu_surface
+        self.largeur_ecran, self.hauteur_ecran = ecran.get_size()
+        
+        # État
+        self.running = True
+        self.action_result = "continue" # Initialise le résultat de l'action
+        
+        # Initialisation
+        self._init_colors()
+        self._init_fonts()
+        self._init_cursor()
+        self._init_background()
+        self._init_buttons()
+        
+        self.clock = pygame.time.Clock()
+        
+    # =====================================
+    # INITIALISATION
+    # =====================================
+    
+    def _init_colors(self):
+        """Initialise les couleurs"""
+        self.BLANC = (255, 255, 255)
+        self.NOIR = (0, 0, 0)
+        
+    def _init_fonts(self):
+        """Initialise les polices"""
+        self.police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 42)
+        self.police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 72)
+        
+    def _init_cursor(self):
+        """Initialise le curseur personnalisé"""
+        self.cursor = pygame.image.load('assets/img/menu/cursor.png')
+        self.cursor = pygame.transform.scale(self.cursor, (40, 40))
+        pygame.mouse.set_visible(False)
+        
+    def _init_background(self):
+        """Initialise le fond animé (étoiles uniquement)"""
+        screen_ratio = (self.largeur_ecran * 100 / 600) / 100
+        self.stars, _, _ = create_space_background(
+            num_stars=100, screen_ratio=screen_ratio
+        )
+        
+    def _init_buttons(self):
+        """Initialise les boutons"""
+        image_base = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
+        button_width, button_height = 500, 100
+        
+        # Configuration des boutons
+        button_configs = [
+            ("REPRENDRE", self._action_reprendre),
+            ("PARAMÈTRES", self._action_parametres),
+            ("RETOUR AU MENU PRINCIPAL", self._action_retour_menu), # NOUVEAU BOUTON
+            ("QUITTER", self._action_quitter)
+        ]
+        
+        # Calcul des positions verticales
+        espacement = 60
+        total_height = len(button_configs) * button_height + (len(button_configs) - 1) * espacement
+        y_start = (self.hauteur_ecran - total_height) // 2
+        
+        # Création des boutons
+        self.buttons = []
+        for i, (text, action) in enumerate(button_configs):
+            image = pygame.transform.scale(image_base, (button_width, button_height))
+            y = y_start + i * (button_height + espacement)
+            rect = pygame.Rect(
+                self.largeur_ecran // 2 - button_width // 2,
+                y,
+                button_width,
+                button_height
+            )
+            button = PauseButton(rect, text, self.police_bouton, image, action)
+            self.buttons.append(button)
+            
+    # =====================================
+    # ACTIONS DES BOUTONS
+    # =====================================
+    
+    def _action_reprendre(self):
+        """Reprend le jeu"""
+        self.running = False
+        self.action_result = "continue"
+        
+    def _action_parametres(self):
+        """Ouvre le menu des paramètres"""
+        menuParam.main(self.ecran, animation=False)
+        
+    def _action_retour_menu(self):
+        """Quitte la partie pour retourner au menu principal"""
+        classes.ShipAnimator.ShipAnimator.clear_list()
+        PlanetAnimator.clear_list()
+        self.running = False
+        self.action_result = "go_to_main_menu"
+        
+    def _action_quitter(self):
+        """Quitte le jeu"""
+        pygame.quit()
+        sys.exit()
+        
+    # =====================================
+    # GESTION DES ÉVÉNEMENTS
+    # =====================================
+    
+    def _handle_events(self):
+        """Gère les événements"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
+                
+            elif event.type == pygame.KEYDOWN:
+                self._handle_keydown(event.key)
+                
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                for _, rect, label in boutons:
-                    if rect.collidepoint(event.pos):
-                        if label == "REPRENDRE":
-                            en_cours = False
-                        elif label == "PARAMETRES":
-                            menuParam.main(ecran, False)
-                        elif label == "QUITTER":
-                            pygame.quit()
-                            sys.exit()
-
+                self._handle_click(event.pos)
+                
+    def _handle_keydown(self, key):
+        """Gère les touches pressées"""
+        if key == pygame.K_ESCAPE:
+            self._action_reprendre()
+            
+    def _handle_click(self, mouse_pos):
+        """Gère les clics de souris"""
+        for button in self.buttons:
+            if button.is_clicked(mouse_pos):
+                if button.action:
+                    # Exécute l'action (qui met à jour self.running ou self.action_result)
+                    button.action()
+                    
+                    # Si l'action a pour but de fermer le menu de pause (comme Reprendre ou Retour Menu Principal),
+                    # nous devons sortir de la boucle de l'événement pour que la boucle de la pause (run) s'arrête.
+                    if not self.running:
+                        break
+    # =====================================
+    # MISE À JOUR
+    # =====================================
+    
+    def _update(self):
+        """Met à jour la logique du menu"""
+        mouse_pos = pygame.mouse.get_pos()
+        
+        # Mise à jour des boutons
+        for button in self.buttons:
+            button.update(mouse_pos)
+            
+    # =====================================
+    # RENDU
+    # =====================================
+    
+    def _draw_background(self):
+        """Dessine le fond"""
+        self.ecran.fill(self.NOIR)
+        
+        # Étoiles animées
+        self.stars.update()
+        self.stars.draw(self.ecran)
+        
+    def _draw_title(self):
+        """Dessine le titre (optionnel)"""
+        # Si vous voulez ajouter un titre "PAUSE"
+        # titre = self.police_titre.render("PAUSE", True, self.BLANC)
+        # rect = titre.get_rect(center=(self.largeur_ecran // 2, 100))
+        # self.ecran.blit(titre, rect)
+        pass
+        
+    def _draw_buttons(self):
+        """Dessine les boutons"""
+        for button in self.buttons:
+            button.draw(self.ecran)
+            
+    def _draw_cursor(self):
+        """Dessine le curseur"""
+        mouse_pos = pygame.mouse.get_pos()
+        self.ecran.blit(self.cursor, mouse_pos)
+        
+    def _render(self):
+        """Effectue le rendu complet"""
+        self._draw_background()
+        self._draw_title()
+        self._draw_buttons()
+        self._draw_cursor()
+        
         pygame.display.update()
-        horloge.tick(60)
+        
+    # =====================================
+    # BOUCLE PRINCIPALE
+    # =====================================
+    
+    def run(self):
+        """Lance la boucle principale du menu de pause"""
+        while self.running:
+            self._handle_events()
+            self._update()
+            self._render()
+            self.clock.tick(60)
+            
+        # Après la sortie de la boucle, le résultat est retourné
+        return self.action_result
 
+
+# =====================================
+# FONCTION PRINCIPALE
+# =====================================
+
+def main_pause(ecran, jeu_surface=None):
+    """
+    Lance le menu de pause et retourne l'action choisie.
+    
+    Args:
+        ecran: Surface Pygame
+        jeu_surface: Surface du jeu en cours (optionnel)
+        
+    Returns:
+        str: "continue" (reprendre le jeu) ou "go_to_main_menu" (retour au menu principal).
+    """
+    menu = MenuPause(ecran, jeu_surface)
+    return menu.run() # Retourne l'action choisie

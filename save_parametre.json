@@ -1,13 +1,13 @@
 {
     "touches": {
-        "rotation_vaisseau": 114,
+        "rotation_vaisseau": 99,
         "terminer_tour": 13,
         "afficher_grille": 1073742048,
         "afficher_zones": 1073742049,
         "menu_pause": 27
     },
     "audio": {
-        "volume_general": 50,
+        "volume_general": 75,
         "volume_musique": 50,
         "volume_sons": 50
     }
