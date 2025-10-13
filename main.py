@@ -650,7 +650,7 @@ def start_game(ecran, parametres, random_active):
                 
                 elif isinstance(ship_ia, Lourd):
                     if not ship_ia.est_mort():
-                        ship_ia.jouer_tour_ia(map_obj.grille,tous_les_vaisseaux)
+                        ship_ia.jouer_tour_ia(map_obj.grille,tous_les_vaisseaux, Turn.players[1].ships)
 
                 elif isinstance(ship_ia, Foreuse):
                     if not ship_ia.est_mort():

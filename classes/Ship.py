@@ -628,16 +628,14 @@ class Ship:
     # ==================================
     # MÉTHODE POUR L'INTELLIGENCE ARTIFICIELLE
     # ==================================
-    def jouer_tour_ia(self, grille: List[List[Point]], tous_les_vaisseaux: List["Ship"]):
+    def jouer_tour_ia(self, grille: List[List[Point]], tous_les_vaisseaux: List["Ship"], ennemis: List["Ship"]):
         """
         Exécute le tour d'un vaisseau contrôlé par l'IA selon une logique de priorités.
         1. Attaquer l'ennemi à portée avec le plus de PV MAX.
         2. Si personne à portée, se déplacer vers l'ennemi le plus proche.
         3. Après le déplacement, vérifier à nouveau si une attaque est possible.
         """        
-        # --- Étape 0 : Identification des cibles ---
-        # On ne garde que les vaisseaux ennemis qui sont encore en vie
-        ennemis = [s for s in tous_les_vaisseaux if s.joueur != self.joueur and not s.est_mort()]
+
 
         # --- PRIORITÉ 1 : ATTAQUER SANS SE DÉPLACER ---
 
