@@ -48,6 +48,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+from ia.IATransport import IATransport
 
 
 
@@ -99,17 +100,39 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
             elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                 # Fin de tour
-                for ship in Turn.players[0].ships:
+                joueur_actuel = Turn.players[0]
+                
+                # Réinitialiser les porters et calculer les gains
+                for ship in joueur_actuel.ships:
                     ship.reset_porters()
                     if isinstance(ship, Foreuse):
                         if ship.est_a_cote_planete(map_obj.grille):
                             ship.gain += PLANETES_REWARD
                         if ship.est_autour_asteroide(map_obj.grille):
                             ship.gain += ASTEROIDES_REWARD
-
-                Turn.players[0].gain()
+                
+                joueur_actuel.gain()
+                
+                # Passer au tour suivant
                 res = Turn.next()
                 HUD.change_turn()
+                
+                # ===== IA Transport =====
+                # Après le changement de tour, si le nouveau joueur actif est une IA
+                nouveau_joueur_actif = Turn.players[0]
+                if nouveau_joueur_actif.is_ia:
+                    # Jouer le tour de l'IA pour tous ses vaisseaux Transport
+                    for ship in nouveau_joueur_actif.ships:
+                        if isinstance(ship, Transport):
+                            ia_transport = IATransport(
+                                id=ship.id,
+                                pos=(ship.cordonner.x, ship.cordonner.y),
+                                equipe=ship.joueur
+                            )
+                            ia_transport.jouer_tour(map_obj.grille)
+                # ===== FIN IA Transport =====
+                
+                # Vérifier les conditions de victoire
                 for player in Turn.players:
                     mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and s.pv_actuel > 0]
                     if len(mother_ships) == 0:
@@ -157,7 +180,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                                 joueur_actuel.economie.ajouter(ship_data["price"])
                                 break
 
-                # Si c’est une amélioration de base
+                # Si c'est une amélioration de base
                 elif type_action == "base_upgrade":
                     mothership_actuel = joueur_actuel.getMotherShip()
                     mothership_actuel.apply_level(mothership_actuel.tier+1)
@@ -585,27 +608,7 @@ def start_game(ecran, parametres, random_active):
     afficher_grille = False
     running = True
     
-def joueur_tour_ia(player, map_obj, ships):
-    # Exemple basique : juste déplacer les transports
-    for ship in player.ships:
-        if isinstance(ship, Transport):
-            ship.jouer_tour(map_obj.grille, ships)
-        elif isinstance(ship, Foreuse):
-            # Cherche un astéroïde adjacent et se déplace dessus
-            positions = ship.positions_possibles_attaque(map_obj.grille, ship.direction)
-            for pos in positions:
-                if map_obj.grille[pos[0]][pos[1]].type == Type.ASTEROIDE:
-                    ship.deplacement(pos, map_obj.grille, ships)
-                    break
-        elif isinstance(ship, (Petit, Moyen, Lourd)):
-            # Ici tu peux juste faire un mouvement aléatoire pour le test
-            positions = ship.positions_possibles_adjacentes(map_obj.grille, ship.direction)
-            if positions:
-                ship.deplacement(positions[0], map_obj.grille, ships)
-
-
-
-
+    
     while running:
         discord.update("En jeu")
         position_souris = pygame.mouse.get_pos()
@@ -629,13 +632,6 @@ def joueur_tour_ia(player, map_obj, ships):
         draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
                 interface_transport_active, case_souris, font, Turn.players[0], shop, new_cursor, position_souris,
                 afficher_grille, dt)
-        
-        player_actuel = Turn.players[0] 
-        if player_actuel.is_ia:
-            for ship in player_actuel.ships:
-                if isinstance(ship, Transport):
-                    ship.jouer_tour(map_obj.grille, Turn.get_players_ships())
-
 
         clock.tick(60)
 
