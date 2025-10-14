@@ -47,6 +47,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+from ia.MotherShipAI import MotherShipIA
 
 
 def set_prevision_for_ship(ship, case, direction):
@@ -558,12 +559,12 @@ def start_game(ecran, parametres, random_active):
     Turn.players[0].ships.append(sf1)
 
     # MotherShip du joueur 2
-    smm2 = MotherShip(
-        tier=1,
-        cordonner=Point(25, 46),
-        id=next_uid[0],
-        path=img_base_dir,
-        joueur=Turn.players[1].id
+    smm2 = MotherShipIA(
+    tier=4,
+    cordonner=Point(25, 46),
+    id=next_uid[0],
+    path=img_base_dir,
+    joueur=Turn.players[1].id
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(smm2)
@@ -650,7 +651,7 @@ def start_game(ecran, parametres, random_active):
                 
                 elif isinstance(ship_ia, Lourd):
                     if not ship_ia.est_mort():
-                        ship_ia.jouer_tour_ia(map_obj.grille,tous_les_vaisseaux, Turn.players[1].ships)
+                        pass
 
                 elif isinstance(ship_ia, Foreuse):
                     if not ship_ia.est_mort():
@@ -659,6 +660,11 @@ def start_game(ecran, parametres, random_active):
                 elif isinstance(ship_ia, Transport):
                     if not ship_ia.est_mort():
                         pass # remplacer pass par votre appele de fonction
+                    
+                elif isinstance(ship_ia, MotherShip):
+                    if not ship_ia.est_mort():
+                        ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux)
+                        print("je joue bien la fonction jouer_tour de l'ia")
             
             # Logique de fin de tour pour l'IA
             for ship in joueur_actuel.ships:

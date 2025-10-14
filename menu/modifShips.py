@@ -109,8 +109,8 @@ SHIP_STATS = {
         },
         4: {
             "pv_max": 1600,
-            "attaque": 0,
-            "port_attaque": 0,
+            "attaque": 250,
+            "port_attaque": 10,
             "port_deplacement": 0,
             "cout": 6000,
             "taille": (4, 5),

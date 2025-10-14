@@ -52,6 +52,7 @@ class MotherShip(Ship):
         self.prevision.alpha = 0
         self.animator.show_health = show_health
         self.gain = stats.get("gain", 300)
+        self.projectile_type = "laser"
 
 
     # ---------------- Déplacement et rotation désactivés ----------------
