@@ -1,5 +1,6 @@
 import math
 import os
+from classes import Turn
 from classes.Ship import Petit, Ship
 from blazyck import SHIPS_PATH
 
@@ -10,9 +11,14 @@ class IAPetit(Petit):
 
     def __init__(self : IAPetit, coordonnees : Point, id : int, joueur_id : int) -> None:
         super().__init__(cordonner=coordonnees, id=id, joueur=joueur_id, path=os.path.join(SHIPS_PATH, "petit")) 
-        self.vision : int = self.port_deplacement # La vision est le double du port de déplacement
+        self.vision : int = self.port_deplacement + self.port_attaque # La vision est le double du port de déplacement
 
-    def get_closest_targets(self, ships: list[Ship]) -> list[Ship]:
+    def value_ship(ship: Ship) -> float:
+        """ Calcule une valeur pour un vaisseau en fonction de ses caractéristiques. """
+        valeur = (ship.pv_actuel / ship.pv_max) + ship.attaque + ship.port_attaque_max * 100 + ship.port_deplacement_max * 100
+        return valeur
+
+    def get_closest_targets(self, ships: list[Ship], ally : bool = True) -> list[Ship]:
         """
         Retourne les `nb` ennemis les plus proches dans le champ de vision.
         Les ennemis trop éloignés (> self.vision) sont exclus.
@@ -20,9 +26,10 @@ class IAPetit(Petit):
         closest: dict[str, dict[Ship, float]] = {"ally": {}, "enemy": {}}
 
         for ship in ships:
-            if ship.joueur == self.joueur:
-                closest["ally"][ship] = 0 # on ignore la distance de l'allié
-                continue  # on ignore les alliés
+            if ally:
+                if ship.joueur == self.joueur:
+                    closest["ally"][ship] = 0 # on ignore la distance de l'allié
+                    continue  # on ignore les alliés
             if ship.est_mort():
                 continue
 
@@ -50,19 +57,19 @@ class IAPetit(Petit):
 
         for ship, distance in ships:
             if distance == 0:  # allié
-                score += 1
+                score += IAPetit.value_ship(ship)
                 continue
 
             # Plus l'ennemi est proche, plus le score augmente
             if distance < self.port_attaque + self.port_deplacement:
-                score += 2  # bonus si à portée d'attaque
+                score += IAPetit.value_ship(ship)  # bonus si à portée d'attaque
             else:
-                score += 1 / (distance + 1)
+                score += IAPetit.value_ship(ship) / (distance + 1)
 
             # Plus l'ennemi a peu de vie, plus le score augmente
             # pour ça on calcule le nombre de coups pour le tuer
             coups_necessaires = math.ceil(ship.pv_actuel / self.attaque) # ceil pour arrondir à l'entier supérieur
-            score -= coups_necessaires
+            score -= coups_necessaires * 100
 
         return score
 
@@ -78,76 +85,73 @@ class IAPetit(Petit):
         score = 0.0
 
         # Plus la vie est basse, plus le score augmente
-        score += self.pv_actuel / self.pv_max
+        score += IAPetit.value_ship(self)
 
         # Compte les alliés proches
         for ship, distance in ships:
             if distance == 0:  # allié
-                score -= 1
+                score -= IAPetit.value_ship(ship)  # chaque allié proche fait baisser le score
                 continue
-            
-        score -= len(allies_proches)  # chaque allié proche réduit le score de 1
 
-        # Compte les ennemis à portée d'attaque
-        ennemis_proches = [
-            s for s in ships 
-            if s.joueur != self.joueur 
-            and not s.est_mort()
-            and abs(s.cordonner.x - self.cordonner.x) + abs(s.cordonner.y - self.cordonner.y) <= self.port_attaque
-        ]
-        score += len(ennemis_proches) * 2  # chaque ennemi à portée augmente le score de 2
+            if distance + ship.port_attaque >= self.port_deplacement:
+                score += 1.25 * IAPetit.value_ship(ship)  # chaque ennemi qui peut nous attaquer augmente le score de 2
+            elif distance > self.port_deplacement:
+                score += IAPetit.value_ship(ship)  # chaque ennemi qui peut nous atteindre augmente le score de 1
 
         return score
+    
+    def play_attack_mode(self, ships: list[Ship], grille: list[list[Point]]) -> None:
+            passed = False
+            while not passed:
+                if self.port_attaque > 0:
+                    targets = self.get_closest_targets(ships, False)
+                    if targets:
+                        # Trie les cibles par score puis par distance
+                        targets.sort(key=lambda x: (IAPetit.value_ship(x[0]) * x[1]))
 
-    def score_repositionner(self, ships: list["Ship"], grille: list[list["Point"]]) -> float:
-        """
-        Score pour se repositionner / attendre :
-        - Élevé si aucun ennemi n'est à portée et aucun allié proche
-        - Plus faible si ennemis à portée
-        """
-        ennemis_proches = [
-            s for s in ships 
-            if s.joueur != self.joueur 
-            and not s.est_mort()
-            and abs(s.cordonner.x - self.cordonner.x) + abs(s.cordonner.y - self.cordonner.y) <= self.port_attaque
-        ]
-        if ennemis_proches:
-            return 0.0  # prioriser attaquer ou fuir
-        else:
-            return 0.5  # score moyen pour se repositionner/attendre
-        
+                        cible = targets[0][0]  # cible la plus faible et la plus proche
+
+                        distance_to_target = targets[0][1]
+
+                        if distance_to_target <= self.port_attaque:
+                            # Attaque la cible
+                            self.attaquer(cible)
+                            passed = True  # Sortir de la boucle une fois que l'attaque est effectuée
+
+                        # Move towards the target
+                        if self.deplacement > 0:
+                            direction = self.deplacement(cible.cordonner, grille, Turn.get_players_ships())
+                else:
+                    passed = True  
+
+            
     def play(self, ships: list[Ship], grille: list[list["Point"]]) -> None:
         """
         L'IA choisit une seule action par tour :
         - attaquer si un ennemi est proche et le score d'attaque est le plus élevé
         - fuir si elle est menacée
-        - se repositionner sinon
+        - aller vers la base adverse sinon
         """
         # Récupère les cibles dans le champ de vision
         targets = self.get_closest_targets(ships)
 
-        # Calcul des scores pour chaque comportement
-        score_attaque = self.score_attaquer(targets)
-        score_fuite = 0
-        score_repos = 0
+        if not targets:
+            pass # TODO : aller vers la base ennemie
+        else:
+            # Calcul des scores pour chaque comportement
+            score_attaque = self.score_attaquer(targets)
+            score_fuite = self.score_fuir(targets)
 
-        # Sélectionne l'action prioritaire
-        actions = {
-            "attaquer": score_attaque,
-            "fuir": score_fuite,
-            "repositionner": score_repos
-        }
-        action_choisie = max(actions, key=actions.get)
+            # Sélectionne l'action prioritaire
+            etat = {
+                "attaquer": score_attaque,
+                "fuir": score_fuite,
+            }
+            etat_choisis = max(etat, key=etat.get)
 
-        # Exécute uniquement l’action choisie
-        if action_choisie == "attaquer":
-            print(f"[IA] {self.nom} choisit d'attaquer (score={score_attaque:.2f})")
-            self.action_attaquer(ships, grille)
-
-        elif action_choisie == "fuir":
-            print(f"[IA] {self.nom} choisit de fuir (score={score_fuite:.2f})")
-            self.action_fuir(ships, grille)
-
-        elif action_choisie == "repositionner":
-            print(f"[IA] {self.nom} se repositionne (score={score_repos:.2f})")
-            self.action_repositionner(grille)
+            if etat_choisis == "attaquer":
+                self.play_attack_mode(ships, grille)
+            elif etat_choisis == "fuir":
+                self.play_flee_mode(ships, grille)
+                
+            
