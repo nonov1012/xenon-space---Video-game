@@ -2,6 +2,9 @@
 sidebar_position: 6
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # 🎮 Gameplay
 
 Guide complet des **règles** et **mécaniques de jeu** de Xenon Space.
@@ -93,6 +96,7 @@ Une fois validé, impossible de revenir en arrière !
 |--------|---------|------------|
 | 🏰 Base | 300-450₿ | Selon niveau (1-4) |
 | ⛏️ Foreuse | 150₿ | Si adjacente à une planète |
+| ⛏️ Foreuse | 100₿ | Si adjacente à un astéroïde |
 | 💀 Élimination | 60% coût | Ennemi détruit ce tour |
 
 :::info Calcul
@@ -123,7 +127,7 @@ Chaque vaisseau a une **portée de déplacement** (points de mouvement).
 **Exemples :**
 - Petit : 6 points
 - Moyen : 6 points
-- Lourd : 2 points
+- Lourd : 3 points
 - Foreuse : 3 points
 - Transporteur : 4 points
 
@@ -307,7 +311,7 @@ Détruire les vaisseaux ennemis **finance** votre propre armée !
 
 **Résultat :**
 - ✅ Astéroïde disparaît
-- 💰 Gain immédiat : **+75₿**
+- 💰 Gain immédiat : **+100₿**
 - ⚠️ Foreuse perd 10% PV
 
 :::caution Dégâts
@@ -356,9 +360,9 @@ C'est la **source de revenus la plus rentable** à long terme !
 | Niveau | PV  | Gain/tour | Coût upgrade |
 |--------|-----|-----------|--------------|
 |   1    | 500 |   300₿    |    1000₿     |
-| 2 | 700 | 350₿ | 2000₿ |
-| 3 | 1200 | 400₿ | 6000₿ |
-| 4 | 1600 | 450₿ | — |
+| 2 | 700 | 400₿ | 2000₿ |
+| 3 | 1200 | 500₿ | 6000₿ |
+| 4 | 1600 | 600₿ | — |
 
 **ROI (Return on Investment) :**
 
@@ -377,9 +381,9 @@ C'est la **source de revenus la plus rentable** à long terme !
 **1. Minage actif :**
 
 <ul>
-  <li>+75₿ immédiat</li>
+  <li>+100₿ immédiat</li>
   <li>Coûte 10% PV</li>
-  <li>Une fois par astéroïde</li>
+  <li>Illimité ou Aucune limite par tour</li>
 </ul>
 
 **2. Bonus planète (passif) :**
@@ -387,7 +391,7 @@ C'est la **source de revenus la plus rentable** à long terme !
 <ul>
   <li>+150₿ par tour</li>
   <li>Aucun coût</li>
-  <li>Infini</li>
+  <li>Illimité ou Aucune limite par tour</li>
 </ul>
 
 :::tip Comparaison
@@ -460,7 +464,6 @@ Le **Transporteur** peut embarquer jusqu'à **3 vaisseaux** :
 <ul>
   <li>3× Petit</li>
   <li>1× Moyen + 1× Petit</li>
-  <li>1× Lourd (occupe 2 slots)</li>
 </ul>
 
 :::info Configuration
@@ -522,7 +525,7 @@ Le débarquement utilise la portée de **déplacement** du vaisseau débarqué !
 
 **Strike team**
 <ul>
-  <li>Embarquer 2 vaisseaux lourds</li>
+  <li>Embarquer 1 vaisseau Moyen et Léger</li>
   <li>Approche rapide de la base ennemie</li>
   <li>Débarquement surprise</li>
 </ul>
@@ -593,7 +596,7 @@ La rotation permet de **passer dans des espaces étroits** entre planètes !
 |----------|----|----|-------|-------|------|--------|
 | 🏃 **Petit** | 100 | 50 | 3 | 6 | 325₿ | 1×1 |
 | ⚖️ **Moyen** | 400 | 100 | 5 | 6 | 650₿ | 2×2 |
-| 🛡️ **Lourd** | 800 | 200 | 7 | 2 | 1050₿ | 3×4 |
+| 🛡️ **Lourd** | 800 | 200 | 10 | 3 | 1050₿ | 3×4 |
 | ⛏️ **Foreuse** | 200 | 0 | 0 | 3 | 400₿ | 1×1 |
 | 🚚 **Transport** | 600 | 100 | 3 | 4 | 500₿ | 2×2 |
 | 🏰 **Base Nv1** | 500 | 0 | 0 | 0 | — | 4×5 |

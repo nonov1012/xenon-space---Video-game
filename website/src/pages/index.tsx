@@ -1,17 +1,20 @@
-import type {ReactNode} from 'react';
-import clsx from 'clsx';
+import type { JSX } from 'react';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import Heading from '@theme/Heading';
+import React from 'react';
+
+import StarsBackground from '@site/src/components/SpaceBackground/StarsBackground';
+import SpaceObjects from '@site/src/components/SpaceBackground/SpaceObjects';
 
 import styles from './index.module.css';
 
-function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+function HomepageHeader(): JSX.Element {
+  const { siteConfig } = useDocusaurusContext();
   return (
-    <header className={clsx('hero hero--primary', styles.heroBanner)}>
+    <header className={styles.heroBanner}>
       <div className="container">
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
@@ -37,14 +40,18 @@ function HomepageHeader() {
   );
 }
 
-
-export default function Home(): ReactNode {
-  const {siteConfig} = useDocusaurusContext();
+export default function Home(): JSX.Element {
   return (
-    <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+    <Layout title="Accueil" description="Description du site">
+      {/* Fond spatial derrière le header */}
+      <div className={styles.spaceBackground}>
+        <StarsBackground />
+        <SpaceObjects />
+      </div>
+
+      {/* Header transparent par-dessus */}
       <HomepageHeader />
+
       <main>
         <HomepageFeatures />
       </main>
