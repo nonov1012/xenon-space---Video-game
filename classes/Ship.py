@@ -529,9 +529,10 @@ class Ship:
             return False
         
         # Réduire la portée selon le chemin parcouru, case par case
-        for nl, nc in chemin[1:]:  # ignorer la case de départ
+        for nl, nc in chemin[1:]:
             largeur, hauteur = self.donner_dimensions(cible_direction)
             max_cost = 0
+
             for yy in range(nl, nl + hauteur):
                 for xx in range(nc, nc + largeur):
                     point = grille[yy][xx]
@@ -541,9 +542,13 @@ class Ship:
                         max_cost = max(max_cost, 2)
                     elif point.type == Type.VAISSEAU:
                         continue
+
+            # Vérifie si on peut encore avancer
+            if self.port_deplacement - max_cost < 0:
+                break  # stoppe le déplacement ici
+
             self.port_deplacement -= max_cost
-            if self.port_deplacement < 0:
-                self.port_deplacement = 0
+            ligne, colonne = nl, nc  # dernière case réellement atteinte
 
         # Libérer l'ancienne position
         self.liberer_position(grille)
