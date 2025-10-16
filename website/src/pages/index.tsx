@@ -15,7 +15,7 @@ function HomepageHeader(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
     <header className={styles.heroBanner}>
-      <div className="container">
+      <div className="container" style={{ color: 'white' }}>
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
         </Heading>
