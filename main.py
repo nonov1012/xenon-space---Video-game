@@ -47,6 +47,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+import time
 
 
 def set_prevision_for_ship(ship, case, direction):
@@ -557,6 +558,17 @@ def start_game(ecran, parametres, random_active):
     next_uid[0] += 1
     Turn.players[0].ships.append(sf1)
 
+    # Foreuse joueur 2
+    sl1 = Lourd(
+        cordonner=Point(5, 5),
+        id=next_uid[0],
+        path=img_lourd_dir,
+        image=img_Lourd,
+        joueur=Turn.players[0].id
+    )
+    next_uid[0] += 1
+    Turn.players[0].ships.append(sl1)
+
     # MotherShip du joueur 2
     smm2 = MotherShip(
         tier=1,
@@ -617,7 +629,6 @@ def start_game(ecran, parametres, random_active):
     interface_transport_active = False
     afficher_grille = False
     running = True
-
 
     pygame.time.wait(500) # Petite pause pour que le joueur voie le message "Prêt
 
