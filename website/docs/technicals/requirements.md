@@ -58,6 +58,7 @@ pip install -r requirements.txt
 ---
 
 :::info[*Vérification de l’installation*]
+
 ```bash
 python -m main
 ```

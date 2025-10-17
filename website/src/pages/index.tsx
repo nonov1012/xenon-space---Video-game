@@ -9,6 +9,7 @@ import React from 'react';
 import StarsBackground from '@site/src/components/SpaceBackground/StarsBackground';
 
 import styles from './index.module.css';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 
 function HomepageHeader(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
@@ -59,10 +60,14 @@ function HomepageHeader(): JSX.Element {
 export default function Home(): JSX.Element {
   return (
     <Layout title="Accueil" description="Description du site">
-      {/* Fond spatial derrière le header */}
-      <div className={styles.spaceBackground}>
-        <StarsBackground />
-      </div>
+      <BrowserOnly>
+        {/* Fond spatial derrière le header */}
+        {() => (
+          <div className={styles.spaceBackground}>
+            <StarsBackground />
+          </div>
+        )}
+      </BrowserOnly>
 
       {/* Header transparent par-dessus */}
       <HomepageHeader />
