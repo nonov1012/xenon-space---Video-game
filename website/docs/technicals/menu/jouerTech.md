@@ -1,5 +1,5 @@
 
-# Documentation Technique : Module de Personnalisation (Fonction `draw`)
+# Module de Personnalisation (Fonction `draw`)
 
 ## 1. Objectif Principal
 

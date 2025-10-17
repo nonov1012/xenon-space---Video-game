@@ -1,4 +1,4 @@
-# Documentation Technique : Menu Principal (Fonction `main`)
+# Menu Principal (Fonction `main`)
 
 ## 1. Objectif Principal
 

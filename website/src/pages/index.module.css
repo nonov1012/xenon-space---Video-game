@@ -5,12 +5,7 @@
   overflow: hidden;
   background: transparent; /* on enlève le fond du header */
   z-index: 10; /* pour qu’il reste devant le fond spatial */
-}
-
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+  height: 356px !important;
 }
 
 .buttons {
@@ -29,4 +24,36 @@
   z-index: 0; /* derrière le header */
   width: 100%;
   height: 400px; /* même hauteur que ton canvas */
+}
+
+.responsiveTitle {
+  font-size: clamp(2rem, 5vw, 3.5rem) !important;
+  line-height: 1.2;
+  margin-bottom: clamp(1rem, 3vw, 1.5rem);
+}
+
+.responsiveSubtitle {
+  font-size: clamp(1rem, 3vw, 1.5rem) !important;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.buttons {
+  gap: clamp(0.5rem, 2vw, 1.5rem) !important;
+}
+
+/* Tablette */
+@media (min-width: 577px) and (max-width: 996px) {
+  .heroBanner {
+    padding: clamp(2rem, 6vw, 3rem) 0;
+  }
+}
+
+/* Desktop */
+@media (min-width: 997px) {
+  .heroBanner {
+    padding: 3rem 0;
+  }
 }

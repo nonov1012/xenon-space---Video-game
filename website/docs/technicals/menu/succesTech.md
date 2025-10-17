@@ -1,4 +1,4 @@
-# Documentation Technique : Menu Succès (Fonction `main`)
+# Menu Succès (Fonction `main`)
 
 ## 1. Objectif Principal
 

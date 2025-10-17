@@ -1,4 +1,4 @@
-# Documentation Technique : Module MenuPause
+# MenuPause
 
 ## 1. Objectif Principal
 

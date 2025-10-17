@@ -1,4 +1,4 @@
-# Documentation Technique : Module `credit.py`
+# Credit
 
 ## 1. Objectif du Module
 

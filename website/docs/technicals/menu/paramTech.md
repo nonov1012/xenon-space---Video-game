@@ -1,4 +1,4 @@
-# Documentation Technique : Module MenuParametres
+# MenuParametres
 
 ## 1. Objectif Principal
 

@@ -1,4 +1,4 @@
-# Documentation Technique : Module menuFin.py
+# MenuFin
 
 ## 1. Objectif du Module
 

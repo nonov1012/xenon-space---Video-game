@@ -7,7 +7,6 @@ import Heading from '@theme/Heading';
 import React from 'react';
 
 import StarsBackground from '@site/src/components/SpaceBackground/StarsBackground';
-import SpaceObjects from '@site/src/components/SpaceBackground/SpaceObjects';
 
 import styles from './index.module.css';
 
@@ -15,26 +14,43 @@ function HomepageHeader(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
     <header className={styles.heroBanner}>
-      <div className="container" style={{ color: 'white' }}>
-        <Heading as="h1" className="hero__title">
+      <div className="container" style={{ color: 'white'}}>
+        <Heading as="h1" className={`hero__title ${styles.responsiveTitle}`}>
           {siteConfig.title}
         </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
+        <p className={`hero__subtitle ${styles.responsiveSubtitle}`}>{siteConfig.tagline}</p>
 
-        <div className={styles.buttons}>
+        <div
+          className={styles.buttons}
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: 'clamp(0.5rem, 2vw, 1.5rem)',
+          }}
+        >
           <Link
             className="button button--secondary button--lg"
             to="/docs/technicals/intro"
+            style={{
+              fontSize: 'clamp(0.875rem, 2vw, 1.125rem)',
+              padding: 'clamp(0.5rem, 1vw, 0.75rem) clamp(1rem, 2vw, 1.5rem)',
+            }}
           >
             📘 Documentation Technique
           </Link>
           <Link
             className="button button--secondary button--lg"
             to="/docs/users/intro"
+            style={{
+              fontSize: 'clamp(0.875rem, 2vw, 1.125rem)',
+              padding: 'clamp(0.5rem, 1vw, 0.75rem) clamp(1rem, 2vw, 1.5rem)',
+            }}
           >
             🧭 Documentation Utilisateur
           </Link>
         </div>
+
       </div>
     </header>
   );
@@ -46,7 +62,6 @@ export default function Home(): JSX.Element {
       {/* Fond spatial derrière le header */}
       <div className={styles.spaceBackground}>
         <StarsBackground />
-        <SpaceObjects />
       </div>
 
       {/* Header transparent par-dessus */}
