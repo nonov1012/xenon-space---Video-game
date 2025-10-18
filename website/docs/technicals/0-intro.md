@@ -8,9 +8,9 @@ Bienvenue dans la documentation technique de **Xenon Space**, un jeu de stratég
 
 ## Navigation de la Documentation
 
-- **[Initialisation et installation des dépendences](./requirements.md)**
-- **[Classes Principales](./classes/principale_class.md)** : Documentation des classes
-- **[Maintenance du projet](./maintenance.md)**
+- **[Initialisation et installation des dépendences](./1-requirements.md)**
+- **[Classes Principales](./classes/1-principale_class.md)** : Documentation des classes
+- **[Maintenance du projet](./2-maintenance.md)**
 
 ## Vue d'ensemble
 
@@ -95,7 +95,7 @@ player.buy(500)  # Tente un achat
 ```
 
 :::info[*Pour plus d'info*]
-Voir la partie [Classe Principales](./classes/principale_class.md)
+Voir la partie [Classe Principales](./classes/1-principale_class.md)
 :::
 
 ## Flux de Jeu Principal

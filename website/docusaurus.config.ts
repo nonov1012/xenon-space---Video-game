@@ -24,7 +24,7 @@ const config: Config = {
 
   i18n: {
     defaultLocale: 'fr',
-    locales: ['fr', 'en'],
+    locales: ['fr'],
   },
 
   presets: [
@@ -59,9 +59,15 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          sidebarId: 'technicalSidebar',
           position: 'left',
-          label: '📚 Documentation',
+          label: '🔧 Documentation Technique',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'userSidebar',
+          position: 'left',
+          label: '👤 Documentation Utilisateur',
         },
         {
           type: 'localeDropdown',

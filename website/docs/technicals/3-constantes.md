@@ -552,4 +552,4 @@ if __name__ == "__main__":
 
 ---
 
-**Prochaine étape** : Découvrez comment ces constantes sont utilisées dans les [Classes Principales](./classes/principale_class.md).
+**Prochaine étape** : Découvrez comment ces constantes sont utilisées dans les [Classes Principales](./classes/1-principale_class.md).

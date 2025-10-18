@@ -38,7 +38,7 @@ class Map:
 ```
 
 Ces attributs définissent les dimensions globales de la grille de jeu.
-Elle se base sur les constantes du fichier [blazyck.py](../constantes.md).
+Elle se base sur les constantes du fichier [blazyck.py](../3-constantes.md).
 
 ---
 
@@ -552,4 +552,4 @@ if __name__ == "__main__":
 - [Classe Point](./Point.md)
 - [Enum Type](./Point.md)
 - [PlanetAnimator](./animation/2-PlanetAnimator.md)
-- [ResourceManager](./principale_class.md)
+- [ResourceManager](./1-principale_class.md)
