@@ -33,12 +33,12 @@ xenon-space/
 │   ├── sounds/          # Effets sonores et musiques
 │   └── fonts/           # Polices personnalisées
 ├── classes/             # Classes principales du jeu
-│   ├── Ship.py         # Classe de base des vaisseaux
-│   ├── MotherShip.py   # Vaisseau-mère
-│   ├── Player.py       # Gestion des joueurs
-│   ├── Map.py          # Génération de carte
-│   ├── Turn.py         # Système de tours
-│   ├── Animator.py     # Système d'animation de base
+│   ├── Ship.py          # Classe de base des vaisseaux
+│   ├── MotherShip.py    # Vaisseau-mère
+│   ├── Player.py        # Gestion des joueurs
+│   ├── Map.py           # Génération de carte
+│   ├── Turn.py          # Système de tours
+│   ├── Animator.py      # Système d'animation de base
 │   └── ...
 ├── menu/                # Système de menus
 │   ├── menuPrincipal.py
@@ -107,6 +107,10 @@ player.economie.ajouter(150)  # Ajoute de l'argent
 player.buy(500)  # Tente un achat
 ```
 
+:::info[*Pour plus d'info*]
+Voir la partie [Classe Principales](./principale_class.md)
+:::
+
 ## 📊 Flux de Jeu Principal
 
 ```mermaid
@@ -147,6 +151,10 @@ pip install pygame pillow numpy pypresence
 python main.py
 ```
 
+:::info[*Pour plus d'info*]
+Voir la partie [Requirements](./requirements.md)
+:::
+
 ### Premier Lancement
 
 1. **Écran de chargement** : Les ressources (planètes, astéroïdes) sont préchargées
@@ -156,8 +164,8 @@ python main.py
 
 ## 📚 Navigation de la Documentation
 
-- **[Architecture](./architecture/overview.md)** : Détails sur l'architecture du jeu
-- **[Classes Principales](./core-classes/ship.md)** : Documentation des classes core
+- **[Architecture](./architecture.md)** : Détails sur l'architecture du jeu
+- **[Classes Principales](./principale_class.md)** : Documentation des classes core
 - **[Systèmes de Jeu](./game-systems/turn-system.md)** : Mécaniques de gameplay
 - **[Animation](./animation/animator.md)** : Système d'animation
 - **[Interface](./ui/hud.md)** : Composants UI

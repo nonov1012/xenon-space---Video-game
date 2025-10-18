@@ -137,7 +137,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Xenon Space Team. Construit avec Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Xenon Space. Construit avec Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

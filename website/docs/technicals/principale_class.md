@@ -1,4 +1,4 @@
-# 🏗️ Architecture logicielle
+# Classes Principales
 
 ## Vue d’ensemble
 
@@ -18,10 +18,6 @@ Le projet est organisé de manière modulaire, avec une architecture basée sur 
 | Turn | Gère le déroulement des tours |
 | Economie | Gère les ressources financières d'un joueur |
 | Shop | Interface d’achat des vaisseaux |
-
-### Diagramme simplifié
-
-*A faire*
 
 ## 📁 Structure du projet
 

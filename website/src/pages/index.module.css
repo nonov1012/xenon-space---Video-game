@@ -1,23 +1,59 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
 .heroBanner {
   padding: 4rem 0;
   text-align: center;
   position: relative;
   overflow: hidden;
-}
-
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+  background: transparent; /* on enlève le fond du header */
+  z-index: 10; /* pour qu’il reste devant le fond spatial */
+  height: 356px !important;
 }
 
 .buttons {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Nouveau style pour le fond spatial */
+.spaceBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0; /* derrière le header */
+  width: 100%;
+  height: 400px; /* même hauteur que ton canvas */
+}
+
+.responsiveTitle {
+  font-size: clamp(2rem, 5vw, 3.5rem) !important;
+  line-height: 1.2;
+  margin-bottom: clamp(1rem, 3vw, 1.5rem);
+}
+
+.responsiveSubtitle {
+  font-size: clamp(1rem, 3vw, 1.5rem) !important;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.buttons {
+  gap: clamp(0.5rem, 2vw, 1.5rem) !important;
+}
+
+/* Tablette */
+@media (min-width: 577px) and (max-width: 996px) {
+  .heroBanner {
+    padding: clamp(2rem, 6vw, 3rem) 0;
+  }
+}
+
+/* Desktop */
+@media (min-width: 997px) {
+  .heroBanner {
+    padding: 3rem 0;
+  }
 }

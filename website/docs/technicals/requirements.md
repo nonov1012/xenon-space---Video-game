@@ -1,4 +1,4 @@
-# ⚙️ Requirements
+# Requirements
 
 Avant de vous lancer dans *Xenon-Space*, assurez-vous que votre environnement est correctement configuré.  
 Cette page détaille les outils et bibliothèques nécessaires au bon fonctionnement du jeu. 🚀
@@ -58,6 +58,7 @@ pip install -r requirements.txt
 ---
 
 :::info[*Vérification de l’installation*]
+
 ```bash
 python -m main
 ```
