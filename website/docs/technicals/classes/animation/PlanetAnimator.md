@@ -108,5 +108,3 @@ def invalidate_atmosphere(self):
 ```
 
   * Définit `self._atmosphere_surface` à `None`.
-
-J'ai fait en sorte de livrer le texte directement ici, vous devriez pouvoir le sélectionner facilement et le coller dans votre éditeur \!

@@ -30,7 +30,7 @@ Aucune sauvegarde automatique n’est nécessaire pour le jeu.
 Cloner le dépôt Git sur un autre ordinateur ou disque externe :
 
 ```bash
-git clone <URL-du-dépôt>
+git clone https://github.com/nonov1012/xenon-space---Video-game.git
 ```
 
 ## Supervision et contrôle

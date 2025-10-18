@@ -5,6 +5,15 @@ Cette page détaille les outils et bibliothèques nécessaires au bon fonctionne
 
 ---
 
+## Initialisation du projet
+
+Pour récupérer le code source du projet, utilisez la commande `git clone` dans votre terminal :
+
+```bash
+git clone https://github.com/nonov1012/xenon-space---Video-game.git
+cd xenon-space---Video-game
+```
+
 ## Environnement
 
 | Élément | Description |
