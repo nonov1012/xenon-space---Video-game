@@ -4,7 +4,7 @@ La classe `PlanetAnimator` hérite de la classe `Animator` et est spécifiquemen
 
 Elle utilise le chemin de base défini par la constante `PLANETES_PATH` pour charger les assets.
 
-## Hérite de [`Animator`](./Animator.md)
+## Hérite de [`Animator`](./1-Animator.md)
 
 -----
 
@@ -108,5 +108,3 @@ def invalidate_atmosphere(self):
 ```
 
   * Définit `self._atmosphere_surface` à `None`.
-
-J'ai fait en sorte de livrer le texte directement ici, vous devriez pouvoir le sélectionner facilement et le coller dans votre éditeur \!

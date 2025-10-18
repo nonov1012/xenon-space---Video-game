@@ -6,9 +6,13 @@ sidebar_position: 1
 
 Bienvenue dans la documentation technique de **Xenon Space**, un jeu de stratégie spatial tour par tour développé en Python avec Pygame.
 
-<!-- [img]: Capture d'écran du jeu en action -->
+## Navigation de la Documentation
 
-## 🎮 Vue d'ensemble
+- **[Initialisation et installation des dépendences](./requirements.md)**
+- **[Classes Principales](./classes/principale_class.md)** : Documentation des classes
+- **[Maintenance du projet](./maintenance.md)**
+
+## Vue d'ensemble
 
 Xenon Space est un jeu de stratégie spatial où deux joueurs s'affrontent pour le contrôle de ressources spatiales limitées. Le jeu propose :
 
@@ -18,7 +22,7 @@ Xenon Space est un jeu de stratégie spatial où deux joueurs s'affrontent pour 
 - **Système de base évolutif** (MotherShip améliorable)
 - **Animations fluides** avec système d'animateurs personnalisés
 
-## 🏗️ Architecture Générale
+## Architecture Générale
 
 ### Structure du Projet
 
@@ -48,24 +52,7 @@ xenon-space/
 └── blazyck.py           # Configuration globale
 ```
 
-## 🛠️ Technologies Utilisées
-
-### Bibliothèques Principales
-
-| Bibliothèque | Version | Usage |
-|--------------|---------|-------|
-| **Pygame** | 2.x | Moteur graphique et gestion des événements |
-| **Pillow (PIL)** | - | Traitement d'images (conversion GIF) |
-| **NumPy** | - | Calculs mathématiques pour animations |
-| **pypresence** | - | Intégration Discord Rich Presence |
-
-### Dépendances Système
-
-- Python 3.8+
-- Pygame avec support SRCALPHA (transparence)
-- Environnement graphique (X11/Wayland/Windows)
-
-## 🎯 Concepts Clés
+## Concepts Clés
 
 ### 1. Système de Tour
 
@@ -108,10 +95,10 @@ player.buy(500)  # Tente un achat
 ```
 
 :::info[*Pour plus d'info*]
-Voir la partie [Classe Principales](./principale_class.md)
+Voir la partie [Classe Principales](./classes/principale_class.md)
 :::
 
-## 📊 Flux de Jeu Principal
+## Flux de Jeu Principal
 
 ```mermaid
 graph TD
@@ -135,55 +122,15 @@ graph TD
     O --> B
 ```
 
-## 🚀 Démarrage Rapide
+## Contributeurs
 
-### Installation
-
-```bash
-# Cloner le dépôt
-git clone https://github.com/votre-repo/xenon-space.git
-cd xenon-space
-
-# Installer les dépendances
-pip install pygame pillow numpy pypresence
-
-# Lancer le jeu
-python main.py
-```
-
-:::info[*Pour plus d'info*]
-Voir la partie [Requirements](./requirements.md)
-:::
-
-### Premier Lancement
-
-1. **Écran de chargement** : Les ressources (planètes, astéroïdes) sont préchargées
-2. **Menu principal** : Navigation avec animations de fond spatial
-3. **Personnalisation** : Configuration de la partie avant de jouer
-4. **Jeu** : Partie en tour par tour
-
-## 📚 Navigation de la Documentation
-
-- **[Architecture](./architecture.md)** : Détails sur l'architecture du jeu
-- **[Classes Principales](./principale_class.md)** : Documentation des classes core
-- **[Systèmes de Jeu](./game-systems/turn-system.md)** : Mécaniques de gameplay
-- **[Animation](./animation/animator.md)** : Système d'animation
-- **[Interface](./ui/hud.md)** : Composants UI
-- **[Guides](./guides/creating-ships.md)** : Tutoriels de développement
-
-## 🤝 Contributeurs
-
-- VOITURIER Noa
-- NOËL Clément  
-- DAVID Gabriel
-- DUPUIS Brian
-- CAVEL Ugo
+- [VOITURIER Noa](https://github.com/nonov1012)
+- [NOËL Clément](https://github.com/Reclea)
+- [DAVID Gabriel](https://github.com/NockXu)
+- [DUPUIS Brian](https://github.com/brian62100)
+- [CAVEL Ugo](https://github.com/GitLovox)
 - VANHOVE Tom
 
-## 📄 Licence
+## Licence
 
 Copyright © 2025 - Tous droits réservés
-
----
-
-**Prochaine étape** : [Architecture Overview →](./architecture/overview.md)

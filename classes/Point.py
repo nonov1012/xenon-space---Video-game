@@ -80,16 +80,6 @@ if __name__ == "__main__":
     B: Point = Point(4, 8, Type.ATMOSPHERE)
     C: Point = Point(3, 5, Type.PLANETE)
 
-    A.remplir()
-    print(A)  # (1, 2, sol=vide, rempli)
-
-    B.remplir()
-    print(B)  # (4, 8, sol=atmosphere, rempli)
-
-    B.vide_remplit()
-    print(B)  # (4, 8, sol=atmosphere, rempli)
-
-    try:
-        C.remplir()  # Va lever une erreur
-    except ValueError as e:
-        print("Erreur :", e)
+    print(B)  # (4, 8, sol=atmosphere)
+    print(A)  # (1, 2, sol=vide)
+    print(C)  # (3, 5, sol=planete)

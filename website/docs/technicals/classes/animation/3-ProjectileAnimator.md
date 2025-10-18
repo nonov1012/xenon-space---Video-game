@@ -4,7 +4,7 @@ La classe `ProjectileAnimator` étend la classe `Animator` pour gérer spécifiq
 
 Elle utilise le chemin de base défini par la constante `PROJECTILES_PATH` pour charger les assets.
 
-## Hérite de [`Animator`](./Animator.md)
+## Hérite de [`Animator`](./1-Animator.md)
 
 ---
 

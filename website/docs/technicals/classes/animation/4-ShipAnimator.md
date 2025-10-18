@@ -2,7 +2,7 @@
 
 La classe `ShipAnimator` étend la classe `Animator` pour gérer l'affichage et les animations complexes des vaisseaux spatiaux. Elle intègre la gestion des points de vie (PV), de la rotation, des animations prioritaires (bouclier, destruction, armes) et de l'animation moteur en arrière-plan.
 
-## Hérite de [`Animator`](./Animator.md)
+## Hérite de [`Animator`](./1-Animator.md)
 
 -----
 

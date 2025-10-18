@@ -37,7 +37,7 @@ Avant de partir à la conquête des étoiles :
 Poursuivez votre lecture :
 
 - ⚙️ [Mécaniques de jeu](./mechanics.md)  
-- 🛠️ [Personnalisation des vaisseaux](./menus.md)
+- 🛠️ [Personnalisation des vaisseaux](./menu/parametre.md)
 
 ---
 

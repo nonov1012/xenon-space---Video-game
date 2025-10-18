@@ -551,5 +551,5 @@ if __name__ == "__main__":
 
 - [Classe Point](./Point.md)
 - [Enum Type](./Point.md)
-- [PlanetAnimator](./animation/PlanetAnimator.md)
-- [ResourceManager](../principale_class.md)
+- [PlanetAnimator](./animation/2-PlanetAnimator.md)
+- [ResourceManager](./principale_class.md)

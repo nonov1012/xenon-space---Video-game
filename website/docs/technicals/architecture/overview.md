@@ -479,10 +479,10 @@ if __name__ == "__main__":
 
 ## 🔗 Liens Utiles
 
-- [Classes Principales →](../core-classes/ship.md)
-- [Système de Tours →](../game-systems/turn-system.md)
-- [Système d'Animation →](../animation/animator.md)
+- [Classes Principales →](../classes/ship/Ship.md)
+- [Système de Tours →](../classes/Turn.md)
+- [Système d'Animation →](../classes/animation/1-Animator.md)
 
 ---
 
-**Prochaine étape** : Explorez les [Classes Principales](../core-classes/ship.md) pour comprendre la logique métier.
+**Prochaine étape** : Explorez les [Classes Principales](../classes/ship/Ship.md) pour comprendre la logique métier.
