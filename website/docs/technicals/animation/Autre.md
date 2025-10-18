@@ -1,4 +1,4 @@
-# Fonction `gif_to_spritesheet`
+# Autre Fonctionnalitée
 
 La fonction `gif_to_spritesheet` est une utilité qui convertit un fichier d'animation GIF en une unique image statique appelée **spritesheet**. Chaque image (frame) du GIF est extraite et positionnée dans une grille au sein de l'image de sortie.
 
