@@ -84,13 +84,6 @@ def draw(ecran):
         icones_vaisseaux[ship] = pygame.transform.scale(img, (80, 80))
 
     # -------------------------------
-    # Curseur personnalise
-    # -------------------------------
-    curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-    curseur_img = pygame.transform.scale(curseur_img, (40, 40))
-    pygame.mouse.set_visible(False)
-
-    # -------------------------------
     # Image de fond (même animation que menu principal)
     # -------------------------------
     largeur_ecran, hauteur_ecran = ecran.get_size()
@@ -630,9 +623,6 @@ def draw(ecran):
                     nouveau_val = int(min_val + (rel_x / rect_param.width) * (max_val - min_val))
                     params[param] = nouveau_val
                     break
-
-        # Curseur
-        ecran.blit(curseur_img, souris)
 
         pygame.display.flip()
         horloge.tick(60)

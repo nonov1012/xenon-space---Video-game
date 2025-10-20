@@ -37,13 +37,6 @@ def main(ecran):
     )
 
     # -------------------------------
-    # Curseur
-    # -------------------------------
-    curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-    curseur_img = pygame.transform.scale(curseur_img, (40, 40))
-    pygame.mouse.set_visible(False)
-
-    # -------------------------------
     # Bouton Retour
     # -------------------------------
     image_bouton_base = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
@@ -265,9 +258,6 @@ def main(ecran):
         ecran.blit(image_zoom, rect_zoom.topleft)
         rect_texte = texte_retour.get_rect(center=rect_zoom.center)
         ecran.blit(texte_retour, rect_texte.topleft)
-
-        # Curseur
-        ecran.blit(curseur_img, souris)
 
         pygame.display.flip()
         horloge.tick(60)

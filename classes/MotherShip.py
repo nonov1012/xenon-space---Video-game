@@ -53,7 +53,6 @@ class MotherShip(Ship):
         self.animator.show_health = show_health
         self.gain = stats.get("gain", 300)
 
-
     # ---------------- Déplacement et rotation désactivés ----------------
     def deplacement(self, *args, **kwargs):
         return False

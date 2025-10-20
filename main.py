@@ -226,7 +226,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
     return running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid
 
 def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_cargo,
-              interface_transport_active, case_souris, font, player, shop, new_cursor, position_souris,
+              interface_transport_active, case_souris, font, player, shop, position_souris,
               afficher_grille, dt):
     ecran.fill((0, 0, 0, 0))
     stars.update()
@@ -312,7 +312,6 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
         ecran.blit(font.render(info_text, True, (255, 255, 255)), (10, 40))
 
     shop.draw()
-    ecran.blit(new_cursor, position_souris)
 
     pygame.display.flip()
     
@@ -442,13 +441,6 @@ def start_game(ecran, parametres, random_active):
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 30)
     
-    # --- AFFICHER ÉCRAN DE CHARGEMENT ---
-    # Afficher le tout début du chargement
-
-    new_cursor = pygame.image.load('assets/img/menu/cursor.png')
-    new_cursor = pygame.transform.scale(new_cursor, (40, 40))
-    pygame.mouse.set_visible(False)
-
 
     # Générer la map
     screen_width, screen_height = ecran.get_size()
@@ -582,26 +574,29 @@ def start_game(ecran, parametres, random_active):
     Turn.players[1].ships.append(smm2)
 
         # Petit vaisseau joueur 2
-    sp2 = Petit(
-        cordonner=Point(24, 45),
+    sp2 = IAPetit(
+        coordonnees=Point(24, 45),
         id=next_uid[0],
-        path=img_petit_dir,
-        image=img_petit,
-        joueur=Turn.players[1].id
+        joueur_id=Turn.players[1].id
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sp2)
 
-    # Foreuse joueur 2
-    sf2 = Foreuse(
-        cordonner=Point(23, 44),
+    sp2_1 = IAPetit(
+        coordonnees=Point(25, 45),
         id=next_uid[0],
-        path=img_foreuse_dir,
-        image=img_foreuse,
-        joueur=Turn.players[1].id
+        joueur_id=Turn.players[1].id
     )
     next_uid[0] += 1
-    Turn.players[1].ships.append(sf2)
+    Turn.players[1].ships.append(sp2_1)
+
+    sp2_2 = IAPetit(
+        coordonnees=Point(26, 45),
+        id=next_uid[0],
+        joueur_id=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sp2_2)
 
     # Foreuse joueur 2
     sl2 = Lourd(
@@ -672,6 +667,21 @@ def start_game(ecran, parametres, random_active):
                     if not ship_ia.est_mort():
                         pass # remplacer pass par votre appele de fonction
             
+            # Logique de fin de tour pour l'IA
+            for ship in joueur_actuel.ships:
+                ship.reset_porters()
+            joueur_actuel.gain()
+            Turn.next()
+            HUD.change_turn()
+
+            # Vérification de victoire
+            for player in Turn.players:
+                if not player.getMotherShip() or player.getMotherShip().est_mort():
+                    gagnant = [p for p in Turn.players if p != player][0]
+                    menu.menuFin.main(ecran, gagnant, victoire=True)
+                    running = False
+                    break
+        
         # ---------------------
         # TOUR DU JOUEUR HUMAIN
         # ---------------------
@@ -687,7 +697,7 @@ def start_game(ecran, parametres, random_active):
         if not joueur_actuel.is_ia and running:
             dt = clock.tick(60) / 1000.0
             draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
-                      interface_transport_active, case_souris, font, joueur_actuel, shop, new_cursor, position_souris,
+                      interface_transport_active, case_souris, font, joueur_actuel, shop, position_souris,
                       afficher_grille, dt)
             
     pygame.quit()

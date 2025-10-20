@@ -63,13 +63,6 @@ def main(ecran, player, victoire=True, sound_manager=None):
         sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 
     # -------------------------------
-    # Curseur
-    # -------------------------------
-    curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-    curseur_img = pygame.transform.scale(curseur_img, (40, 40))
-    pygame.mouse.set_visible(False)
-
-    # -------------------------------
     # Boutons
     # -------------------------------
     image_bouton_base = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
@@ -187,9 +180,6 @@ def main(ecran, player, victoire=True, sound_manager=None):
             
             rect_texte = texte.get_rect(center=rect_zoom.center)
             ecran.blit(texte, rect_texte.topleft)
-
-        # Curseur
-        ecran.blit(curseur_img, souris)
 
         pygame.display.flip()
         horloge.tick(60)

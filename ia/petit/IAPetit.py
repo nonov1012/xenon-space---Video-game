@@ -1,23 +1,27 @@
 from __future__ import annotations
 import math
 import os
-from classes import MotherShip, Turn
-from classes.Point import Type
+from classes.FloatingText import FloatingText
+from classes.MotherShip import MotherShip
+from classes.Turn import Turn
+from classes.Point import Type, Point
 from classes.Ship import Petit, Ship
 from blazyck import NB_CASE_X, NB_CASE_Y, SHIPS_PATH
 
 class IAPetit(Petit):
-    from classes.Point import Point
-    from classes.Turn import Turn
 
     def __init__(self : IAPetit, coordonnees : Point, id : int, joueur_id : int) -> None:
         super().__init__(cordonner=coordonnees, id=id, joueur=joueur_id, path=os.path.join(SHIPS_PATH, "petit")) 
-        self.vision : int = self.port_deplacement + self.port_attaque # La vision est le double du port de déplacement
 
     def value_ship(ship: Ship) -> float:
-        """ Calcule une valeur pour un vaisseau en fonction de ses caractéristiques. """
-        valeur = (ship.pv_actuel / ship.pv_max) + ship.attaque + ship.port_attaque_max * 100 + ship.port_deplacement_max * 100
-        return valeur
+        """Calcule la dangerosité d'un vaisseau."""
+        # Normalisation : ramène tout sur une base comparable (environ 0–10)
+        pv_norm = (ship.pv_actuel / ship.pv_max) * 5          # santé : jusqu’à 5
+        attaque_norm = (ship.attaque / 200) * 5               # attaque : jusqu’à 5
+        port_attaque_norm = (ship.port_attaque_max / 10) * 3  # portée : jusqu’à 3
+        port_dep_norm = (ship.port_deplacement_max / 10) * 2  # mobilité : jusqu’à 2
+
+        return pv_norm + attaque_norm + port_attaque_norm + port_dep_norm
 
     def get_closest_targets(self, ships: list[Ship]) -> list[tuple[Ship, float]]:
         """Retourne les ennemis dans le champ de vision sous forme [(ship, distance)]."""
@@ -27,115 +31,97 @@ class IAPetit(Petit):
                 continue
 
             distance = abs(ship.cordonner.x - self.cordonner.x) + abs(ship.cordonner.y - self.cordonner.y)
-            if distance < self.vision:
-                results.append((ship, distance))
+
+            results.append((ship, distance))
         return results
 
         
     def score_attaquer(self, ships: list[tuple[Ship, float]]) -> float:
-        """ 
-        Calcule un score pour l'action d'attaquer un ennemi.
-        Le score est plus élevé si :
-        - les ennemis sont proches,
-        - les ennemis ont peu de vie.
-        - le nombre de déplacement de ce vaisseau est élevé.
-        le score est réduit proportionnellement au nombre d'ennemis visibles.
-        """
         if not ships:
             return 0.0
 
         score = 0.0
 
         for ship, distance in ships:
-            if distance == 0:  # allié
-                score += IAPetit.value_ship(ship)
+            if ship.joueur == self.joueur or isinstance(ship, MotherShip):
                 continue
 
-            # Plus l'ennemi est proche, plus le score augmente
-            if distance < self.port_attaque + self.port_deplacement:
-                score += IAPetit.value_ship(ship)  # bonus si à portée d'attaque
-            else:
-                score += IAPetit.value_ship(ship) / (distance + 1)
+            # Plus la cible est faible, plus le score monte
+            faiblesse = max(0, (1 - ship.pv_actuel / ship.pv_max) * 10)
 
-            # Plus l'ennemi a peu de vie, plus le score augmente
-            # pour ça on calcule le nombre de coups pour le tuer
-            coups_necessaires = math.ceil(ship.pv_actuel / self.attaque) # ceil pour arrondir à l'entier supérieur
-            score -= coups_necessaires * 100
+            # Plus elle est proche, plus le score monte
+            proximity = max(0, self.port_deplacement + self.port_attaque - distance)
 
-        return score
+            # La valeur de l'ennemi réduit légèrement le score (attaquer un tank est risqué)
+            danger = min(5, IAPetit.value_ship(ship))
+
+            score += faiblesse + proximity - danger
+
+        # Bonus selon la santé et la mobilité de l'IA elle-même
+        score += (self.pv_actuel / self.pv_max) * 8
+        score += self.port_deplacement_max
+
+        FloatingText(f"{max(score, 0)}", pos=(self.animator.x + self.animator.pixel_w, self.animator.y + self.animator.pixel_h / 2 + 20), color=(255, 120, 120))
+
+        return max(score, 0)
 
     def score_fuir(self, ships: list[tuple[Ship, float]]) -> float:
-        """
-            On définit un score pour l'action de fuir un ennemi.
-            Plus le score est élevé, plus l'action est prioritaire.
-            Le score est basé : 
-             - la vie du vaisseau (plus la vie est basse, plus le score est élevé)
-             - le d'alliés proches (fait baisser le score)
-             - le nombre d'ennemis qui on l'a portée de l'attaquer (fait augmenter le score)
-        """
-        score = 0.0
+        if not ships:
+            return 0.0
 
-        # Plus la vie est basse, plus le score augmente
-        score += IAPetit.value_ship(self)
+        allies_proches = 0
+        ennemis_proches = 0
 
-        # Compte les alliés proches
         for ship, distance in ships:
-            if distance == 0:  # allié
-                score -= IAPetit.value_ship(ship)  # chaque allié proche fait baisser le score
+            if isinstance(ship, MotherShip):
                 continue
+            if ship.joueur == self.joueur:
+                if distance <= 3:
+                    allies_proches += 1
+            else:
+                if distance <= ship.port_attaque + 1:
+                    ennemis_proches += 1
 
-            if distance + ship.port_attaque >= self.port_deplacement:
-                score += 1.25 * IAPetit.value_ship(ship)  # chaque ennemi qui peut nous attaquer augmente le score de 2
-            elif distance > self.port_deplacement:
-                score += IAPetit.value_ship(ship)  # chaque ennemi qui peut nous atteindre augmente le score de 1
+        # Vie faible => forte envie de fuir
+        vie_ratio = 1 - (self.pv_actuel / self.pv_max)
+        score = vie_ratio * 15
 
-        return score
-    
-    def valuation_attack(self, ships: list[Ship]) -> float:
-        """
-        - Plus le vaisseau est proche de la base ennemie ou d'un vaisseau ennemi, plus le score augmente
-        """
-        valuation : int = 0
-        
-        for ship in ships:
-            if ship.joueur != self.joueur:
-                valuation += (abs(ship.cordonner.x - self.cordonner.x) * NB_CASE_X) + (abs(ship.cordonner.y - self.cordonner.y) * NB_CASE_Y)
-            
-        return valuation
-    
+        # Beaucoup d’ennemis proches => on fuit
+        score += ennemis_proches
+
+        # Beaucoup d’alliés => on est rassuré
+        score -= allies_proches
+        FloatingText(f"{int(score)}", pos=(self.animator.x + self.animator.pixel_w, self.animator.y + self.animator.pixel_h / 2), color=(120, 120, 255))
+
+        return max(score, 0)
+
     def prevision_move_attack(self, ships: list[Ship], grille: list[list["Point"]]):
-        """Se déplace vers l’ennemi le plus proche, en anticipant légèrement son mouvement."""
+        """Se déplace vers l'ennemi le plus proche."""
         enemies = [s for s in ships if s.joueur != self.joueur and not s.est_mort()]
         if not enemies:
+            print(f"    DEBUG: Pas d'ennemis")
             return
 
         # Trouver la cible la plus proche
         cible = min(enemies, key=lambda s: abs(s.cordonner.x - self.cordonner.x) + abs(s.cordonner.y - self.cordonner.y))
+        target_pos = (cible.cordonner.x, cible.cordonner.y)
 
-        # Prédiction simple du déplacement futur de la cible
-        dx = 0
-        dy = 0
-        if cible.direction == "haut":
-            dx = -1
-        elif cible.direction == "bas":
-            dx = 1
-        elif cible.direction == "gauche":
-            dy = -1
-        elif cible.direction == "droite":
-            dy = 1
+        # Récupérer toutes les positions atteignables
+        reachable = self.positions_possibles_adjacentes(grille, direction=self.direction)
+        
+        if not reachable:
+            print(f"    DEBUG: Aucune position atteignable")
+            return
 
-        x_pred = cible.cordonner.x + dx
-        y_pred = cible.cordonner.y + dy
+        # Trouver la position atteignable la plus proche de la cible
+        closest_reachable = min(
+            reachable,
+            key=lambda pos: abs(pos[0] - target_pos[0]) + abs(pos[1] - target_pos[1])
+        )
 
-        # Trouve un chemin avec A*
-        path, cost = self.a_star(grille,
-                                (self.cordonner.x, self.cordonner.y),
-                                (x_pred, y_pred),
-                                self.direction,
-                                self.port_deplacement)
-        if path:
-            next_pos = path[min(self.port_deplacement, len(path) - 1)]
-            self.deplacement(next_pos, grille, ships)
+        print(f"    DEBUG: Déplacement vers {closest_reachable}")
+        self.deplacement(closest_reachable, grille, ships)
+
 
     def play_flee_mode(self, ships: list[Ship], grille: list[list["Point"]]):
         """Fuit dans la direction opposée à la moyenne des ennemis visibles."""
@@ -146,22 +132,48 @@ class IAPetit(Petit):
         avg_x = sum(s.cordonner.x for s in enemies) / len(enemies)
         avg_y = sum(s.cordonner.y for s in enemies) / len(enemies)
 
-        # Direction opposée
-        dx = -1 if avg_x > self.cordonner.x else 1 if avg_x < self.cordonner.x else 0
-        dy = -1 if avg_y > self.cordonner.y else 1 if avg_y < self.cordonner.y else 0
+        # Direction opposée normalisée
+        dx = self.cordonner.x - avg_x
+        dy = self.cordonner.y - avg_y
+        
+        if dx == 0 and dy == 0:
+            return
 
-        # Déplacement limité par la portée
-        new_x = self.cordonner.x + dx * self.port_deplacement
-        new_y = self.cordonner.y + dy * self.port_deplacement
+        # Normaliser
+        if dx != 0:
+            dx = int(dx / abs(dx))
+        if dy != 0:
+            dy = int(dy / abs(dy))
 
-        path, cost = self.a_star(grille,
-                                (self.cordonner.x, self.cordonner.y),
-                                (new_x, new_y),
-                                self.direction,
-                                self.port_deplacement)
-        if path:
-            next_pos = path[min(self.port_deplacement, len(path) - 1)]
-            self.deplacement(next_pos, grille, ships)
+        # Récupérer toutes les positions atteignables
+        reachable = self.positions_possibles_adjacentes(grille, direction=self.direction)
+        
+        if not reachable:
+            return
+
+        # Trouver la position atteignable dans la direction de fuite (la plus loin)
+        best_flee = max(
+            reachable,
+            key=lambda pos: (pos[0] - self.cordonner.x) * dx + (pos[1] - self.cordonner.y) * dy
+        )
+
+        self.deplacement(best_flee, grille, ships)
+
+    def est_cible_a_portee(self, cible: Ship, grille: list[list["Point"]]) -> bool:
+        """Vérifie si AU MOINS une case du vaisseau cible est dans la portée d'attaque."""
+        positions_portee = self.positions_possibles_attaque(grille, direction=self.direction)
+
+        largeur, hauteur = cible.donner_dimensions(cible.direction)
+
+        # Vérifie chaque case occupée par le vaisseau cible
+        for dy in range(hauteur):
+            for dx in range(largeur):
+                case_x = cible.cordonner.x + dy
+                case_y = cible.cordonner.y + dx
+                if (case_x, case_y) in positions_portee:
+                    return True
+
+        return False
 
     def play(self, ships: list[Ship], grille: list[list["Point"]]) -> None:
         """
@@ -169,54 +181,74 @@ class IAPetit(Petit):
         - attaquer si un ennemi est proche et le score d'attaque est le plus élevé
         - fuir si elle est menacée
         - aller vers la base adverse sinon
-        Elle peut se déplacer de plusieurs cases tant qu'il lui reste du déplacement.
         """
+        print(f"Tour de l'IA {self.joueur} : {self}")
+
         # Récupère les cibles dans le champ de vision
         targets = self.get_closest_targets(ships)
 
+        # Cas 1 : Aucune cible visible -> Aller vers la base adverse
         if not targets:
+            print(f"- Pas de cibles visibles")
             for ship in ships:
                 if ship.joueur != self.joueur and isinstance(ship, MotherShip):
-                    self.deplacement(MotherShip.cordonner, grille, ships)
+                    self.deplacement((ship.cordonner.x, ship.cordonner.y), grille, ships)
+                    print(f"- Déplacement vers la base : {ship.cordonner}")
             return
 
-        # Calcul des scores pour chaque comportement
+        # Cas 2 : Cibles visibles -> Calculer les scores
         score_attaque = self.score_attaquer(targets)
         score_fuite = self.score_fuir(targets)
 
         # Sélectionne l'action prioritaire
-        etat = {
-            "attaquer": score_attaque,
-            "fuir": score_fuite,
-        }
-        etat_choisis = max(etat, key=etat.get)
+        etat_choisi = "attaquer" if score_attaque >= score_fuite else "fuir"
+        print(f"- Action choisie : {etat_choisi} (attaque: {score_attaque:.1f}, fuite: {score_fuite:.1f})")
 
-        # Boucle principale : le vaisseau agit tant qu'il peut encore se déplacer ou attaquer
-        passed = False
-        while not passed:
+        # Boucle principale : le vaisseau agit tant qu'il a des points de mouvement
+        iterations = 0
+        max_iterations = 20
+        
+        while self.port_deplacement > 0 and iterations < max_iterations:
+            iterations += 1
+
             # Met à jour les cibles visibles
             targets = self.get_closest_targets(ships)
 
             # Si aucune cible visible -> fin de tour
             if not targets:
-                passed = True
-                continue
+                print(f"  - Aucune cible visible")
+                break
 
-            # Trie les cibles : plus faible valeur en premier (ennemi "intéressant")
+            # Trie les cibles : plus intéressante en premier
             targets.sort(key=lambda x: IAPetit.value_ship(x[0]) / (x[1] + 1))
-            cible, distance_to_target = targets[0]
 
-            # Si la cible est à portée d’attaque, on attaque
-            if distance_to_target <= self.port_attaque and self.port_attaque > 0:
-                self.attaquer(cible)
-                passed = True  # Fin du tour après attaque
-                continue
+            print(f"  - Position cible: {targets}")
+
+            # Si la cible est à portée d'attaque, on attaque
+            for target, dist in targets:
+                if self.port_attaque > 0:
+                    if self.est_cible_a_portee(target, grille):
+                        print(f"  - Attaque de {target} à distance {dist}")
+                        self.attaquer(target)
+                        self.port_attaque = 0
+                        break  # Fin du tour après attaque
 
             # Sinon, on se déplace selon la stratégie choisie
-            if self.deplacement > 0:
-                if etat_choisis == "attaquer":
-                    self.prevision_move_attack(ships, grille)
-                elif etat_choisis == "fuir":
-                    self.play_flee_mode(ships, grille)
-            else:
-                passed = True  # Plus de déplacement possible → fin du tour
+            deplacement_avant = self.port_deplacement
+            
+            if etat_choisi == "attaquer":
+                self.prevision_move_attack(ships, grille)
+            elif etat_choisi == "fuir":
+                self.play_flee_mode(ships, grille)
+            
+            deplacement_apres = self.port_deplacement
+            
+            # Vérifier que le déplacement a bien consommé des points
+            if deplacement_avant == deplacement_apres:
+                print(f"  ⚠️ Aucun déplacement effectué, sortie de boucle")
+                break
+
+        if iterations >= max_iterations:
+            print(f"⚠️ Max itérations atteint ({max_iterations})")
+        
+        print(f"- Fin du tour: Déplacement restant: {self.port_deplacement}")

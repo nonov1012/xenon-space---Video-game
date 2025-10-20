@@ -32,9 +32,19 @@ clock = pygame.time.Clock()
 Animator.set_screen(ecran) # initialisation de la classe Animator
 
 # Curseur personnalise
-new_cursor = pygame.image.load('assets/img/menu/cursor.png')
-new_cursor = pygame.transform.scale(new_cursor, (48, 48))
-pygame.mouse.set_visible(False)
+# Charger l'image du curseur
+cursor_image = pygame.image.load(os.path.join(MENU_PATH, "cursor.png")).convert_alpha()
+
+# Redimensionner si nécessaire
+CURSOR_SIZE = (48, 32)
+cursor_image = pygame.transform.smoothscale(cursor_image, CURSOR_SIZE)
+
+# Définir le hotspot (point actif du curseur)
+hotspot = (CURSOR_SIZE[0] // 2, CURSOR_SIZE[1] // 2)
+
+# Créer le curseur Pygame
+custom_cursor = pygame.cursors.Cursor(hotspot, cursor_image)
+pygame.mouse.set_cursor(custom_cursor)
 
 # Sons
 sm = SoundManager()
@@ -158,8 +168,6 @@ while en_cours:
         rect_texte = texte.get_rect(center=rect_zoom.center)
         ecran.blit(texte, rect_texte.topleft)
 
-    # --- Curseur ---
-    ecran.blit(new_cursor, souris)
     pygame.display.flip()
     clock.tick(30)
 

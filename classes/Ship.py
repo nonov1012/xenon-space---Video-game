@@ -271,7 +271,7 @@ class Ship:
         Retourne (chemin, cout_total) ou (None, inf).
         """
         largeur, hauteur = self.donner_dimensions(direction)
-        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2}
+        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2, Type.PLANETE: 9999, Type.ASTEROIDE: 9999}
 
         def heuristique(pos1, pos2):
             return abs(pos1[0]-pos2[0]) + abs(pos1[1]-pos2[1])
@@ -327,7 +327,7 @@ class Ship:
         reachable = []
         largeur, hauteur = self.donner_dimensions(direction)
         nb_lignes, nb_colonnes = len(grille), len(grille[0])
-        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2}
+        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2, Type.PLANETE: 9999, Type.ASTEROIDE: 9999}
 
         from collections import deque
         queue = deque()
@@ -369,8 +369,6 @@ class Ship:
                                 reachable.append((nl, nc))
 
         return reachable
-
-
 
     def positions_possibles_attaque(self, grille: List[List[Point]], direction=None):
         """Retourne toutes les cases dans la portée d’attaque (distance de Manhattan)."""
@@ -430,13 +428,12 @@ class Ship:
                         return True
         return False
 
-
-    def deplacement(self, case_cible: Tuple[int, int], grille: List[List[Point]], ships: List["Ship"]):
+    def deplacement(self, case_cible: Tuple[int, int], grille: list[list], ships: list["Ship"]):
         """
-        Exécute un déplacement ou une attaque :
-        - Si case cible est attaquable → attaque
-        - Sinon, si case cible atteignable → déplace le vaisseau
-        Met à jour la grille et les animations, et réduit la portée en fonction du terrain.
+        Déplace le vaisseau ou attaque/miner la case cible.
+        - Si la case est attaquable → attaque
+        - Si la case est un astéroïde minable → mine
+        - Sinon, avance vers la case, au maximum selon la portée de déplacement
         """
 
         if self.id is None:
@@ -448,7 +445,7 @@ class Ship:
         ligne, colonne = case_cible
         cible_direction = self.aperçu_direction
 
-        # ---- Attaque ----
+        # ---------------- Attaque ----------------
         positions_attaque = self.positions_possibles_attaque(grille, direction=cible_direction)
         if case_cible in positions_attaque:
             cible_ship = self.trouver_vaisseau_a_position(ships, ligne, colonne)
@@ -465,74 +462,72 @@ class Ship:
                 self.miner_asteroide(grille, colonne, ligne)
                 return True
 
-        # ---- Déplacement ----
-        # On récupère toutes les positions atteignables et leur coût via BFS limité
-        reachable = self.positions_possibles_adjacentes(grille, direction=cible_direction)
-        if (ligne, colonne) not in reachable:
-            return False
-
-        # Reconstituer le chemin vers la case cible (BFS + dictionnaire de parents)
+        # ---------------- Déplacement ----------------
         from collections import deque
-        queue = deque()
+
         start = (self.cordonner.x, self.cordonner.y)
-        queue.append(start)
+        queue = deque([start])
         parent = {start: None}
         visited = {start: 0}
 
         while queue:
             current = queue.popleft()
-            if current == (ligne, colonne):
-                break
             l, c = current
             for dl, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
                 nl, nc = l + dl, c + dc
-                if 0 <= nl <= len(grille)-self.donner_dimensions(cible_direction)[1] and \
-                0 <= nc <= len(grille[0])-self.donner_dimensions(cible_direction)[0]:
 
-                    if not self.verifier_collision(grille, nl, nc, cible_direction, ignorer_self=True):
-                        continue
+                largeur, hauteur = self.donner_dimensions(cible_direction)
+                if not (0 <= nl <= len(grille)-hauteur and 0 <= nc <= len(grille[0])-largeur):
+                    continue
 
-                    max_cost = 0
-                    valide = True
-                    largeur, hauteur = self.donner_dimensions(cible_direction)
-                    for yy in range(nl, nl+hauteur):
-                        for xx in range(nc, nc+largeur):
-                            point = grille[yy][xx]
-                            if point.type == Type.VIDE:
-                                max_cost = max(max_cost, 1)
-                            elif point.type == Type.ATMOSPHERE:
-                                max_cost = max(max_cost, 2)
-                            elif point.type == Type.VAISSEAU:
-                                continue
-                            else:
-                                valide = False
-                                break
-                        if not valide:
+                if not self.verifier_collision(grille, nl, nc, cible_direction, ignorer_self=True):
+                    continue
+
+                max_cost = 0
+                valide = True
+                for yy in range(nl, nl+hauteur):
+                    for xx in range(nc, nc+largeur):
+                        point = grille[yy][xx]
+                        if point.type == Type.VIDE:
+                            max_cost = max(max_cost, 1)
+                        elif point.type == Type.ATMOSPHERE:
+                            max_cost = max(max_cost, 2)
+                        elif point.type == Type.VAISSEAU:
+                            continue
+                        else:
+                            valide = False
                             break
+                    if not valide:
+                        break
 
-                    if valide:
-                        g_next = visited[(l,c)] + max_cost
-                        if g_next <= self.port_deplacement and ((nl, nc) not in visited or g_next < visited[(nl,nc)]):
-                            visited[(nl, nc)] = g_next
-                            parent[(nl, nc)] = (l, c)
-                            queue.append((nl, nc))
+                if valide:
+                    g_next = visited[(l,c)] + max_cost
+                    if ((nl, nc) not in visited) or (g_next < visited[(nl, nc)]):
+                        visited[(nl, nc)] = g_next
+                        parent[(nl, nc)] = (l, c)
+                        queue.append((nl, nc))
 
-        # Reconstituer le chemin
-        chemin = []
+        # ---------------- Reconstituer le chemin ----------------
         node = (ligne, colonne)
+        if node not in parent:
+            # cible hors portée → prendre le noeud le plus proche
+            distances = [(abs(node[0]-n[0]) + abs(node[1]-n[1]), n) for n in parent.keys()]
+            node = min(distances)[1]
+
+        chemin = []
         while node:
             chemin.append(node)
             node = parent.get(node)
         chemin.reverse()
 
-        if not chemin or len(chemin) < 2:
+        if len(chemin) < 2:
             return False
-        
-        # Réduire la portée selon le chemin parcouru, case par case
+
+        # ---------------- Parcours du chemin ----------------
+        dernier_ligne, dernier_colonne = chemin[0]
         for nl, nc in chemin[1:]:
             largeur, hauteur = self.donner_dimensions(cible_direction)
             max_cost = 0
-
             for yy in range(nl, nl + hauteur):
                 for xx in range(nc, nc + largeur):
                     point = grille[yy][xx]
@@ -540,32 +535,25 @@ class Ship:
                         max_cost = max(max_cost, 1)
                     elif point.type == Type.ATMOSPHERE:
                         max_cost = max(max_cost, 2)
-                    elif point.type == Type.VAISSEAU:
-                        continue
-
-            # Vérifie si on peut encore avancer
             if self.port_deplacement - max_cost < 0:
-                break  # stoppe le déplacement ici
-
+                break
             self.port_deplacement -= max_cost
-            ligne, colonne = nl, nc  # dernière case réellement atteinte
+            dernier_ligne, dernier_colonne = nl, nc
 
-        # Libérer l'ancienne position
+        # ---------------- Mettre à jour la position ----------------
         self.liberer_position(grille)
-
-        # Mettre à jour la position finale
-        self.cordonner._x = ligne
-        self.cordonner._y = colonne
+        self.cordonner._x = dernier_ligne
+        self.cordonner._y = dernier_colonne
         self.direction = cible_direction
         self.occuper_plateau(grille, Type.VAISSEAU)
 
-        # Mise à jour de l'animator
+        # ---------------- Animator ----------------
         largeur, hauteur = self.donner_dimensions(self.direction)
-        x = colonne * TAILLE_CASE + OFFSET_X
-        y = ligne * TAILLE_CASE
+        x = dernier_colonne * TAILLE_CASE + OFFSET_X
+        y = dernier_ligne * TAILLE_CASE
 
-        self.prevision.x = ligne
-        self.prevision.y = colonne
+        self.prevision.x = dernier_ligne
+        self.prevision.y = dernier_colonne
         self.animator.set_target((x, y))
         self.animator.pixel_w = largeur * TAILLE_CASE
         self.animator.pixel_h = hauteur * TAILLE_CASE
@@ -579,7 +567,6 @@ class Ship:
         self.prevision.alpha = 0
 
         return True
-
 
     # ------------ ROTATION (aperçu) ------------
     def rotation_aperçu(self, grille: List[List[Point]]):
@@ -732,8 +719,8 @@ class Foreuse(Ship):
         
         super().__init__(
             pv_max=stats["pv_max"],
-            attaque=stats["attaque"],
-            port_attaque=stats["port_attaque"],
+            attaque=0,
+            port_attaque=0,
             port_deplacement=stats["port_deplacement"],
             cout=stats["cout"],
             taille=stats["taille"],

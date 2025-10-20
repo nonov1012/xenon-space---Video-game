@@ -37,6 +37,7 @@ PLANETES_PATH = os.path.join(IMG_PATH, "planets")
 PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
 ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
 SHIPS_PATH = os.path.join(IMG_PATH, "ships")
+MENU_PATH = os.path.join(IMG_PATH, "menu")
 
 # Stats des vaisseaux
 CSTE : int = 10

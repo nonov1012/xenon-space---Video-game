@@ -71,9 +71,6 @@ def main(ecran):
     en_cours = True
     espace_enfonce = False
 
-    curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-    curseur_img = pygame.transform.scale(curseur_img, (40, 40))
-
     while en_cours:
         souris = pygame.mouse.get_pos()
         for event in pygame.event.get():
@@ -140,9 +137,6 @@ def main(ecran):
         info_texte = police_info.render("ESPACE = accelerer, ECHAP = quitter", True, (200, 200, 200))
         rect_info = info_texte.get_rect(bottomright=(largeur_ecran - 20, hauteur_ecran - 20))
         ecran.blit(info_texte, rect_info)
-
-        # Curseur
-        ecran.blit(curseur_img, souris)
 
         pygame.display.flip()
         horloge.tick(60)

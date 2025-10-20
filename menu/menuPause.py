@@ -10,7 +10,6 @@ from classes.Start_Animation.main import create_space_background
 from menu import menuParam  # Assurez-vous que menuParam.main accepte ecran en param
 
 def main_pause(ecran, jeu_surface=None):
-    pygame.mouse.set_visible(False)
 
     # -------------------------------
     # Couleurs et polices
@@ -20,12 +19,6 @@ def main_pause(ecran, jeu_surface=None):
 
     police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 42)
     police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 72)
-
-    # -------------------------------
-    # Curseur
-    # -------------------------------
-    curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-    curseur_img = pygame.transform.scale(curseur_img, (40, 40))
 
     # -------------------------------
     # Boutons verticaux
@@ -85,11 +78,6 @@ def main_pause(ecran, jeu_surface=None):
             texte_surf = police_bouton.render(label, True, BLANC)
             texte_rect = texte_surf.get_rect(center=rect_zoom.center)
             ecran.blit(texte_surf, texte_rect)
-
-        # -------------------------------
-        # Curseur
-        # -------------------------------
-        ecran.blit(curseur_img, souris)
 
         # -------------------------------
         # Évènements

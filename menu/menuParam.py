@@ -87,13 +87,6 @@ def main(ecran, animation=True):
     police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 28)
 
     # -------------------------------
-    # Curseur personnalisé
-    # -------------------------------
-    curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-    curseur_img = pygame.transform.scale(curseur_img, (40, 40))
-    pygame.mouse.set_visible(False)
-
-    # -------------------------------
     # Fond animé (sans vaisseau)
     # -------------------------------
     largeur_ecran, hauteur_ecran = ecran.get_size()
@@ -362,9 +355,6 @@ def main(ecran, animation=True):
             slider_x = panneau_x + (panneau_largeur - slider_largeur) // 2
             rel_x = max(0, min(slider_largeur, souris[0] - slider_x))
             settings["audio"][slider_actif] = int((rel_x / slider_largeur) * 100)
-
-        # Curseur
-        ecran.blit(curseur_img, souris)
 
         pygame.display.flip()
         horloge.tick(60)

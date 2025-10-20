@@ -38,11 +38,6 @@ class MenuPrincipal:
 
         Animator.set_screen(self.ecran)  # initialisation de la classe Animator
 
-        # Curseur personnalise
-        self.new_cursor = pygame.image.load('../assets/img/menu/cursor.png')
-        self.new_cursor = pygame.transform.scale(self.new_cursor, (40, 40))
-        pygame.mouse.set_visible(False)
-
         # Sons
         self.sm = SoundManager()
         self.sm.play_music("../assets/sounds/musics/music_ingame.mp3")
