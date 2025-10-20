@@ -1,0 +1,24 @@
+{
+  "id": "technicals/classes/hud/BarDisplay",
+  "title": "BarDisplay",
+  "description": "La classe BarDisplay est responsable de l'affichage d'une barre d'état détaillée pour un joueur. Cette barre affiche des informations clés comme la monnaie du joueur et les points de vie de son vaisseau mère, et inclut un effet d'animation de surbrillance (highlight) pulsant.",
+  "source": "@site/docs/technicals/classes/hud/BarDisplay.md",
+  "sourceDirName": "technicals/classes/hud",
+  "slug": "/technicals/classes/hud/BarDisplay",
+  "permalink": "/xenon-space---Video-game/docs/technicals/classes/hud/BarDisplay",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/classes/hud/BarDisplay.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "HUD",
+    "permalink": "/xenon-space---Video-game/docs/technicals/classes/hud/"
+  },
+  "next": {
+    "title": "TurnDisplay",
+    "permalink": "/xenon-space---Video-game/docs/technicals/classes/hud/TurnDisplay"
+  }
+}

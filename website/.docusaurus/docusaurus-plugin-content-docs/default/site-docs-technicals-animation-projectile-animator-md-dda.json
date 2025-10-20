@@ -1,0 +1,24 @@
+{
+  "id": "technicals/animation/ProjectileAnimator",
+  "title": "ProjectileAnimator",
+  "description": "La classe ProjectileAnimator étend la classe Animator pour gérer spécifiquement l'affichage, le mouvement et la durée de vie des projectiles (balles, torpilles, lasers).",
+  "source": "@site/docs/technicals/animation/ProjectileAnimator.md",
+  "sourceDirName": "technicals/animation",
+  "slug": "/technicals/animation/ProjectileAnimator",
+  "permalink": "/xenon-space---Video-game/docs/technicals/animation/ProjectileAnimator",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/animation/ProjectileAnimator.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "PlanetAnimator",
+    "permalink": "/xenon-space---Video-game/docs/technicals/animation/PlanetAnimator"
+  },
+  "next": {
+    "title": "ShipAnimator",
+    "permalink": "/xenon-space---Video-game/docs/technicals/animation/ShipAnimator"
+  }
+}

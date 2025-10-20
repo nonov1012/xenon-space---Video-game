@@ -1,0 +1,24 @@
+{
+  "id": "technicals/animation/Gif",
+  "title": "Fonction gif_to_spritesheet",
+  "description": "La fonction giftospritesheet est une utilité qui convertit un fichier d'animation GIF en une unique image statique appelée spritesheet. Chaque image (frame) du GIF est extraite et positionnée dans une grille au sein de l'image de sortie.",
+  "source": "@site/docs/technicals/animation/Gif.md",
+  "sourceDirName": "technicals/animation",
+  "slug": "/technicals/animation/Gif",
+  "permalink": "/xenon-space---Video-game/docs/technicals/animation/Gif",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/animation/Gif.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "ShipAnimator",
+    "permalink": "/xenon-space---Video-game/docs/technicals/animation/ShipAnimator"
+  },
+  "next": {
+    "title": "🚀 Documentation utilisateur – Xenon Space",
+    "permalink": "/xenon-space---Video-game/docs/users/intro"
+  }
+}

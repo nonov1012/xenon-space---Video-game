@@ -1,0 +1,15 @@
+{
+  "id": "technicals/classes/Point",
+  "title": "Type et Point",
+  "description": "Ce module définit deux structures fondamentales pour la représentation des entités et des emplacements dans l'espace de jeu : l'énumération Type pour identifier la nature d'un emplacement, et la classe Point pour modéliser une position 2D avec cette nature associée.",
+  "source": "@site/docs/technicals/classes/Point.md",
+  "sourceDirName": "technicals/classes",
+  "slug": "/technicals/classes/Point",
+  "permalink": "/xenon-space---Video-game/docs/technicals/classes/Point",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/classes/Point.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {}
+}

@@ -1,0 +1,24 @@
+{
+  "id": "technicals/classes/menu/succesTech",
+  "title": "Menu Succès (Fonction main)",
+  "description": "1. Objectif Principal",
+  "source": "@site/docs/technicals/classes/menu/succesTech.md",
+  "sourceDirName": "technicals/classes/menu",
+  "slug": "/technicals/classes/menu/succesTech",
+  "permalink": "/xenon-space---Video-game/docs/technicals/classes/menu/succesTech",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/classes/menu/succesTech.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Menu Principal (Fonction main)",
+    "permalink": "/xenon-space---Video-game/docs/technicals/classes/menu/principalTech"
+  },
+  "next": {
+    "title": "Player",
+    "permalink": "/xenon-space---Video-game/docs/technicals/classes/Player"
+  }
+}

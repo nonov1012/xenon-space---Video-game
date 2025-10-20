@@ -1,0 +1,24 @@
+{
+  "id": "technicals/menu/finTech",
+  "title": "MenuFin",
+  "description": "1. Objectif du Module",
+  "source": "@site/docs/technicals/menu/finTech.md",
+  "sourceDirName": "technicals/menu",
+  "slug": "/technicals/menu/finTech",
+  "permalink": "/xenon-space---Video-game/docs/technicals/menu/finTech",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/menu/finTech.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Credit",
+    "permalink": "/xenon-space---Video-game/docs/technicals/menu/creditTech"
+  },
+  "next": {
+    "title": "Module de Personnalisation (Fonction draw)",
+    "permalink": "/xenon-space---Video-game/docs/technicals/menu/jouerTech"
+  }
+}

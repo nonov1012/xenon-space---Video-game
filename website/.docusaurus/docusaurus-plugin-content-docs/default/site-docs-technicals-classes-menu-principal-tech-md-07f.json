@@ -1,0 +1,24 @@
+{
+  "id": "technicals/classes/menu/principalTech",
+  "title": "Menu Principal (Fonction main)",
+  "description": "1. Objectif Principal",
+  "source": "@site/docs/technicals/classes/menu/principalTech.md",
+  "sourceDirName": "technicals/classes/menu",
+  "slug": "/technicals/classes/menu/principalTech",
+  "permalink": "/xenon-space---Video-game/docs/technicals/classes/menu/principalTech",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/classes/menu/principalTech.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "MenuPause",
+    "permalink": "/xenon-space---Video-game/docs/technicals/classes/menu/pauseTech"
+  },
+  "next": {
+    "title": "Menu Succès (Fonction main)",
+    "permalink": "/xenon-space---Video-game/docs/technicals/classes/menu/succesTech"
+  }
+}

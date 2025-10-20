@@ -1,0 +1,24 @@
+{
+  "id": "technicals/classes/animation/Animator",
+  "title": "Animator",
+  "description": "-----",
+  "source": "@site/docs/technicals/classes/animation/Animator.md",
+  "sourceDirName": "technicals/classes/animation",
+  "slug": "/technicals/classes/animation/Animator",
+  "permalink": "/xenon-space---Video-game/docs/technicals/classes/animation/Animator",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/classes/animation/Animator.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Player",
+    "permalink": "/xenon-space---Video-game/docs/technicals/classes/Player"
+  },
+  "next": {
+    "title": "PlanetAnimator",
+    "permalink": "/xenon-space---Video-game/docs/technicals/classes/animation/PlanetAnimator"
+  }
+}

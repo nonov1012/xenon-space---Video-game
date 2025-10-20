@@ -1,0 +1,24 @@
+{
+  "id": "technicals/animation/FloatingText",
+  "title": "FloatingText",
+  "description": "La classe FloatingText gère l'affichage de messages textuels éphémères qui s'élèvent et disparaissent progressivement (effet de fondu) à l'écran, typiquement utilisés pour afficher les dégâts subis, les gains de points, ou de brèves notifications.",
+  "source": "@site/docs/technicals/animation/FloatingText.md",
+  "sourceDirName": "technicals/animation",
+  "slug": "/technicals/animation/FloatingText",
+  "permalink": "/xenon-space---Video-game/docs/technicals/animation/FloatingText",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/nonov1012/xenon-space---Video-game/tree/main/website/docs/technicals/animation/FloatingText.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "ShipAnimator",
+    "permalink": "/xenon-space---Video-game/docs/technicals/animation/ShipAnimator"
+  },
+  "next": {
+    "title": "Autre Fonctionnalitée",
+    "permalink": "/xenon-space---Video-game/docs/technicals/animation/Autre"
+  }
+}
