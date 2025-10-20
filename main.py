@@ -29,6 +29,7 @@ import pygame
 # Import classes
 from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
+from ia.petit.IAPetit import IAPetit
 import menu.menuPause
 import menu.menuPrincipal
 import menu.menuFin
@@ -47,6 +48,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+import time
 
 
 def set_prevision_for_ship(ship, case, direction):
@@ -96,66 +98,57 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             elif event.key == pygame.K_r and selection_ship:
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
             elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                # Fin de tour
-                for ship in Turn.players[0].ships:
-                    ship.reset_porters()
-                    if isinstance(ship, Foreuse):
-                        if ship.est_a_cote_planete(map_obj.grille):
-                            ship.gain += PLANETES_REWARD
-                        if ship.est_autour_asteroide(map_obj.grille):
-                            ship.gain += ASTEROIDES_REWARD
-
-                Turn.players[0].gain()
-                res = Turn.next()
-                HUD.change_turn()
-                for player in Turn.players:
-                    mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and s.pv_actuel > 0]
-                    if len(mother_ships) == 0:
-                        print(f"Le joueur {player.name} a perdu !")
-                        gagnant = [p for p in Turn.players if p != player][0]
-                        menu.menuFin.main(ecran, gagnant, victoire=True)
-                        running = False
-                        break
+                running = end_turn_logic(ecran, map_obj)
 
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # D'abord vérifier si on clique sur un bouton du shop
             shop_clicked = False
-            for ship_data in shop.ships:
-                if "rect" in ship_data and ship_data["rect"].collidepoint(event.pos):
-                    shop_clicked = True
-                    type_vaisseau = shop.buy_ship(ship_data)
-                    
-                    if type_vaisseau:
-                        joueur_actuel = Turn.players[0]
-                        tailles = {
-                            "Petit": (2, 2),
-                            "Moyen": (2, 2),
-                            "Grand": (3, 3),
-                            "Foreuse": (2, 2),
-                            "Transporteur": (3, 4)
-                        }
-                        position = trouver_position_libre_base(map_obj, joueur_actuel.id, tailles[type_vaisseau])
-                        
-                        if position:
-                            nouveau_vaisseau = creer_vaisseau_achete(
-                                type_vaisseau, position, next_uid[0],
-                                joueur_actuel.id, images, paths
-                            )
-                            if nouveau_vaisseau:
-                                next_uid[0] += 1
-                                joueur_actuel.ships.append(nouveau_vaisseau)
-                                ships.append(nouveau_vaisseau)
-                                nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
-                                print(f"Nouveau {type_vaisseau} spawné en position ({position.x}, {position.y})")
-                        else:
-                            print(f"Impossible de trouver une position libre pour le {type_vaisseau}")
-                            joueur_actuel.economie.ajouter(ship_data["price"])
-                    break
+            # Gérer les clics via la fonction du shop
+            joueur_actuel = Turn.players[0]
+            mothership_actuel = joueur_actuel.getMotherShip()
+            type_action = shop.handle_click(event.pos, mothership_actuel)
+
+            if type_action:
+
+                # Si le joueur a acheté un vaisseau
+                if type_action in ["Petit", "Moyen", "Grand", "Foreuse", "Transporteur"]:
+                    tailles = {
+                        "Petit": (2, 2),
+                        "Moyen": (2, 2),
+                        "Grand": (3, 3),
+                        "Foreuse": (2, 2),
+                        "Transporteur": (3, 4)
+                    }
+                    position = trouver_position_libre_base(map_obj, joueur_actuel.id, tailles[type_action])
+
+                    if position:
+                        nouveau_vaisseau = creer_vaisseau_achete(
+                            type_action, position, next_uid[0],
+                            joueur_actuel.id, images, paths
+                        )
+                        if nouveau_vaisseau:
+                            next_uid[0] += 1
+                            joueur_actuel.ships.append(nouveau_vaisseau)
+                            ships.append(nouveau_vaisseau)
+                            nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
+                    else:
+                        # Si aucune position libre, on rembourse
+                        # On retrouve le prix via le shop
+                        for ship_data in shop.ships:
+                            if ship_data["type"] == type_action:
+                                joueur_actuel.economie.ajouter(ship_data["price"])
+                                break
+
+                # Si c’est une amélioration de base
+                elif type_action == "base_upgrade":
+                    mothership_actuel = joueur_actuel.getMotherShip()
+                    mothership_actuel.apply_level(mothership_actuel.tier+1)
+
+
 
             # Si on n'a pas cliqué sur le shop
-            if not shop_clicked:
+            elif not shop_clicked:
                 if selection_ship and not interface_transport_active:
                     # Vérifier si on a cliqué sur une case de déplacement possible ou d'attaque
                     positions_deplacement = selection_ship.positions_possibles_adjacentes(map_obj.grille, direction=selection_ship.aperçu_direction)
@@ -187,8 +180,6 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                                 selection_ship.aperçu_direction = ship.direction
                                 selection_ship.aperçu_cordonner._x = ship.cordonner.x
                                 selection_ship.aperçu_cordonner._y = ship.cordonner.y
-                            else:
-                                print(f"Ce vaisseau appartient au joueur {ship.joueur}")
                             break
                     else:
                         # Aucun vaisseau cliqué → désélection
@@ -414,14 +405,51 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
         joueur=joueur_id
     )
 
+def end_turn_logic(ecran, map_obj):
+    """
+    Contient toute la logique de fin de tour (gain, changement de joueur, 
+    vérification de victoire). Peut être appelée par le joueur ou l'IA.
+    """
+    current_player = Turn.players[0]
+    
+    # Logique de gain de fin de tour
+    for ship in current_player.ships:
+        ship.reset_porters()
+        if isinstance(ship, Foreuse):
+            if ship.est_a_cote_planete(map_obj.grille): # Note: map_obj devra être accessible
+                ship.gain += PLANETES_REWARD
+            if ship.est_autour_asteroide(map_obj.grille):
+                ship.gain += ASTEROIDES_REWARD
+    current_player.gain()
+
+    # Passer au joueur suivant
+    Turn.next()
+    HUD.change_turn()
+
+    # Vérification de la condition de victoire
+    for player in Turn.players:
+        mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and not s.est_mort()]
+        if not mother_ships:
+            gagnant = [p for p in Turn.players if p != player][0]
+            menu.menuFin.main(ecran, gagnant, victoire=True)
+            return False # Retourne False pour arrêter la boucle de jeu
+    
+    return True # Le jeu continue
+
 def start_game(ecran, parametres, random_active):
+
+    # Initialisations rapides
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 30)
     
+    # --- AFFICHER ÉCRAN DE CHARGEMENT ---
+    # Afficher le tout début du chargement
+
     new_cursor = pygame.image.load('assets/img/menu/cursor.png')
     new_cursor = pygame.transform.scale(new_cursor, (40, 40))
     pygame.mouse.set_visible(False)
-    
+
+
     # Générer la map
     screen_width, screen_height = ecran.get_size()
     num_stars=100
@@ -434,7 +462,8 @@ def start_game(ecran, parametres, random_active):
         max_radius=3,
         move_amplitude=0
     )
-    
+
+
     map_obj = Map()
     map_obj.generer_planet(parametres["Nombre de planetes"]["valeur"])
     map_obj.generer_asteroides(parametres["Nombre d'asteroides"]["valeur"])
@@ -454,11 +483,11 @@ def start_game(ecran, parametres, random_active):
     discord.connect()
     
     # TODO : refaire le shop pour que ça soit dans les players
-    player = Player("TestPlayer", solde_initial=3000)
-    shop = Shop(player, font, ecran)
+
 
     # ===== Player =====
-    Turn.players = [Player("P1", id=0), Player("P2", id=1)]
+    Turn.players = [Player("P1", id=0, is_ia = False), Player("P2", id=1, is_ia = True)]
+    shops=[Shop(Turn.players[0], font, ecran), Shop(Turn.players[1], font, ecran)]
 
     # ===== Images et chemins pour les vaisseaux =====
     # Dictionnaires pour stocker les images et chemins
@@ -508,17 +537,6 @@ def start_game(ecran, parametres, random_active):
     next_uid[0] += 1
     Turn.players[0].ships.append(smm1)
 
-    # MotherShip du joueur 2
-    smm2 = MotherShip(
-        tier=1,
-        cordonner=Point(25, 46),
-        id=next_uid[0],
-        path=img_base_dir,
-        joueur=Turn.players[1].id
-    )
-    next_uid[0] += 1
-    Turn.players[1].ships.append(smm2)
-
     # Petit vaisseau joueur 1
     sp1 = Petit(
         cordonner=Point(5, 1),
@@ -530,17 +548,6 @@ def start_game(ecran, parametres, random_active):
     next_uid[0] += 1
     Turn.players[0].ships.append(sp1)
 
-    # Vaisseau lourd joueur 2
-    sl1 = Lourd(
-        cordonner=Point(5, 5),
-        id=next_uid[0],
-        path=img_lourd_dir,
-        image=img_Lourd,
-        joueur=Turn.players[1].id
-    )
-    next_uid[0] += 1
-    Turn.players[1].ships.append(sl1)
-
     # Foreuse joueur 1
     sf1 = Foreuse(
         cordonner=Point(1, 5),
@@ -551,6 +558,64 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[0].ships.append(sf1)
+
+    # Foreuse joueur 2
+    sl1 = Lourd(
+        cordonner=Point(5, 5),
+        id=next_uid[0],
+        path=img_lourd_dir,
+        image=img_Lourd,
+        joueur=Turn.players[0].id
+    )
+    next_uid[0] += 1
+    Turn.players[0].ships.append(sl1)
+
+    # MotherShip du joueur 2
+    smm2 = MotherShip(
+        tier=1,
+        cordonner=Point(25, 46),
+        id=next_uid[0],
+        path=img_base_dir,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(smm2)
+
+        # Petit vaisseau joueur 2
+    sp2 = Petit(
+        cordonner=Point(24, 45),
+        id=next_uid[0],
+        path=img_petit_dir,
+        image=img_petit,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sp2)
+
+    # Foreuse joueur 2
+    sf2 = Foreuse(
+        cordonner=Point(23, 44),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2)
+
+    # Foreuse joueur 2
+    sl2 = Lourd(
+        cordonner=Point(14, 44),
+        id=next_uid[0],
+        path=img_lourd_dir,
+        image=img_Lourd,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sl2)
+
+
+    
 
     # --- Placer vaisseaux sur la grille ---
     for s in Turn.get_players_ships():
@@ -566,28 +631,63 @@ def start_game(ecran, parametres, random_active):
     afficher_grille = False
     running = True
 
+    pygame.time.wait(500) # Petite pause pour que le joueur voie le message "Prêt
+
+    # =================================================================
+    # ✨ NOUVELLE BOUCLE DE JEU PRINCIPALE AVEC GESTION DE L'IA ✨
+    # =================================================================
     while running:
         discord.update("En jeu")
         position_souris = pygame.mouse.get_pos()
         case_souris = ((position_souris[1]) // TAILLE_CASE, 
-                       (position_souris[0] - OFFSET_X) // TAILLE_CASE)        
+                       (position_souris[0] - OFFSET_X) // TAILLE_CASE)
 
-        # Appeler handle_events avec les nouveaux paramètres
-        running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid = \
-            handle_events(running, selection_ship, selection_cargo, interface_transport_active,
-                        afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris,
-                        next_uid, images, paths)  # Ajout des nouveaux paramètres
+        joueur_actuel = Turn.players[0]
+        shop = shops[joueur_actuel.id]
+
+        # ---------------------
+        # TOUR DE L'IA
+        # ---------------------
+        if joueur_actuel.is_ia:
+            # L'IA fait jouer chacun de ses vaisseaux
+            tous_les_vaisseaux = Turn.get_players_ships()
+            for ship_ia in joueur_actuel.ships[:]: # On utilise une copie [:] car la liste peut être modifiée
+                if isinstance(ship_ia, IAPetit):
+                    if not ship_ia.est_mort():
+                        ship_ia.play(tous_les_vaisseaux, map_obj.grille)
+                
+                elif isinstance(ship_ia, Moyen):
+                    if not ship_ia.est_mort():
+                        pass # remplacer pass par votre appele de fonction
+                
+                elif isinstance(ship_ia, Lourd):
+                    if not ship_ia.est_mort():
+                        pass
+
+                elif isinstance(ship_ia, Foreuse):
+                    if not ship_ia.est_mort():
+                        pass # remplacer pass par votre appele de fonction
+
+                elif isinstance(ship_ia, Transport):
+                    if not ship_ia.est_mort():
+                        pass # remplacer pass par votre appele de fonction
+            
+        # ---------------------
+        # TOUR DU JOUEUR HUMAIN
+        # ---------------------
+        else:
+            running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid = \
+                handle_events(running, selection_ship, selection_cargo, interface_transport_active,
+                              afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris,
+                              next_uid, images, paths)
         
-        shop.player = Turn.players[0]  # Mettre à jour le joueur actuel dans le shop
-
-        dt = clock.tick(60) / 1000.0
-        
-        draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
-                interface_transport_active, case_souris, font, Turn.players[0], shop, new_cursor, position_souris,
-                afficher_grille, dt)
-
-
-
-        clock.tick(60)
-
+        # ---------------------
+        # DESSIN (pour le joueur humain, l'IA dessine pendant son tour)
+        # ---------------------
+        if not joueur_actuel.is_ia and running:
+            dt = clock.tick(60) / 1000.0
+            draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
+                      interface_transport_active, case_souris, font, joueur_actuel, shop, new_cursor, position_souris,
+                      afficher_grille, dt)
+            
     pygame.quit()
