@@ -25,19 +25,20 @@
 # Import lib
 from pickle import NONE
 import pygame
+import time
 
 # Import classes
 from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
-from ia.petit.IAPetit import IAPetit
+
 import menu.menuPause
 import menu.menuPrincipal
 import menu.menuFin
+
 from classes.Turn import Turn
 from classes.Map import Map
 from classes.Start_Animation.StarField import StarField
 from classes.Point import Type, Point
-from blazyck import *
 from classes.Discord import DiscordRP
 from classes.Animator import Animator
 from classes.PlanetAnimator import PlanetAnimator
@@ -48,8 +49,10 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
-import time
 
+from blazyck import *
+
+from ia.petit.ia_utils import *
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
@@ -395,6 +398,13 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     type_key = "lourd" if type_vaisseau == "Grand" else type_vaisseau.lower()
     if type_vaisseau == "Transporteur":
         type_key = "transport"
+
+    if type_vaisseau == "Petit":
+        return Petit(
+            cordonner=position,
+            id=next_uid,
+            joueur=joueur_id
+        )
     
     return classe(
         cordonner=position,
@@ -533,8 +543,6 @@ def start_game(ecran, parametres, random_active):
     sp1 = Petit(
         cordonner=Point(5, 1),
         id=next_uid[0],
-        path=img_petit_dir,
-        image=img_petit,
         joueur=Turn.players[0].id
     )
     next_uid[0] += 1
@@ -574,26 +582,26 @@ def start_game(ecran, parametres, random_active):
     Turn.players[1].ships.append(smm2)
 
         # Petit vaisseau joueur 2
-    sp2 = IAPetit(
-        coordonnees=Point(24, 45),
+    sp2 = Petit(
+        cordonner=Point(24, 45),
         id=next_uid[0],
-        joueur_id=Turn.players[1].id
+        joueur=Turn.players[1].id
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sp2)
 
-    sp2_1 = IAPetit(
-        coordonnees=Point(25, 45),
+    sp2_1 = Petit(
+        cordonner=Point(25, 45),
         id=next_uid[0],
-        joueur_id=Turn.players[1].id
+        joueur=Turn.players[1].id
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sp2_1)
 
-    sp2_2 = IAPetit(
-        coordonnees=Point(26, 45),
+    sp2_2 = Petit(
+        cordonner=Point(26, 45),
         id=next_uid[0],
-        joueur_id=Turn.players[1].id
+        joueur=Turn.players[1].id
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sp2_2)
@@ -647,9 +655,29 @@ def start_game(ecran, parametres, random_active):
             # L'IA fait jouer chacun de ses vaisseaux
             tous_les_vaisseaux = Turn.get_players_ships()
             for ship_ia in joueur_actuel.ships[:]: # On utilise une copie [:] car la liste peut être modifiée
-                if isinstance(ship_ia, IAPetit):
+                if isinstance(ship_ia, Petit):
+                    print(f"===========================================")
+                    print(f"TURN SHIP : {ship_ia.id}")
                     if not ship_ia.est_mort():
-                        ship_ia.play(tous_les_vaisseaux, map_obj.grille)
+                        passed : bool = False
+                        attaquer : bool = False
+                        while not passed:
+                            sorted_ships = ally_or_enemy(ship_ia, tous_les_vaisseaux)
+                            move = choose_best_action(ship_ia, map_obj.grille, sorted_ships["allies"], sorted_ships["enemies"])
+                            if move[0] == "move":
+                                print(f"MOVE {ship_ia.cordonner} -> {move[1]}")
+                                ship_ia.deplacement(move[1], map_obj.grille, tous_les_vaisseaux)
+                            elif move[0] == "stay":
+                                print(f"STAY {ship_ia.cordonner}")
+                                passed = True
+                            elif move[0] == "attack" and not attaquer:
+                                cible = get_ship(move[1], tous_les_vaisseaux)
+                                if cible:
+                                    print(f"ATTACK {cible} -> {move[1]}")
+                                    ship_ia.attaquer(cible)
+                                    attaquer = True
+
+                    print(f"===========================================")
                 
                 elif isinstance(ship_ia, Moyen):
                     if not ship_ia.est_mort():

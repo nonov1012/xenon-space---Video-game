@@ -308,7 +308,6 @@ class ShipAnimator(Animator):
             # --- Conversion en coordonnées grille ---
             proj_x = center_x / TAILLE_CASE -4
             proj_y = center_y / TAILLE_CASE
-            print (proj_x, proj_y)
  
             # --- Animation du projectile (si pas laser) ---
             if projectile_type != "laser":

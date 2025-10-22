@@ -46,6 +46,16 @@ PLANETES_REWARD = 150
 ASTEROIDES_REWARD = 100
 POURCENT_DEATH_REWARD = 0.6
 
+# Score des vaisseau
+PETIT_SCORE = {
+        "Petit" : 10,
+        "Moyen" : 25,
+        "Lourd" : 50,
+        "MotherShip" : 250,
+        "Foreuse" : 150,
+        "Transport" : 100
+    }
+
 RPC_ID = "1419749281190903848"
 
 if __name__ == "__main__":

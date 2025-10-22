@@ -138,6 +138,8 @@ class Ship:
                     is_fired=True,
                     projectile_speed=3
                 )
+
+                self.port_attaque = 0
         if cible.est_mort():
             self.gain += cible.cout * POURCENT_DEATH_REWARD
 
@@ -622,13 +624,15 @@ class Ship:
 
 class Petit(Ship):
     """Vaisseau rapide et fragile."""
-    def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None, 
+    def __init__(self, cordonner: Point, id: Optional[int] = None, 
                  image: Optional[pygame.Surface] = None, joueur: int = 1):
         stats = SHIP_STATS["Petit"]
         
         # Créer l'image si non fournie
         if image is None:
             image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+
+        path = os.path.join(SHIPS_PATH, "petit")
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -639,7 +643,7 @@ class Petit(Ship):
             taille=stats["taille"],
             peut_miner=stats["peut_miner"],
             peut_transporter=stats["peut_transporter"],
-            image=image,
+            image=os.path.join(path, "base.png"),
             tier=1,
             cordonner=cordonner,
             id=id,
