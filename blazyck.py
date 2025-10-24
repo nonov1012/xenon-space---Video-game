@@ -48,8 +48,9 @@ POURCENT_DEATH_REWARD = 0.6
 
 # Score des vaisseau
 PETIT_SCORE = {
-        "Petit" : 10,
+        "Petit" : 0,
         "Moyen" : 25,
+        "IA_Lourd" : 50,
         "Lourd" : 50,
         "MotherShip" : 250,
         "Foreuse" : 150,

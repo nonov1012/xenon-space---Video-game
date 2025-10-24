@@ -124,7 +124,7 @@ class ShipAnimator(Animator):
                 """
                 self.frame_index = 0
                 if self.current_anim == "weapons":
-                    self.finished = True  # seule ici
+                    self.finished = True
                 self.current_anim = None
             else:
                 """
