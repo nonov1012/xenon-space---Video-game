@@ -76,6 +76,7 @@ class MotherShip(Ship):
         return LEVELS[self.tier].get("cout_upgrade")
 
     def apply_level(self, tier: int) -> None:
+        from classes.HUD.HUD import HUD
         if tier not in LEVELS: raise ValueError(f"Tier inconnu {tier}")
         new_conf = LEVELS[tier]
         self.tier = tier
@@ -85,6 +86,8 @@ class MotherShip(Ship):
         self.cout = new_conf.get("cout_upgrade", self.cout)
         self.gain = new_conf.get("gain", self.gain)
         self.pv_actuel = self.pv_max
+        if HUD.left_bar.player.id == self.joueur:
+            HUD.left_bar.set_health(self.pv_max)
 
     def upgrade(self, payer_fct) -> bool:
         if not self.can_upgrade(): return False

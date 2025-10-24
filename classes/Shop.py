@@ -1,5 +1,6 @@
 import pygame
 from blazyck import *
+from classes.HUD import HUD
 
 class Shop:
     def __init__(self, player, font, screen):

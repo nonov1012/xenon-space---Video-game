@@ -33,30 +33,40 @@ class IA_Lourd(Lourd):
         IA du vaisseau Lourd :
         - Attaque si possible.
         - Sinon, se rapproche de l'ennemi le plus proche en utilisant A* pour trouver le chemin le moins coûteux.
+        - Si aucune action n'a été faite, tente d'avancer d'une case en haut, sinon d'une case en bas.
         """
         if not ennemis or (self.port_deplacement <= 0 and self.port_attaque <= 0):
             return
 
-        # 1. --- Attaque directe si possible ---
-        positions_attaque = self.positions_possibles_attaque(grille, direction=self.direction)
-        cibles_dans_portee = [
-            e for e in ennemis
-            if (e.cordonner.x, e.cordonner.y) in positions_attaque and not e.est_mort()
-        ]
-        if cibles_dans_portee:
-            cible = max(cibles_dans_portee, key=lambda e: e.pv_max)
-            self.deplacement((cible.cordonner.x, cible.cordonner.y), grille, all_ship)
-            return
+        # Stocke la position initiale pour vérifier si un mouvement a eu lieu
+        position_initiale = (self.cordonner.x, self.cordonner.y)
+
+        # 1. --- Attaque directe si possible (Sans Mouvement) ---
+        if self.port_attaque > 0:
+            positions_attaque = self.positions_possibles_attaque(grille, direction=self.direction)
+            cibles_dans_portee = [
+                e for e in ennemis
+                if (e.cordonner.x, e.cordonner.y) in positions_attaque and not e.est_mort()
+            ]
+            
+            if cibles_dans_portee:
+                cible = max(cibles_dans_portee, key=lambda e: e.pv_max)
+                cible_pos = (cible.cordonner.x, cible.cordonner.y)
+                
+                # Exécuter l'action d'attaque (qui utilise self.deplacement(...) selon votre règle)
+                self.deplacement(cible_pos, grille, all_ship) 
+                
+                self.port_attaque = 0 
+                return # Fin du tour après l'attaque/action
 
         # 2. --- Déplacement vers l'ennemi le plus proche (via A*) ---
+        # ... (le code A* pour trouver la meilleure_destination_a_star) ...
         ennemi_proche = min(ennemis, key=lambda e: abs(self.cordonner.x - e.cordonner.x) + abs(self.cordonner.y - e.cordonner.y))
         cible_pos = (ennemi_proche.cordonner.x, ennemi_proche.cordonner.y)
 
-        # Récupérer les informations de la grille
         nb_lignes, nb_colonnes = len(grille), len(grille[0])
         cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2}
 
-        # Structure A* : (f_score, g_score, position)
         import heapq
         queue = [(0, 0, (self.cordonner.x, self.cordonner.y))] # (f, g, pos)
         g_score = {(self.cordonner.x, self.cordonner.y): 0}
@@ -69,25 +79,16 @@ class IA_Lourd(Lourd):
             f, g, current_pos = heapq.heappop(queue)
             l, c = current_pos
 
-            # Si l'on est dans la portée d'attaque de la cible (Manhattan), c'est une destination viable pour l'A*
             if abs(l - cible_pos[0]) + abs(c - cible_pos[1]) <= self.port_attaque:
-                # On a trouvé la case la plus proche de l'ennemi qui permet d'attaquer ou d'être le plus proche possible.
-                # Si l'ennemi est atteint, on peut s'arrêter.
                 if f < meilleur_f:
                     meilleur_f = f
                     meilleure_destination_a_star = current_pos
-                # break # On pourrait break ici pour le premier chemin trouvé, mais continuer peut affiner si plusieurs cibles.
-                
-            # On arrête de chercher si le coût g (coût réel) dépasse notre portée de déplacement maximale
-            # (Bien que cela devrait déjà être géré par la boucle elle-même)
-            # On continue la recherche sur l'intégralité de la grille pour trouver le meilleur chemin global.
-
+                # On pourrait break ici pour le premier chemin trouvé, mais continuer peut affiner si plusieurs cibles.
+            
             # On itère sur les 4 directions cardinales
             for dl, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 nl, nc = l + dl, c + dc
                 
-                # Pour la simplicité de l'A* qui trouve le chemin optimal, on ne considère que l'orientation actuelle
-                # lors du déplacement (l'orientation peut être changée après la sélection de la case cible).
                 direction_actuelle = self.direction 
                 largeur, hauteur = self.donner_dimensions(direction_actuelle)
                 
@@ -116,7 +117,6 @@ class IA_Lourd(Lourd):
                 if not self.verifier_collision(grille, nl, nc, direction_actuelle, ignorer_self=True):
                     continue
 
-
                 g_next = g + max_cost
                 h_next = abs(nl - cible_pos[0]) + abs(nc - cible_pos[1]) # Heuristique : Manhattan
                 f_next = g_next + h_next
@@ -126,80 +126,97 @@ class IA_Lourd(Lourd):
                     parent[(nl, nc)] = current_pos
                     heapq.heappush(queue, (f_next, g_next, (nl, nc)))
         
-        # 3. --- Reconstitution et exécution du premier pas ---
-
-        # Si l'A* a trouvé un chemin (même partiel, si l'ennemi est trop loin)
+        # 3. --- Reconstitution et exécution du DEPLACEMENT MAXIMAL sur le chemin A* ---
+        
         if not parent:
-            # Aucune case adjacente accessible. On ne peut rien faire.
-            return
-        
-        # S'il n'y a pas de meilleure_destination_a_star (trop loin), on choisit la case la plus proche de l'ennemi trouvée par A*
-        if meilleure_destination_a_star is None:
-            # On prend la case finale du g_score qui minimise la distance de Manhattan
-            meilleure_destination_a_star = min(g_score.keys(), 
-                                            key=lambda pos: abs(pos[0] - cible_pos[0]) + abs(pos[1] - cible_pos[1]))
+            pass
+        else:
+            if meilleure_destination_a_star is None:
+                # Si A* n'a pas atteint la portée d'attaque, on va le plus loin possible vers la cible.
+                meilleure_destination_a_star = min(g_score.keys(), 
+                                                key=lambda pos: abs(pos[0] - cible_pos[0]) + abs(pos[1] - cible_pos[1]))
 
-
-        # Reconstituer le chemin depuis la meilleure destination A* jusqu'au départ
-        chemin = []
-        node = meilleure_destination_a_star
-        while node and node != (self.cordonner.x, self.cordonner.y):
-            chemin.append(node)
-            node = parent.get(node)
-        
-        # Si le chemin est juste le point de départ ou si A* a échoué complètement
-        if not chemin: 
-            return
-
-        chemin.reverse()
-        
-        # Le premier pas est la première case après la case de départ
-        if len(chemin) >= 3 :
-            premier_pas = chemin[2]
-        elif len(chemin) == 2 :
-            premier_pas = chemin[1]
-        elif len(chemin) == 1 :
-            premier_pas = chemin[0]
-        
-        # Vérifier si ce premier pas est dans la portée de déplacement
-        # Note : Le calcul de coût est déjà dans l'A*, mais vérifions
-        
-        # La case cible pour le déplacement est le premier pas du chemin A*
-        case_cible_deplacement = premier_pas
-
-        # Tenter de déterminer la meilleure direction pour se rendre à cette case (simplifié : la direction du mouvement)
-        dl = case_cible_deplacement[0] - self.cordonner.x
-        dc = case_cible_deplacement[1] - self.cordonner.y
-        
-        meilleure_direction = self.direction
-        if dl == -1: meilleure_direction = "haut"
-        elif dl == 1: meilleure_direction = "bas"
-        elif dc == -1: meilleure_direction = "gauche"
-        elif dc == 1: meilleure_direction = "droite"
-
-        # Anti-boucle : on évite de faire le premier pas si son coût dépasse le port_deplacement actuel.
-        # L'A* est fait sur la grille entière, donc il faut vérifier si le premier pas est atteignable.
-        
-        # On doit vérifier si la case cible est atteignable en un seul tour (similaire à positions_possibles_adjacentes)
-        cases_possibles_un_tour = self.positions_possibles_adjacentes(grille, direction=meilleure_direction)
-        if case_cible_deplacement not in cases_possibles_un_tour:
-            # Si le premier pas A* n'est pas atteignable ce tour-ci (portée insuffisante), on choisit la meilleure
-            # case parmi celles qui sont atteignables et qui minimisent la distance de Manhattan.
-            if cases_possibles_un_tour:
-                case_cible_deplacement = min(cases_possibles_un_tour, 
-                                            key=lambda pos: abs(pos[0] - cible_pos[0]) + abs(pos[1] - cible_pos[1]))
+            chemin = []
+            node = meilleure_destination_a_star
+            while node and node != (self.cordonner.x, self.cordonner.y):
+                chemin.append(node)
+                node = parent.get(node)
+            
+            if chemin: 
+                chemin.reverse()
                 
-                # Mettre à jour la direction pour ce choix de secours
-                dl_s = case_cible_deplacement[0] - self.cordonner.x
-                dc_s = case_cible_deplacement[1] - self.cordonner.y
-                if dl_s == -1: meilleure_direction = "haut"
-                elif dl_s == 1: meilleure_direction = "bas"
-                elif dc_s == -1: meilleure_direction = "gauche"
-                elif dc_s == 1: meilleure_direction = "droite"
-            else:
+                # NOUVELLE LOGIQUE : Trouver la case la plus éloignée dans la limite de port_deplacement
+                case_cible_deplacement = position_initiale
+                
+                for pos_suivante in chemin:
+                    # g_score[pos_suivante] contient le coût TOTAL du mouvement depuis le départ
+                    if g_score.get(pos_suivante, float('inf')) <= self.port_deplacement:
+                        case_cible_deplacement = pos_suivante
+                    else:
+                        # On a dépassé le port de déplacement
+                        break
+
+                # Si la case cible est la position initiale, aucun mouvement n'est possible (ou elle est trop loin)
+                if case_cible_deplacement != position_initiale:
+                    # OPTIMISATION DE LA ROTATION : Déterminer la direction en fonction du mouvement global (et non du premier pas)
+                    dl = case_cible_deplacement[0] - self.cordonner.x
+                    dc = case_cible_deplacement[1] - self.cordonner.y
+                    
+                    meilleure_direction = self.direction
+                    if dl < 0: meilleure_direction = "haut"
+                    elif dl > 0: meilleure_direction = "bas"
+                    elif dc < 0: meilleure_direction = "gauche"
+                    elif dc > 0: meilleure_direction = "droite"
+                    # Si dl et dc sont tous deux non nuls, le mouvement est diagonal; la direction prendra l'une des 4.
+                    
+                    # Exécution du déplacement A*
+                    self._derniere_case = (self.cordonner.x, self.cordonner.y)
+                    self.aperçu_direction = meilleure_direction
+                    # L'appel à deplacement avec case_cible_deplacement exécute le mouvement en une seule fois
+                    self.deplacement(case_cible_deplacement, grille, all_ship)
+
+                    # NOUVEAU : Vérification de la possibilité d'attaquer après le mouvement
+                    if self.port_attaque > 0:
+                        # Ré-évaluer les cibles après le mouvement
+                        # Utiliser la direction que le vaisseau a choisie
+                        positions_attaque_apres_mouvement = self.positions_possibles_attaque(grille, direction=self.aperçu_direction)
+                        cibles_apres_mouvement = [
+                            e for e in ennemis
+                            if (e.cordonner.x, e.cordonner.y) in positions_attaque_apres_mouvement and not e.est_mort()
+                        ]
+
+                        if cibles_apres_mouvement:
+                            cible_a_attaquer = max(cibles_apres_mouvement, key=lambda e: e.pv_max)
+                            
+                            # L'IA est maintenant à portée, elle attaque l'ennemi.
+                            self.deplacement((cible_a_attaquer.cordonner.x, cible_a_attaquer.cordonner.y), grille, all_ship)
+                            
+                            self.port_attaque = 0 
+                            return # Fin du tour après le déplacement ET l'attaque.
+        
+        # 4. --- Mouvement par défaut si aucune action n'a eu lieu ---
+        if (self.cordonner.x, self.cordonner.y) == position_initiale:
+            
+            # Tente d'avancer d'une case en HAUT
+            haut_pos = (self.cordonner.x - 1, self.cordonner.y)
+            cases_possibles_un_tour = self.positions_possibles_adjacentes(grille, direction="haut")
+            
+            if haut_pos in cases_possibles_un_tour:
+                # Déplacement en haut
+                self._derniere_case = position_initiale
+                self.aperçu_direction = "haut"
+                self.deplacement(haut_pos, grille, all_ship)
                 return
 
-        # Exécution du déplacement
-        self._derniere_case = (self.cordonner.x, self.cordonner.y)
-        self.aperçu_direction = meilleure_direction
-        self.deplacement(case_cible_deplacement, grille, all_ship)
+            # Si le mouvement en HAUT a échoué, tente de reculer d'une case en BAS
+            bas_pos = (self.cordonner.x + 1, self.cordonner.y)
+            cases_possibles_un_tour = self.positions_possibles_adjacentes(grille, direction="bas")
+            
+            if bas_pos in cases_possibles_un_tour:
+                # Déplacement en bas
+                self._derniere_case = position_initiale
+                self.aperçu_direction = "bas"
+                self.deplacement(bas_pos, grille, all_ship)
+                return
+
+        return
