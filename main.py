@@ -593,7 +593,7 @@ def start_game(ecran, parametres, random_active):
     Turn.players[1].ships.append(sf2)
     
     sf2_2 = Foreuse(
-        cordonner=Point(24, 44),
+        cordonner=Point (7, 7),
         id=next_uid[0],
         path=img_foreuse_dir,
         image=img_foreuse,
@@ -601,6 +601,26 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sf2_2)
+
+    sf2_3 = Foreuse(
+        cordonner=Point (30, 2),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2_3)
+    
+    sf2_4 = Foreuse(
+        cordonner=Point (5, 30),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2_4)
 
     # Foreuse joueur 2
     sl2 = Lourd(

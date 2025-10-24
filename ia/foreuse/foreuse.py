@@ -62,9 +62,10 @@ class ForeuseIA:
         danger = self._evaluer_danger(ligne, colonne)
         score -= danger * 300  # Pénalité importante si danger
         
+        # Désactivé sinon elle veux pas s'éloigner de la base
         # 6. MALUS : Distance à la base alliée (pour éviter de trop s'éloigner)
-        distance_base = self._distance_base_alliee(ligne, colonne)
-        score -= distance_base * 2  # Petit malus pour éloignement
+        # distance_base = self._distance_base_alliee(ligne, colonne)
+        # score -= distance_base  # Petit malus pour éloignement
         
         # 7. Bonus si dans l'atmosphère (zone safe proche planète)
         # if self.grille[ligne][colonne].type == Type.ATMOSPHERE:
@@ -101,21 +102,19 @@ class ForeuseIA:
     def _distance_ressource_proche(self, ligne: int, colonne: int, type_ressource: Type) -> float:
         """
         Trouve la distance à la ressource la plus proche du type spécifié.
-        
-        :return: Distance Manhattan à la ressource la plus proche
+        Recherche sur toute la carte, sans limite de rayon.
         """
         min_distance = float('inf')
-        
-        # Recherche dans un rayon limité pour optimiser
-        rayon = int(min(15, self.foreuse.port_deplacement * 3))
-        
-        for l in range(max(0, ligne - rayon), min(self.nb_lignes, ligne + rayon + 1)):
-            for c in range(max(0, colonne - rayon), min(self.nb_colonnes, colonne + rayon + 1)):
+
+        for l in range(self.nb_lignes):
+            for c in range(self.nb_colonnes):
                 if self.grille[l][c].type == type_ressource:
                     distance = abs(l - ligne) + abs(c - colonne)
-                    min_distance = min(min_distance, distance)
-        
+                    if distance < min_distance:
+                        min_distance = distance
+
         return min_distance if min_distance != float('inf') else 0
+
     
     def _evaluer_danger(self, ligne: int, colonne: int) -> float:
         """
@@ -209,7 +208,7 @@ class ForeuseIA:
         
         # 3. Évaluer toutes les positions et choisir la meilleure
         meilleure_position = None
-        meilleur_score = float('-inf')
+        meilleur_score = float('-inf') # Init le score au plus bas possible pour évité que le jeu croix qu'il y est un score a 0 qui est possible
         
         for position in positions_possibles:
             score = self.valuer_position(position)
