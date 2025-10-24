@@ -411,14 +411,16 @@ def end_turn_logic(ecran, map_obj):
     current_player = Turn.players[0]
     
     # Logique de gain de fin de tour
-    for ship in current_player.ships:
-        ship.reset_porters()
-        if isinstance(ship, Foreuse):
-            if ship.est_a_cote_planete(map_obj.grille): # Note: map_obj devra être accessible
-                ship.gain += PLANETES_REWARD
-            if ship.est_autour_asteroide(map_obj.grille):
-                ship.gain += ASTEROIDES_REWARD
-    current_player.gain()
+    for player in Turn.players:
+        for ship in player.ships:
+            ship.reset_porters()
+            if isinstance(ship, Foreuse):
+                if ship.est_a_cote_planete(map_obj.grille):
+                    ship.gain += PLANETES_REWARD
+                if ship.est_autour_asteroide(map_obj.grille):
+                    ship.gain += ASTEROIDES_REWARD
+        player.gain()
+
 
     # Passer au joueur suivant
     Turn.next()
@@ -589,6 +591,16 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sf2)
+    
+    sf2_2 = Foreuse(
+        cordonner=Point(24, 44),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2_2)
 
     # Foreuse joueur 2
     sl2 = Lourd(
@@ -652,7 +664,7 @@ def start_game(ecran, parametres, random_active):
 
                 elif isinstance(ship_ia, Foreuse):
                     if not ship_ia.est_mort():
-                        from ia.foreuse.main import jouer_tour_foreuse
+                        from ia.foreuse.foreuse import jouer_tour_foreuse
                         jouer_tour_foreuse(ship_ia, map_obj.grille, tous_les_vaisseaux)
 
                 elif isinstance(ship_ia, Transport):
