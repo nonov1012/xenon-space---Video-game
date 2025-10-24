@@ -47,6 +47,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+from IA.IA_Lourd import IA_Lourd
 import time
 
 
@@ -559,7 +560,7 @@ def start_game(ecran, parametres, random_active):
     Turn.players[0].ships.append(sf1)
 
     # Foreuse joueur 2
-    sl1 = Lourd(
+    sl1 = IA_Lourd(
         cordonner=Point(5, 5),
         id=next_uid[0],
         path=img_lourd_dir,
@@ -603,7 +604,7 @@ def start_game(ecran, parametres, random_active):
     Turn.players[1].ships.append(sf2)
 
     # Foreuse joueur 2
-    sl2 = Lourd(
+    sl2 = IA_Lourd(
         cordonner=Point(14, 44),
         id=next_uid[0],
         path=img_lourd_dir,
