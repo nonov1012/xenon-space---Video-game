@@ -22,6 +22,7 @@ NB_CASE_X = 50 # Nombre de cases en largeur
 NB_CASE_Y = 30 # Nombre de cases en hauteur
 TAILLE_CASE = (SCREEN_HEIGHT - BAR_HEIGHT) // NB_CASE_Y # Taille d'une case en pixels
 
+
 # Adapté l'écran
 GRID_WIDTH = NB_CASE_X * TAILLE_CASE
 OFFSET_X = max((SCREEN_WIDTH - GRID_WIDTH) // 2, 100)
@@ -40,6 +41,7 @@ ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
 # Stats des vaisseaux
 CSTE : int = 10
 # Gains
+
 PLANETES_REWARD = 150
 ASTEROIDES_REWARD = 100
 POURCENT_DEATH_REWARD = 0.6
