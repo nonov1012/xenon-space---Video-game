@@ -656,28 +656,7 @@ def start_game(ecran, parametres, random_active):
             tous_les_vaisseaux = Turn.get_players_ships()
             for ship_ia in joueur_actuel.ships[:]: # On utilise une copie [:] car la liste peut être modifiée
                 if isinstance(ship_ia, Petit):
-                    print(f"===========================================")
-                    print(f"TURN SHIP : {ship_ia.id}")
-                    if not ship_ia.est_mort():
-                        passed : bool = False
-                        attaquer : bool = False
-                        while not passed:
-                            sorted_ships = ally_or_enemy(ship_ia, tous_les_vaisseaux)
-                            move = choose_best_action(ship_ia, map_obj.grille, sorted_ships["allies"], sorted_ships["enemies"])
-                            if move[0] == "move":
-                                print(f"MOVE {ship_ia.cordonner} -> {move[1]}")
-                                ship_ia.deplacement(move[1], map_obj.grille, tous_les_vaisseaux)
-                            elif move[0] == "stay":
-                                print(f"STAY {ship_ia.cordonner}")
-                                passed = True
-                            elif move[0] == "attack" and not attaquer:
-                                cible = get_ship(move[1], tous_les_vaisseaux)
-                                if cible:
-                                    print(f"ATTACK {cible} -> {move[1]}")
-                                    ship_ia.attaquer(cible)
-                                    attaquer = True
-
-                    print(f"===========================================")
+                    ia_petit_play(ship_ia, map_obj, tous_les_vaisseaux)
                 
                 elif isinstance(ship_ia, Moyen):
                     if not ship_ia.est_mort():

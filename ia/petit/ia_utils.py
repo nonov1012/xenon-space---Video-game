@@ -16,12 +16,18 @@ def utility_attack_pos(ship: Ship, enemies: List[Ship], pos: Tuple[int,int]) -> 
     score = 0
     for enemy in enemies:
         d = distance(pos, (enemy.cordonner.x, enemy.cordonner.y))
-        if isinstance(enemy, MotherShip): # Score de base qui fait avancer le vaisseau vers la base ennemie
-            score += max(0, ((NB_CASE_X * NB_CASE_Y) - d)/(NB_CASE_X * NB_CASE_Y))
-        if d <= ship.port_attaque:
-            score += 200
+        # Quand le vaisseau peut attaquer l'ennemi il vat vers les ennemis
+        if ship.port_attaque != 0:
+            if isinstance(enemy, MotherShip): # Score de base qui fait avancer le vaisseau vers la base ennemie
+                score += max(0, ((NB_CASE_X * NB_CASE_Y) - d)/(NB_CASE_X * NB_CASE_Y))
+            if d <= ship.port_attaque:
+                score += 200
+            else:
+                score += max(0, PETIT_SCORE[enemy.__class__.__name__] - 10 * d)
+        
+        # Quand le vaisseau ne peut pas attaquer l'ennemi il le fuit
         else:
-            score += max(0, PETIT_SCORE[enemy.__class__.__name__] - 10 * d)
+            score += d / (NB_CASE_X * NB_CASE_Y)
     
     return score
 
@@ -32,6 +38,7 @@ def utility_defend_pos(ship: Ship, allies: List[Ship], enemies: List[Ship], pos:
         if ally == ship:
             continue
         dist = distance(pos, (ally.cordonner.x, ally.cordonner.y))
+        score += max(0, (PETIT_SCORE[ally.__class__.__name__] * 10 - dist))
         # Vérifie si des ennemis sont proches de l’allié
         for e in enemies:
             danger = distance((ally.cordonner.x, ally.cordonner.y), (e.cordonner.x, e.cordonner.y))
@@ -39,7 +46,7 @@ def utility_defend_pos(ship: Ship, allies: List[Ship], enemies: List[Ship], pos:
                 if danger > danger_max:
                     danger_max = danger
         if danger_max:
-            score += max(0, PETIT_SCORE[ally.__class__.__name__] - 10 * dist)
+            score += max(0, PETIT_SCORE[ally.__class__.__name__] - 10 * danger_max)
 
     return score
 
@@ -156,3 +163,27 @@ def choose_best_action(ship: Ship, grille, allies, enemies) -> Tuple[str, Tuple[
 
     # Sinon, se déplacer vers la meilleure position choisie
     return ("move", best_pos)
+
+def ia_petit_play(ship : Ship, map_obj, tous_les_vaisseaux : List[Ship]):
+    print(f"===========================================")
+    print(f"TURN SHIP : {ship.id}")
+    if not ship.est_mort():
+        passed : bool = False
+        attaquer : bool = False
+        while not passed:
+            sorted_ships = ally_or_enemy(ship, tous_les_vaisseaux)
+            move = choose_best_action(ship, map_obj.grille, sorted_ships["allies"], sorted_ships["enemies"])
+            if move[0] == "move":
+                print(f"MOVE {ship.cordonner} -> {move[1]}")
+                ship.deplacement(move[1], map_obj.grille, tous_les_vaisseaux)
+            elif move[0] == "stay":
+                print(f"STAY {ship.cordonner}")
+                passed = True
+            elif move[0] == "attack" and not attaquer:
+                cible = get_ship(move[1], tous_les_vaisseaux)
+                if cible:
+                    print(f"ATTACK {cible} -> {move[1]}")
+                    ship.attaquer(cible)
+                    attaquer = True
+
+    print(f"===========================================")

@@ -17,7 +17,7 @@ class Ship:
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, cordonner: Optional[Point] = None, id: Optional[int] = None,
-                 path: str = None, joueur : int = 0):
+                 path: str = None, joueur : int = 0, isAI: bool = False):
         """
         Classe de base pour tous les vaisseaux.
         
@@ -52,6 +52,7 @@ class Ship:
         self.joueur = joueur
         self.gain = 0
         self.projectile_type = "laser"
+        self.isAI = isAI
 
         # Inventaire (3 slots si transport possible)
         self.cargaison = [None, None, None]
