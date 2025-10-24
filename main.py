@@ -621,9 +621,7 @@ def start_game(ecran, parametres, random_active):
 
     pygame.time.wait(500) # Petite pause pour que le joueur voie le message "Prêt
 
-    # =================================================================
-    # ✨ NOUVELLE BOUCLE DE JEU PRINCIPALE AVEC GESTION DE L'IA ✨
-    # =================================================================
+    # NOUVELLE BOUCLE DE JEU PRINCIPALE AVEC GESTION DE L'IA 
     while running:
         discord.update("En jeu")
         position_souris = pygame.mouse.get_pos()
@@ -654,7 +652,8 @@ def start_game(ecran, parametres, random_active):
 
                 elif isinstance(ship_ia, Foreuse):
                     if not ship_ia.est_mort():
-                        pass # remplacer pass par votre appele de fonction
+                        from ia.foreuse.main import jouer_tour_foreuse
+                        jouer_tour_foreuse(ship_ia, map_obj.grille, tous_les_vaisseaux)
 
                 elif isinstance(ship_ia, Transport):
                     if not ship_ia.est_mort():
