@@ -155,6 +155,5 @@ Il contourne les obstacles (planètes, astéroïdes)
 
 AMÉLIORATIONS FUTURES POSSIBLES :
   • Intégrer A* pour chemins optimaux sur longues distances
-  • Ajouter détection d'ennemis proches (attaque opportuniste)
   • Implémenter esquive si PV faibles
   • Coordination entre plusieurs vaisseaux IA
