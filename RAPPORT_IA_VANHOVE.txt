@@ -1,0 +1,160 @@
+RAPPORT INTELLIGENCE ARTIFICIELLE
+XENON SPACE - BUT3 S5
+
+1. INFORMATIONS GÉNÉRALES
+
+Nom/Prénom      : VANHOVE Tom
+Jeu             : Xenon Space
+Unité contrôlée : Vaisseau Moyen (classe Moyen)
+
+
+2. LOCALISATION DU CODE
+
+Dépôt Git       : https://github.com/nonov1012/xenon-space---Video-game
+Branche         : IA_VANHOVE
+
+Fichiers concernés :
+  - classes/AI.py         (Gestionnaire d'IA - Classes AIManager et AIShip)
+  - classes/Ship.py       (Méthodes de déplacement et attaque utilisées par l'IA)
+  - main.py               (Intégration et appel de l'IA dans la boucle de jeu)
+
+
+3. STRATÉGIE DE L'IA - ARBRE DE DÉCISION
+
+                          ┌─────────────────────┐
+                          │   Début du tour IA  │
+                          └──────────┬──────────┘
+                                     │
+                          ┌──────────▼──────────┐
+                          │ Vaisseau a-t-il     │
+                          │ des points d'action?│
+                          └──────────┬──────────┘
+                                     │
+                                   OUI
+                                     │
+                          ┌──────────▼──────────┐
+                          │ Trouver la base     │
+                          │ ennemie (MotherShip)│
+                          └──────────┬──────────┘
+                                     │
+                    ┌────────────────▼────────────────┐
+                    │ Base ennemie trouvée?           │
+                    └──┬──────────────────────────┬───┘
+                  NON  │                          │ OUI
+                       │                          │
+                ┌──────▼────────┐        ┌────────▼────────┐
+                │ Fin du tour   │        │ Points d'attaque│
+                │               │        │ > 0 ?           │
+                └───────────────┘        └────────┬────────┘
+                                                  │
+                                                 OUI
+                                                  │
+                                    ┌─────────────▼─────────────┐
+                                    │ Base à portée d'attaque?  │
+                                    │ (Distance Manhattan)      │
+                                    └──┬──────────────────────┬─┘
+                                  OUI  │                      │ NON
+                                       │                      │
+                            ┌──────────▼──────────┐  ┌────────▼────────┐
+                            │ ATTAQUER LA BASE    │  │ Points de       │
+                            │ (Priorité absolue)  │  │ déplacement > 0?│
+                            │ → deplacement()     │  └────────┬────────┘
+                            └─────────────────────┘           │
+                                                             OUI
+                                                              │
+                                                     ┌────────▼────────┐
+                                                     │ SE DÉPLACER     │
+                                                     │ VERS LA BASE    │
+                                                     │ (Algo glouton)  │
+                                                     └─────────────────┘
+
+
+
+
+4. ALGORITHMES IMPLÉMENTÉS
+
+A) ALGORITHME GLOUTON  - Déplacement
+
+Localisation : AI.py - move_straight_to_base()
+
+Principe :
+  1. Calculer la direction vers la cible (dx, dy)
+  2. Prioriser le mouvement qui réduit au maximum la distance
+  3. Si le mouvement prioritaire est bloqué alors essayer des alternatives
+  4. Aucun choix définitif à chaque étape
+
+
+
+
+
+C) DISTANCE DE MANHATTAN - Portée d'attaque
+
+Localisation : Ship.py - positions_possibles_attaque()
+
+Principe :
+  Calcul géométrique simple : |dx| + |dy| ≤ portée_attaque
+
+Justification : Métrique adaptée à une grille (pas de diagonales)
+
+
+
+5. PROCÉDURE POUR VOIR L'IA EN ACTION
+
+PRÉREQUIS :
+-----------
+  • Python 3.8 ou supérieur
+  • Pygame installé : pip install pygame
+  • Dépôt cloné en local
+
+ÉTAPES :
+
+1. Cloner le dépôt et se placer sur la bonne branche :
+   
+   git clone https://github.com/nonov1012/xenon-space---Video-game.git
+   cd xenon-space---Video-game
+   git checkout IA_VANHOVE
+
+2. Installer les dépendances :
+   
+   pip install pygame
+
+3. Lancer le jeu :
+   
+   python main.py
+
+4. Observer l'IA :
+   
+   • Au démarrage, appuyer 2 fois sur entrée pour avoir assez de sous, ensuite vous pouvez acheter un vaisseau moyen
+   • Au tour du joueur, le vaisseau IA se déplace automatiquement
+   • Comportement observable :
+     - Le vaisseau avance vers la base ennemie (coin bas-droite)
+     - Quand le vaisseau rencontre un ennemie, il lui tire dessus automatiquement quand l'ennemie est à portée
+     - Si la base est à portée (4 cases), il attaque immédiatement
+   
+5. Fin de tour :
+   
+   • Appuyer sur ENTRÉE pour passer au tour suivant
+   • L'IA met à jour tous ses vaisseaux automatiquement
+
+
+COMMANDES UTILES PENDANT LE JEU :
+  • ENTRÉE      : Fin de tour 
+  • ÉCHAP       : Menu pause
+  • CTRL        : Afficher/masquer grille
+  • SHIFT       : Afficher zones d'influence
+
+
+
+COMPORTEMENT ATTENDU :
+Le vaisseau IA avance systématiquement vers la base ennemie
+Il privilégie le mouvement vertical si |dy| > |dx|
+Il privilégie le mouvement horizontal si |dx| > |dy|
+Il tire sur la base dès qu'elle est à portée (4 cases)
+Il contourne les obstacles (planètes, astéroïdes)
+
+
+AMÉLIORATIONS FUTURES POSSIBLES :
+  • Intégrer A* pour chemins optimaux sur longues distances
+  • Ajouter détection d'ennemis proches (attaque opportuniste)
+  • Implémenter esquive si PV faibles
+  • Coordination entre plusieurs vaisseaux IA

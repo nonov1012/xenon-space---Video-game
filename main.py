@@ -123,6 +123,8 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             # D'abord vérifier si on clique sur un bouton du shop
             shop_clicked = False
+            vaisseau_moyen_achete = False  # Flag pour détecter achat vaisseau moyen
+            
             for ship_data in shop.ships:
                 if "rect" in ship_data and ship_data["rect"].collidepoint(event.pos):
                     shop_clicked = True
@@ -155,10 +157,36 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                                 if type_vaisseau == "Moyen" and joueur_actuel.id == 0:
                                     ai_manager.add_ai_ship(nouveau_vaisseau)
                                     print(f"Nouveau vaisseau moyen du joueur 1 automatisé: ID {nouveau_vaisseau.id}")
+                                    vaisseau_moyen_achete = True  # Marquer qu'un vaisseau moyen a été acheté
                         else:
                             print(f"Impossible de trouver une position libre pour le {type_vaisseau}")
                             joueur_actuel.economie.ajouter(ship_data["price"])
                     break
+            
+            # Si un vaisseau moyen a été acheté, passer automatiquement au tour suivant
+            if vaisseau_moyen_achete:
+                print("Achat de vaisseau moyen → Fin de tour automatique")
+                for ship in Turn.players[0].ships:
+                    ship.reset_porters()
+                    if isinstance(ship, Foreuse):
+                        if ship.est_a_cote_planete(map_obj.grille):
+                            ship.gain += PLANETES_REWARD
+                        if ship.est_autour_asteroide(map_obj.grille):
+                            ship.gain += ASTEROIDES_REWARD
+                
+                Turn.players[0].gain()
+                Turn.next()
+                HUD.change_turn()
+                
+                # Vérifier conditions de victoire
+                for player in Turn.players:
+                    mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and s.pv_actuel > 0]
+                    if len(mother_ships) == 0:
+                        print(f"Le joueur {player.name} a perdu !")
+                        gagnant = [p for p in Turn.players if p != player][0]
+                        menu.menuFin.main(ecran, gagnant, victoire=True)
+                        running = False
+                        break
 
             # Si on n'a pas cliqué sur le shop
             if not shop_clicked:

@@ -67,7 +67,20 @@ class AIManager:
         if not enemy_base:
             return
             
-        # PRIORITÉ 1: Attaquer la base si possible
+        # PRIORITÉ 1: Attaquer un vaisseau ennemi si possible
+        if ship.port_attaque > 0:
+            enemy_ship = self.find_enemy_ship_in_range(ship, grille, all_ships)
+            if enemy_ship:
+                positions_attaque = ship.positions_possibles_attaque(grille)
+                enemy_positions = self.get_ship_positions(enemy_ship)
+                
+                for pos in positions_attaque:
+                    if pos in enemy_positions:
+                        print(f"IA {ship.id}: ATTAQUE LE VAISSEAU {enemy_ship.id} !")
+                        ship.deplacement(pos, grille, all_ships)
+                        return
+        
+        # PRIORITÉ 2: Attaquer la base si possible
         if ship.port_attaque > 0:
             positions_attaque = ship.positions_possibles_attaque(grille)
             base_positions = []
@@ -85,9 +98,43 @@ class AIManager:
                     ship.deplacement(pos, grille, all_ships)
                     return
         
-        # PRIORITÉ 2: Se déplacer vers la base
+        # PRIORITÉ 3: Se déplacer vers la base
         if ship.port_deplacement > 0:
             self.move_straight_to_base(ship, enemy_base, grille, all_ships)
+    
+    def find_enemy_ship_in_range(self, ship: Ship, grille: List[List[Point]], all_ships: List[Ship]) -> Optional[Ship]:
+        """Trouve un vaisseau ennemi à portée"""
+        positions_attaque = ship.positions_possibles_attaque(grille)
+        
+        enemy_ships = []
+        for other_ship in all_ships:
+            # Ignorer les bases, alliés et vaisseaux détruits
+            if (isinstance(other_ship, MotherShip) or 
+                other_ship.joueur == ship.joueur or 
+                other_ship.id == ship.id or
+                other_ship.est_mort()):
+                continue
+            
+            # Vérifier si le vaisseau est à portée
+            enemy_positions = self.get_ship_positions(other_ship)
+            for pos in enemy_positions:
+                if pos in positions_attaque:
+                    enemy_ships.append(other_ship)
+                    break
+        
+        # Retourner le vaisseau le plus faible
+        if enemy_ships:
+            return min(enemy_ships, key=lambda s: s.pv_actuel)
+        return None
+    
+    def get_ship_positions(self, ship: Ship) -> List[Tuple[int, int]]:
+        """Retourne toutes les positions d'un vaisseau"""
+        positions = []
+        largeur, hauteur = ship.donner_dimensions(ship.direction)
+        for y in range(ship.cordonner.x, ship.cordonner.x + hauteur):
+            for x in range(ship.cordonner.y, ship.cordonner.y + largeur):
+                positions.append((y, x))
+        return positions
     
     def find_enemy_base(self, ship: Ship, all_ships: List[Ship]) -> Optional[MotherShip]:
         """Trouve la base ennemie"""
@@ -158,4 +205,4 @@ class AIManager:
                         print(f"IA {ship.id}: Se déplace vers la base ({new_y}, {new_x})")
                         return
         
-        print(f"IA {ship.id}: Aucun mouvement possible vers la base") 
+        print(f"IA {ship.id}: Aucun mouvement possible vers la base")
