@@ -12,9 +12,9 @@
 # - nonov1012                                                   #
 # - DAVID Gabriel                                               #
 # - brian62100                                                  #
-# - NOEL Clément
-# - Tom Vanhove
-# - CAVEL Ugo
+# - NOEL Clément                                                #
+# - Tom Vanhove                                                 #
+# - CAVEL Ugo                                                   #
 #################################################################
 # Copyright (c) 2025                                            #
 # Tous droits réservés. Merci de ne pas reproduire              #
@@ -47,6 +47,7 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
+from classes.AI import AIManager  # Ajout de l'import IA
 
 
 def set_prevision_for_ship(ship, case, direction):
@@ -80,7 +81,7 @@ def draw_glowing_rect(ecran, x, y, color, size=TAILLE_CASE, thickness=2):
 
 def handle_events(running, selection_ship, selection_cargo, interface_transport_active,
                   afficher_grille, map_obj, ships, shop, ecran, position_souris, case_souris,
-                  next_uid, images, paths):
+                  next_uid, images, paths, ai_manager):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -149,6 +150,11 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                                 ships.append(nouveau_vaisseau)
                                 nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
                                 print(f"Nouveau {type_vaisseau} spawné en position ({position.x}, {position.y})")
+                                
+                                # Automatiser les vaisseaux moyens du joueur 1 avec l'IA
+                                if type_vaisseau == "Moyen" and joueur_actuel.id == 0:
+                                    ai_manager.add_ai_ship(nouveau_vaisseau)
+                                    print(f"Nouveau vaisseau moyen du joueur 1 automatisé: ID {nouveau_vaisseau.id}")
                         else:
                             print(f"Impossible de trouver une position libre pour le {type_vaisseau}")
                             joueur_actuel.economie.ajouter(ship_data["price"])
@@ -225,7 +231,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                     if (target.cordonner.x <= case_souris[0] < target.cordonner.x + hauteur and
                         target.cordonner.y <= case_souris[1] < target.cordonner.y + largeur):
                         if isinstance(target, Transport):
-                            success = target.ajouter_cargo(selection_ship)
+                            success = target.ajouter_cargo(selection_ship, map_obj.grille)
                             if success:
                                 selection_ship.liberer_position(map_obj.grille)
                                 ships.remove(selection_ship)
@@ -335,13 +341,13 @@ def trouver_position_libre_base(map_obj, joueur_id, taille_vaisseau):
     # Définir la zone de recherche selon le joueur
     if joueur_id == 0:
         # Base en haut à gauche (0,0 à 5,4)
-        start_y, end_y = 0, 15  # Chercher dans une zone plus large autour de la base
-        start_x, end_x = 0, 15
+        start_y, end_y = 0, 7  # Chercher dans une zone plus large autour de la base
+        start_x, end_x = 0, 7
     else:  # joueur_id == 2
         # Base en bas à droite
-        start_y = max(0, NB_CASE_Y - 15)
+        start_y = max(0, NB_CASE_Y - 7)
         end_y = NB_CASE_Y
-        start_x = max(0, NB_CASE_X - 15)
+        start_x = max(0, NB_CASE_X - 7)
         end_x = NB_CASE_X
     
     largeur, hauteur = taille_vaisseau
@@ -497,6 +503,9 @@ def start_game(ecran, parametres, random_active):
     # --- Création vaisseaux ---
     next_uid = [1]
 
+    # ==================== INITIALISATION IA ====================
+    ai_manager = AIManager()
+
     # MotherShip du joueur 1
     smm1 = MotherShip(
         tier=1,
@@ -552,6 +561,44 @@ def start_game(ecran, parametres, random_active):
     next_uid[0] += 1
     Turn.players[0].ships.append(sf1)
 
+    # Vaisseau moyen joueur 1 (pour test IA)
+    sm1 = Moyen(
+        cordonner=Point(3, 1),
+        id=next_uid[0],
+        path=img_moyen_dir,
+        image=img_moyen,
+        joueur=Turn.players[0].id
+    )
+    next_uid[0] += 1
+    Turn.players[0].ships.append(sm1)
+
+    # ==================== VAISSEAUX IA POUR JOUEUR 2 ====================
+    # Créer 2 vaisseaux moyens IA pour le joueur 2
+    for i in range(2):
+        ai_ship = Moyen(
+            cordonner=Point(30 + i*3, 40 + i*2),
+            id=next_uid[0],
+            path=img_moyen_dir,
+            image=img_moyen,
+            joueur=Turn.players[1].id
+        )
+        next_uid[0] += 1
+        Turn.players[1].ships.append(ai_ship)
+        ai_manager.add_ai_ship(ai_ship)
+        print(f"Vaisseau IA créé: ID {ai_ship.id} en position ({ai_ship.cordonner.x}, {ai_ship.cordonner.y})")
+
+    # Rendre les vaisseaux moyens existants du joueur 2 automatiques aussi
+    for ship in Turn.players[1].ships:
+        if isinstance(ship, Moyen) and ship not in [ai.ship for ai in ai_manager.ai_ships]:
+            ai_manager.add_ai_ship(ship)
+
+    # ==================== AUTOMATISATION VAISSEAUX MOYENS JOUEUR 1 ====================
+    # Automatiser tous les vaisseaux moyens du joueur 1 avec l'IA
+    for ship in Turn.players[0].ships:
+        if isinstance(ship, Moyen):
+            ai_manager.add_ai_ship(ship)
+            print(f"Vaisseau moyen du joueur 1 automatisé: ID {ship.id} en position ({ship.cordonner.x}, {ship.cordonner.y})")
+
     # --- Placer vaisseaux sur la grille ---
     for s in Turn.get_players_ships():
         s.occuper_plateau(map_obj.grille, Type.VAISSEAU)
@@ -572,11 +619,14 @@ def start_game(ecran, parametres, random_active):
         case_souris = ((position_souris[1]) // TAILLE_CASE, 
                        (position_souris[0] - OFFSET_X) // TAILLE_CASE)        
 
+        # ==================== MISE À JOUR IA ====================
+        ai_manager.update_all(map_obj.grille, Turn.get_players_ships(), pygame.time.get_ticks())
+
         # Appeler handle_events avec les nouveaux paramètres
         running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid = \
             handle_events(running, selection_ship, selection_cargo, interface_transport_active,
                         afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris,
-                        next_uid, images, paths)  # Ajout des nouveaux paramètres
+                        next_uid, images, paths, ai_manager)  # Ajout du paramètre ai_manager
         
         shop.player = Turn.players[0]  # Mettre à jour le joueur actuel dans le shop
 
@@ -585,8 +635,6 @@ def start_game(ecran, parametres, random_active):
         draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
                 interface_transport_active, case_souris, font, Turn.players[0], shop, new_cursor, position_souris,
                 afficher_grille, dt)
-
-
 
         clock.tick(60)
 
