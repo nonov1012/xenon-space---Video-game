@@ -534,7 +534,7 @@ def start_game(ecran, parametres, random_active):
         joueur=Turn.players[0].id
     )
     next_uid[0] += 1
-    Turn.players[0].ships.append(smm1)
+    Turn.players[0].ships.append(smm1)  
 
     # Petit vaisseau joueur 1
     sp1 = Petit(
@@ -546,6 +546,17 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[0].ships.append(sp1)
+    
+    # Petit vaisseau2 joueur 1
+    sp2 = Petit(
+        cordonner=Point(10, 1),
+        id=next_uid[0],
+        path=img_petit_dir,
+        image=img_petit,
+        joueur=Turn.players[0].id
+    )
+    next_uid[0] += 1
+    Turn.players[0].ships.append(sp2)
 
     # Foreuse joueur 1
     sf1 = Foreuse(
@@ -560,7 +571,7 @@ def start_game(ecran, parametres, random_active):
 
     # MotherShip du joueur 2
     smm2 = MotherShipIA(
-    tier=4,
+    tier=1,
     cordonner=Point(25, 46),
     id=next_uid[0],
     path=img_base_dir,
@@ -663,8 +674,7 @@ def start_game(ecran, parametres, random_active):
                     
                 elif isinstance(ship_ia, MotherShip):
                     if not ship_ia.est_mort():
-                        ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux)
-                        print("je joue bien la fonction jouer_tour de l'ia")
+                        ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux, joueur_actuel, shop, map_obj, next_uid, images, paths)
             
             # Logique de fin de tour pour l'IA
             for ship in joueur_actuel.ships:

@@ -25,7 +25,7 @@ from classes.Start_Animation.main import create_space_background
 pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
-ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+ecran = pygame.display.set_mode((screen_width, screen_height), pygame.NOFRAME)
 pygame.display.set_caption("Xénon Space")
 clock = pygame.time.Clock()
 
@@ -109,7 +109,7 @@ while en_cours:
 
     # --- Fond + planetes + vaisseau ---
     if ecran is None:
-        ecran = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        ecran = pygame.display.set_mode((0, 0), pygame.NOFRAME)
         largeur_ecran, hauteur_ecran = ecran.get_size()
     if ecran.get_locked() is False:  # simple check
         ecran.fill((0,0,0))

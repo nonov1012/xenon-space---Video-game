@@ -1,0 +1,18 @@
+Economie :
+
+Evaluation de la "situation miliataire" :
+
+Le score est calculé de la manière suivante :
+- Un petit  vaisseau (50 dégats) rapporte 1 point.
+- Un vaisseau de taille moyenne (100 dégats) rapporte 2 points.
+- Un vaisseau lourd (200 dégats) rapporte 4 points.
+
+Si score_militaire <= score_militaire_adverse :
+  acheter le meilleure vaisseau pour prendre l'avantage. (a redefinir, pour le moment c'est le vaisseau le plus cher que l'ia peut se permettre)
+Sinon si score_militaire > score_militaire_adverse :
+  Si assez d'argent pour améliorer la base et que la base n'est pas au maximum:
+    améliorer la base.
+  Sinon si assez d'argent pour acheter une foreuse:
+    acheter une foreuse.
+  Sinon:
+    economiser.
