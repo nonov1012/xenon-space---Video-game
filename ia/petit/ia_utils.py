@@ -39,7 +39,10 @@ def utility_defend_pos(ship: Ship, allies: List[Ship], enemies: List[Ship], pos:
         if ally == ship:
             continue
         dist = distance(pos, (ally.cordonner.x, ally.cordonner.y))
-        score += max(0, (PETIT_SCORE[ally.__class__.__name__] * 10 - dist))
+        if dist <= 2:
+            score = 0
+        else:
+            score += max(0, (PETIT_SCORE[ally.__class__.__name__] * 10 - dist))
         # Vérifie si des ennemis sont proches de l’allié
         for e in enemies:
             danger = distance((ally.cordonner.x, ally.cordonner.y), (e.cordonner.x, e.cordonner.y))
@@ -50,21 +53,6 @@ def utility_defend_pos(ship: Ship, allies: List[Ship], enemies: List[Ship], pos:
             score += max(0, PETIT_SCORE[ally.__class__.__name__] - 10 * danger_max)
 
     return score
-
-"""
-def utility_mine(ship: Ship, grille: List[List[Point]]) -> float:
-    if not ship.peut_miner:
-        return 0
-    score = 0
-    for dy in range(-ship.port_deplacement, ship.port_deplacement + 1):
-        for dx in range(-ship.port_deplacement, ship.port_deplacement + 1):
-            y = ship.cordonner.x + dy
-            x = ship.cordonner.y + dx
-            if 0 <= y < len(grille) and 0 <= x < len(grille[0]):
-                if grille[y][x].type == Type.ASTEROIDE:
-                    score += 100 / (1 + abs(dx) + abs(dy))
-    return score
-"""
 
 # ---- Évaluation globale ----
 
