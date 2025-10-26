@@ -49,7 +49,6 @@ class MotherShipIA(MotherShip):
             return False
         
         if self.port_attaque <= 0:
-            print("pas de portée d'attaque")
             return False
         
         # Trouver les cibles potentielles
@@ -58,14 +57,14 @@ class MotherShipIA(MotherShip):
         if cible:
             # Attaquer la cible
             self.attaquer(cible)
-            print("j'attaque le vaisseau:")
-            print(cible)
+            print(f"IA : J'attaque {cible.__class__.__name__} ennemi")
             
             # Si la cible est détruite, la retirer
             if cible.est_mort():
                 cible.liberer_position(grille)
                 if cible in ships:
                     ships.remove(cible)
+                print("IA : Cible détruite !")
             
             return True
         
@@ -123,18 +122,6 @@ class MotherShipIA(MotherShip):
         
         return None
     
-    def _est_vaisseau_ennemi_a_position(self, ships: List[Ship], ligne: int, colonne: int) -> bool:
-        """
-        Vérifie s'il y a un vaisseau ennemi à une position donnée.
-        
-        :param ships: Liste de tous les vaisseaux
-        :param ligne: Ligne de la position
-        :param colonne: Colonne de la position
-        :return: True si un ennemi est présent
-        """
-        vaisseau = self.trouver_vaisseau_a_position(ships, ligne, colonne)
-        return vaisseau is not None and vaisseau.joueur != self.joueur and not vaisseau.est_mort()
-    
     def _valuation_militaire(self, ships: List[Ship]) -> int:
         """
         Donne une valuation de la situation militaire.
@@ -157,88 +144,154 @@ class MotherShipIA(MotherShip):
 
     def achat_stategique(self, ships: List[Ship], player, shop, map_obj, next_uid, images, paths):
         """
-        Gère intelligemment l'argent de la base.
-        Achète des vaisseaux et les fait spawner correctement.
+        Gère intelligemment l'argent de la base avec une stratégie adaptative.
+        
+        Stratégie :
+        - Situation critique (valuation < -2000) : Acheter des vaisseaux lourds défensifs
+        - Situation défavorable (valuation < 0) : Spam de petits vaisseaux
+        - Situation équilibrée (0 < valuation < 1500) : Équilibrer économie et armée
+        - Situation dominante (valuation > 1500) : Focus économie et upgrades
         
         :param ships: Liste de tous les vaisseaux du jeu
         :param player: Le joueur propriétaire de ce MotherShip
         :param shop: Le shop du joueur
-        :param map_obj: La carte du jeu (pour trouver une position libre)
+        :param map_obj: La carte du jeu
         :param next_uid: Liste contenant l'UID suivant [uid]
-        :param images: Dictionnaire des images des vaisseaux
-        :param paths: Dictionnaire des chemins vers les assets
+        :param images: Dictionnaire des images
+        :param paths: Dictionnaire des chemins
         """
         argent_disponible = player.economie.etat()
-        print("IA : Argent disponible: ")
-        print(argent_disponible)
-        print(self._valuation_militaire(ships))
+        valuation = self._valuation_militaire(ships)
         
-        if self._valuation_militaire(ships) < 0:
-            # Situation défavorable, acheter des vaisseaux de combat
-            for ship_dict in shop.ships:
-                if ship_dict["name"] == "Petit":
-                    # Vérifier argent et tier requis
-                    if argent_disponible >= ship_dict["price"] and self.tier >= ship_dict["tier"]:
-                        # Retirer l'argent
-                        if player.economie.retirer(ship_dict["price"]):
-                            # Trouver une position libre
-                            position = self._trouver_position_libre_base(map_obj, player.id, (1, 1))
-                            
-                            if position:
-                                # Créer le vaisseau
-                                nouveau_vaisseau = self._creer_vaisseau(
-                                    "Petit", position, next_uid[0], player.id, images, paths
-                                )
-                                if nouveau_vaisseau:
-                                    next_uid[0] += 1
-                                    player.ships.append(nouveau_vaisseau)
-                                    ships.append(nouveau_vaisseau)
-                                    nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
-                                    print(f"IA : Achat d'un Petit vaisseau (situation défavorable)")
-                            else:
-                                # Pas de position libre, rembourser
-                                player.economie.ajouter(ship_dict["price"])
-                                print("IA : Pas de place pour spawner le vaisseau, remboursé")
-                    break
-        else:
-            # Situation favorable, améliorer la base ou acheter des foreuses
-            cout_upgrade = self.get_next_tier_cost()
+        # Compter les foreuses existantes
+        nb_foreuses = sum(1 for s in player.ships if isinstance(s, Foreuse) and not s.est_mort())
+        nb_petits = sum(1 for s in player.ships if isinstance(s, Petit) and not s.est_mort())
+        nb_moyens = sum(1 for s in player.ships if isinstance(s, Moyen) and not s.est_mort())
+        nb_lourds = sum(1 for s in player.ships if isinstance(s, Lourd) and not s.est_mort())
+        
+        print(f"IA : Argent={argent_disponible}, Valuation={valuation}, Tier={self.tier}")
+        print(f"IA : Flotte - Foreuses={nb_foreuses}, Petits={nb_petits}, Moyens={nb_moyens}, Lourds={nb_lourds}")
+        
+        # SITUATION CRITIQUE
+        if valuation < -2000:
+            print("IA : 🔴 SITUATION CRITIQUE - Défense d'urgence !")
+            # Essayer d'acheter un Lourd si possible
+            if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Grand", (3, 4)):
+                return
+            # Sinon acheter un Moyen
+            if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Moyen", (2, 2)):
+                return
+            # En dernier recours, spam de Petits
+            self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Petit", (1, 1))
+            return
+        
+        # SITUATION DÉFAVORABLE : On perd la bataille
+        elif valuation < 0:
+            print("IA : 🟠 Situation défavorable - Construction d'armée")
             
-            # Essayer d'upgrader la base
-            print("Coût upgrade : ")
-            print(cout_upgrade)
-            print("Argent disponible : ")
-            print(argent_disponible)
-            if cout_upgrade is not None and argent_disponible >= cout_upgrade:
-                if self.upgrade(player.buy):
-                    print(f"IA : Base améliorée au tier {self.tier}")
+            # Si on a assez d'argent pour un Moyen et qu'on en a peu
+            if argent_disponible >= 650 and nb_moyens < 2 and self.tier >= 3:
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Moyen", (2, 2)):
                     return
             
-            # Sinon acheter une foreuse
-            for ship_dict in shop.ships:
-                if ship_dict["name"] == "Foreuse":
-                    if argent_disponible >= ship_dict["price"] and self.tier >= ship_dict["tier"]:
-                        # Retirer l'argent
-                        if player.economie.retirer(ship_dict["price"]):
-                            # Trouver une position libre
-                            position = self._trouver_position_libre_base(map_obj, player.id, (1, 1))
+            # Sinon spam de Petits (cost-efficient)
+            self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Petit", (1, 1))
+            return
+        
+        # SITUATION ÉQUILIBRÉE : Développement équilibré
+        elif valuation < 1500:
+            print("IA : 🟡 Situation équilibrée - Développement mixte")
+            
+            # Priorité 1 : Upgrade de la base si rentable
+            cout_upgrade = self.get_next_tier_cost()
+            if cout_upgrade and argent_disponible >= cout_upgrade and self.tier < 4:
+                # Upgrade si le coût est inférieur à 2x notre argent (on garde une marge)
+                if argent_disponible >= cout_upgrade * 1.2:
+                    if self.upgrade(player.buy):
+                        print(f"IA : ⬆️ Base améliorée au tier {self.tier} !")
+                        return
+            
+            # Priorité 2 : Maintenir au moins 2 foreuses pour l'économie
+            if nb_foreuses < 2:
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Foreuse", (1, 1)):
+                    return
+            
+            # Priorité 3 : Diversifier l'armée
+            # Si on a beaucoup de Petits mais peu de Moyens, acheter un Moyen
+            if nb_petits >= 3 and nb_moyens < 2 and argent_disponible >= 650 and self.tier >= 3:
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Moyen", (2, 2)):
+                    return
+            
+            # Priorité 4 : Acheter un Petit pour maintenir la pression
+            if argent_disponible >= 325:
+                self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Petit", (1, 1))
+                return
+        
+        # SITUATION DOMINANTE : Focus économie et tech
+        else:
+            print("IA : 🟢 Situation dominante - Focus économie et upgrades")
+            
+            # Priorité 1 : Upgrade de la base (débloquer attaque au tier 4)
+            cout_upgrade = self.get_next_tier_cost()
+            if cout_upgrade and argent_disponible >= cout_upgrade:
+                if self.upgrade(player.buy):
+                    print(f"IA : ⭐ Base améliorée au tier {self.tier} !")
+                    return
+            
+            # Priorité 2 : Acheter un Lourd si tier 4 et qu'on en a moins de 2
+            if self.tier >= 4 and nb_lourds < 2 and argent_disponible >= 1050:
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Grand", (3, 4)):
+                    return
+            
+            # Priorité 3 : Maximiser les foreuses (jusqu'à 4)
+            if nb_foreuses < 4:
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Foreuse", (1, 1)):
+                    return
+            
+            # Priorité 4 : Si on a trop d'argent, acheter un Moyen
+            if argent_disponible >= 1000 and self.tier >= 3:
+                self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Moyen", (2, 2))
+
+    def _acheter_vaisseau(self, player, shop, map_obj, next_uid, images, paths, ships, nom_vaisseau, taille):
+        """
+        Fonction helper pour acheter et spawner un vaisseau.
+        
+        :param nom_vaisseau: Nom du vaisseau dans le shop ("Petit", "Moyen", "Grand", "Foreuse")
+        :param taille: Tuple (largeur, hauteur) du vaisseau
+        :param ships: Liste globale des vaisseaux
+        :return: True si l'achat a réussi, False sinon
+        """
+        for ship_dict in shop.ships:
+            if ship_dict["name"] == nom_vaisseau:
+                if player.economie.etat() >= ship_dict["price"] and self.tier >= ship_dict["tier"]:
+                    if player.economie.retirer(ship_dict["price"]):
+                        position = self._trouver_position_libre_base(map_obj, player.id, taille)
+                        
+                        if position:
+                            # Mapper le nom du shop vers le type de vaisseau
+                            type_map = {
+                                "Petit": "Petit",
+                                "Moyen": "Moyen",
+                                "Grand": "Lourd",
+                                "Foreuse": "Foreuse"
+                            }
+                            type_vaisseau = type_map.get(nom_vaisseau)
                             
-                            if position:
-                                # Créer le vaisseau
-                                nouveau_vaisseau = self._creer_vaisseau(
-                                    "Foreuse", position, next_uid[0], player.id, images, paths
-                                )
-                                if nouveau_vaisseau:
-                                    next_uid[0] += 1
-                                    player.ships.append(nouveau_vaisseau)
-                                    ships.append(nouveau_vaisseau)
-                                    nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
-                                    print(f"IA : Achat d'une Foreuse (situation favorable)")
-                            else:
-                                # Pas de position libre, rembourser
-                                player.economie.ajouter(ship_dict["price"])
-                                print("IA : Pas de place pour spawner la foreuse, remboursé")
-                    break
+                            nouveau_vaisseau = self._creer_vaisseau(
+                                type_vaisseau, position, next_uid[0], player.id, images, paths
+                            )
+                            if nouveau_vaisseau:
+                                next_uid[0] += 1
+                                player.ships.append(nouveau_vaisseau)
+                                ships.append(nouveau_vaisseau)  # Ajouter à la liste globale
+                                nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
+                                print(f"IA : ✅ Achat d'un {nom_vaisseau} réussi !")
+                                return True
+                        else:
+                            player.economie.ajouter(ship_dict["price"])
+                            print(f"IA : ❌ Pas de place pour {nom_vaisseau}, remboursé")
+                break
+        return False
 
     def _trouver_position_libre_base(self, map_obj, joueur_id, taille_vaisseau):
         """
@@ -288,6 +341,22 @@ class MotherShipIA(MotherShip):
                 id=uid,
                 path=paths.get('petit'),
                 image=images.get('petit'),
+                joueur=joueur_id
+            )
+        elif type_vaisseau == "Moyen":
+            return Moyen(
+                cordonner=position,
+                id=uid,
+                path=paths.get('moyen'),
+                image=images.get('moyen'),
+                joueur=joueur_id
+            )
+        elif type_vaisseau == "Lourd":
+            return Lourd(
+                cordonner=position,
+                id=uid,
+                path=paths.get('lourd'),
+                image=images.get('lourd'),
                 joueur=joueur_id
             )
         elif type_vaisseau == "Foreuse":

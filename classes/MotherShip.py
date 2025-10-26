@@ -74,7 +74,9 @@ class MotherShip(Ship):
         return (self.tier + 1 in LEVELS) and LEVELS[self.tier].get("cout_upgrade") is not None
 
     def get_next_tier_cost(self) -> Optional[int]:
-        return LEVELS[self.tier + 1].get("cout")
+        if not self.tier > 3 :
+            return LEVELS[self.tier + 1].get("cout")
+        return None
 
     def apply_level(self, tier: int) -> None:
         if tier not in LEVELS: raise ValueError(f"Tier inconnu {tier}")

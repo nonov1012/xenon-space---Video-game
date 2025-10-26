@@ -571,7 +571,7 @@ def start_game(ecran, parametres, random_active):
 
     # MotherShip du joueur 2
     smm2 = MotherShipIA(
-    tier=1,
+    tier=4,
     cordonner=Point(25, 46),
     id=next_uid[0],
     path=img_base_dir,
