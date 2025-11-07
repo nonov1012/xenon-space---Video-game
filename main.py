@@ -56,6 +56,7 @@ from IA.petit.ia_utils import *
 from IA.IA_Lourd import IA_Lourd
 from IA.MotherShipAI import MotherShipIA
 from IA.foreuse import jouer_tour_foreuse
+from IA.IATransport import IATransport
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
@@ -630,6 +631,17 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sf2)
+
+
+    str = Transport(
+        cordonner=Point(18, 34),
+        id=next_uid[0],
+        path=img_transport_dir,
+        image=img_transport,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(str)
     
 
     # --- Placer vaisseaux sur la grille ---
@@ -653,7 +665,7 @@ def start_game(ecran, parametres, random_active):
     # ✨ NOUVELLE BOUCLE DE JEU PRINCIPALE AVEC GESTION DE L'IA ✨
     # =================================================================
     dernier_temps_ia = 0
-    delai_ia_ms = 500  # 250 ms entre chaque action IA
+    delai_ia_ms = 1000  # 250 ms entre chaque action IA
 
     # ---------------------
     # BOUCLE PRINCIPALE
@@ -679,6 +691,9 @@ def start_game(ecran, parametres, random_active):
                 ships_passed = True  # suppose que tous ont fini
 
                 for ship_ia in joueur_actuel.ships[:]:
+                    transport_ia_instance = None
+                    if str and not str.est_mort():
+                        transport_ia_instance = IATransport(str)
                     if ship_ia.est_mort():
                         continue  # ignore les vaisseaux détruits
 
@@ -686,14 +701,19 @@ def start_game(ecran, parametres, random_active):
                     if ship_ia.animator.target == (ship_ia.animator.x, ship_ia.animator.y) or ship_ia.animator.current_anim != "weapon":
                         if isinstance(ship_ia, IA_Lourd):
                             ship_ia.jouer_tour_ia(map_obj.grille, tous_les_vaisseaux, Turn.players[1].ships)
+
                         elif isinstance(ship_ia, Petit):
                             ships_passed = ia_petit_play(ship_ia, map_obj, tous_les_vaisseaux)
+
                         elif isinstance(ship_ia, Moyen):
                             pass 
+
                         elif isinstance(ship_ia, Foreuse):
                             jouer_tour_foreuse(ship_ia, map_obj.grille, tous_les_vaisseaux)
+
                         elif isinstance(ship_ia, Transport):
-                            pass
+                            transport_ia_instance.jouer_tour(map_obj.grille, joueur_actuel.ships)
+
                         elif isinstance(ship_ia, MotherShip):
                             if not ship_ia.est_mort():
                                 pass
