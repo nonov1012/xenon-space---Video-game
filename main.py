@@ -55,6 +55,7 @@ from blazyck import *
 from IA.petit.ia_utils import *
 from IA.IA_Lourd import IA_Lourd
 from IA.MotherShipAI import MotherShipIA
+from IA.foreuse import jouer_tour_foreuse
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
@@ -573,7 +574,7 @@ def start_game(ecran, parametres, random_active):
     Turn.players[0].ships.append(sl1)
 
     # MotherShip du joueur 2
-    smm2 = MotherShipIA(
+    smm2 = MotherShip(
         tier=1,
         cordonner=Point(25, 46),
         id=next_uid[0],
@@ -618,6 +619,17 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sl2)
+
+    # Foreuse joueur 2
+    sf2 = Foreuse(
+        cordonner=Point(24, 38),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2)
     
 
     # --- Placer vaisseaux sur la grille ---
@@ -679,12 +691,13 @@ def start_game(ecran, parametres, random_active):
                         elif isinstance(ship_ia, Moyen):
                             pass 
                         elif isinstance(ship_ia, Foreuse):
-                            pass
+                            jouer_tour_foreuse(ship_ia, map_obj.grille, tous_les_vaisseaux)
                         elif isinstance(ship_ia, Transport):
                             pass
                         elif isinstance(ship_ia, MotherShip):
                             if not ship_ia.est_mort():
-                                ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux, joueur_actuel, shop, map_obj, next_uid, images, paths)
+                                pass
+                                #ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux, joueur_actuel, shop, map_obj, next_uid, images, paths)
                     else:
                         ships_passed = False  # en cours d’action => pas encore fini
 
