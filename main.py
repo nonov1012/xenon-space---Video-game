@@ -54,6 +54,7 @@ from blazyck import *
 
 from IA.petit.ia_utils import *
 from IA.IA_Lourd import IA_Lourd
+from IA.MotherShipAI import MotherShipIA
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
@@ -572,7 +573,7 @@ def start_game(ecran, parametres, random_active):
     Turn.players[0].ships.append(sl1)
 
     # MotherShip du joueur 2
-    smm2 = MotherShip(
+    smm2 = MotherShipIA(
         tier=1,
         cordonner=Point(25, 46),
         id=next_uid[0],
