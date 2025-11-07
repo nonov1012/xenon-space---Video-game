@@ -25,20 +25,18 @@
 # Import lib
 from pickle import NONE
 import pygame
-import time
 
 # Import classes
 from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
-
 import menu.menuPause
 import menu.menuPrincipal
 import menu.menuFin
-
 from classes.Turn import Turn
 from classes.Map import Map
 from classes.Start_Animation.StarField import StarField
 from classes.Point import Type, Point
+from blazyck import *
 from classes.Discord import DiscordRP
 from classes.Animator import Animator
 from classes.PlanetAnimator import PlanetAnimator
@@ -50,10 +48,6 @@ from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
 
-from blazyck import *
-
-from IA.petit.ia_utils import *
-from IA.IA_Lourd import IA_Lourd
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
@@ -230,7 +224,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
     return running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid
 
 def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_cargo,
-              interface_transport_active, case_souris, font, player, shop, position_souris,
+              interface_transport_active, case_souris, font, player, shop, new_cursor, position_souris,
               afficher_grille, dt):
     ecran.fill((0, 0, 0, 0))
     stars.update()
@@ -316,6 +310,7 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
         ecran.blit(font.render(info_text, True, (255, 255, 255)), (10, 40))
 
     shop.draw()
+    ecran.blit(new_cursor, position_souris)
 
     pygame.display.flip()
     
@@ -399,13 +394,6 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     type_key = "lourd" if type_vaisseau == "Grand" else type_vaisseau.lower()
     if type_vaisseau == "Transporteur":
         type_key = "transport"
-
-    if type_vaisseau == "Petit":
-        return Petit(
-            cordonner=position,
-            id=next_uid,
-            joueur=joueur_id
-        )
     
     return classe(
         cordonner=position,
@@ -423,14 +411,16 @@ def end_turn_logic(ecran, map_obj):
     current_player = Turn.players[0]
     
     # Logique de gain de fin de tour
-    for ship in current_player.ships:
-        ship.reset_porters()
-        if isinstance(ship, Foreuse):
-            if ship.est_a_cote_planete(map_obj.grille): # Note: map_obj devra être accessible
-                ship.gain += PLANETES_REWARD
-            if ship.est_autour_asteroide(map_obj.grille):
-                ship.gain += ASTEROIDES_REWARD
-    current_player.gain()
+    for player in Turn.players:
+        for ship in player.ships:
+            ship.reset_porters()
+            if isinstance(ship, Foreuse):
+                if ship.est_a_cote_planete(map_obj.grille):
+                    ship.gain += PLANETES_REWARD
+                if ship.est_autour_asteroide(map_obj.grille):
+                    ship.gain += ASTEROIDES_REWARD
+        player.gain()
+
 
     # Passer au joueur suivant
     Turn.next()
@@ -452,6 +442,13 @@ def start_game(ecran, parametres, random_active):
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 30)
     
+    # --- AFFICHER ÉCRAN DE CHARGEMENT ---
+    # Afficher le tout début du chargement
+
+    new_cursor = pygame.image.load('assets/img/menu/cursor.png')
+    new_cursor = pygame.transform.scale(new_cursor, (40, 40))
+    pygame.mouse.set_visible(False)
+
 
     # Générer la map
     screen_width, screen_height = ecran.get_size()
@@ -544,6 +541,8 @@ def start_game(ecran, parametres, random_active):
     sp1 = Petit(
         cordonner=Point(5, 1),
         id=next_uid[0],
+        path=img_petit_dir,
+        image=img_petit,
         joueur=Turn.players[0].id
     )
     next_uid[0] += 1
@@ -560,17 +559,6 @@ def start_game(ecran, parametres, random_active):
     next_uid[0] += 1
     Turn.players[0].ships.append(sf1)
 
-    # Foreuse joueur 2
-    sl1 = Lourd(
-        cordonner=Point(5, 5),
-        id=next_uid[0],
-        path=img_lourd_dir,
-        image=img_Lourd,
-        joueur=Turn.players[0].id
-    )
-    next_uid[0] += 1
-    Turn.players[0].ships.append(sl1)
-
     # MotherShip du joueur 2
     smm2 = MotherShip(
         tier=1,
@@ -586,30 +574,57 @@ def start_game(ecran, parametres, random_active):
     sp2 = Petit(
         cordonner=Point(24, 45),
         id=next_uid[0],
+        path=img_petit_dir,
+        image=img_petit,
         joueur=Turn.players[1].id
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sp2)
 
-    sp2_1 = Petit(
-        cordonner=Point(25, 45),
+    # Foreuse joueur 2
+    sf2 = Foreuse(
+        cordonner=Point(23, 44),
         id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
         joueur=Turn.players[1].id
     )
     next_uid[0] += 1
-    Turn.players[1].ships.append(sp2_1)
+    Turn.players[1].ships.append(sf2)
+    
+    sf2_2 = Foreuse(
+        cordonner=Point (7, 7),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2_2)
 
-    sp2_2 = Petit(
-        cordonner=Point(26, 45),
+    sf2_3 = Foreuse(
+        cordonner=Point (30, 2),
         id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
         joueur=Turn.players[1].id
     )
     next_uid[0] += 1
-    Turn.players[1].ships.append(sp2_2)
+    Turn.players[1].ships.append(sf2_3)
+    
+    sf2_4 = Foreuse(
+        cordonner=Point (5, 30),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2_4)
 
     # Foreuse joueur 2
-    sl2 = IA_Lourd(
-        cordonner=Point(26, 40),
+    sl2 = Lourd(
+        cordonner=Point(14, 44),
         id=next_uid[0],
         path=img_lourd_dir,
         image=img_Lourd,
@@ -617,6 +632,8 @@ def start_game(ecran, parametres, random_active):
     )
     next_uid[0] += 1
     Turn.players[1].ships.append(sl2)
+
+
     
 
     # --- Placer vaisseaux sur la grille ---
@@ -632,24 +649,16 @@ def start_game(ecran, parametres, random_active):
     interface_transport_active = False
     afficher_grille = False
     running = True
-    ships_passed = False
+
 
     pygame.time.wait(500) # Petite pause pour que le joueur voie le message "Prêt
 
-    # =================================================================
-    # ✨ NOUVELLE BOUCLE DE JEU PRINCIPALE AVEC GESTION DE L'IA ✨
-    # =================================================================
-    dernier_temps_ia = 0
-    delai_ia_ms = 500  # 250 ms entre chaque action IA
-
-    # ---------------------
-    # BOUCLE PRINCIPALE
-    # ---------------------
+    # NOUVELLE BOUCLE DE JEU PRINCIPALE AVEC GESTION DE L'IA 
     while running:
         discord.update("En jeu")
         position_souris = pygame.mouse.get_pos()
-        case_souris = ((position_souris[1]) // TAILLE_CASE,
-                    (position_souris[0] - OFFSET_X) // TAILLE_CASE)
+        case_souris = ((position_souris[1]) // TAILLE_CASE, 
+                       (position_souris[0] - OFFSET_X) // TAILLE_CASE)
 
         joueur_actuel = Turn.players[0]
         shop = shops[joueur_actuel.id]
@@ -658,58 +667,61 @@ def start_game(ecran, parametres, random_active):
         # TOUR DE L'IA
         # ---------------------
         if joueur_actuel.is_ia:
-            maintenant = pygame.time.get_ticks()
-            if maintenant - dernier_temps_ia >= delai_ia_ms:
-                dernier_temps_ia = maintenant  # réinitialise le timer
+            # L'IA fait jouer chacun de ses vaisseaux
+            tous_les_vaisseaux = Turn.get_players_ships()
+            for ship_ia in joueur_actuel.ships[:]: # On utilise une copie [:] car la liste peut être modifiée
+                if isinstance(ship_ia, Petit):
+                    if not ship_ia.est_mort():
+                        pass # remplacer pass par votre appele de fonction
+                
+                elif isinstance(ship_ia, Moyen):
+                    if not ship_ia.est_mort():
+                        pass # remplacer pass par votre appele de fonction
+                
+                elif isinstance(ship_ia, Lourd):
+                    if not ship_ia.est_mort():
+                        pass
 
-                tous_les_vaisseaux = Turn.get_players_ships()
-                ships_passed = True  # suppose que tous ont fini
+                elif isinstance(ship_ia, Foreuse):
+                    if not ship_ia.est_mort():
+                        from ia.foreuse.foreuse import jouer_tour_foreuse
+                        jouer_tour_foreuse(ship_ia, map_obj.grille, tous_les_vaisseaux)
 
-                for ship_ia in joueur_actuel.ships[:]:
-                    if ship_ia.est_mort():
-                        continue  # ignore les vaisseaux détruits
+                elif isinstance(ship_ia, Transport):
+                    if not ship_ia.est_mort():
+                        pass # remplacer pass par votre appele de fonction
+            
+            # Logique de fin de tour pour l'IA
+            for ship in joueur_actuel.ships:
+                ship.reset_porters()
+            joueur_actuel.gain()
+            Turn.next()
+            HUD.change_turn()
 
-                    # Vérifie qu'il ne bouge/attaque pas encore
-                    if ship_ia.animator.target == (ship_ia.animator.x, ship_ia.animator.y) or ship_ia.animator.current_anim != "weapon":
-                        if isinstance(ship_ia, IA_Lourd):
-                            ship_ia.jouer_tour_ia(map_obj.grille, tous_les_vaisseaux, Turn.players[1].ships)
-                        elif isinstance(ship_ia, Petit):
-                            ships_passed = ia_petit_play(ship_ia, map_obj, tous_les_vaisseaux)
-                        elif isinstance(ship_ia, Moyen):
-                            pass 
-                        elif isinstance(ship_ia, Foreuse):
-                            pass
-                        elif isinstance(ship_ia, Transport):
-                            pass
-                        elif isinstance(ship_ia, MotherShip):
-                            if not ship_ia.est_mort():
-                                ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux, joueur_actuel, shop, map_obj, next_uid, images, paths)
-                    else:
-                        ships_passed = False  # en cours d’action => pas encore fini
-
-                # Si tous les vaisseaux petits ont fini leur tour => fin du tour IA
-                if ships_passed:
-                    print("FIN TOUR IA")
-                    running = end_turn_logic(ecran, map_obj)
-
-
+            # Vérification de victoire
+            for player in Turn.players:
+                if not player.getMotherShip() or player.getMotherShip().est_mort():
+                    gagnant = [p for p in Turn.players if p != player][0]
+                    menu.menuFin.main(ecran, gagnant, victoire=True)
+                    running = False
+                    break
+        
         # ---------------------
         # TOUR DU JOUEUR HUMAIN
         # ---------------------
         else:
             running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid = \
                 handle_events(running, selection_ship, selection_cargo, interface_transport_active,
-                            afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris,
-                            next_uid, images, paths)
-
+                              afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris,
+                              next_uid, images, paths)
+        
         # ---------------------
-        # DESSIN
+        # DESSIN (pour le joueur humain, l'IA dessine pendant son tour)
         # ---------------------
-        dt = clock.tick(60) / 1000.0
-        draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
-                interface_transport_active, case_souris, font, joueur_actuel, shop, position_souris,
-                afficher_grille, dt)
-
-
-                
+        if not joueur_actuel.is_ia and running:
+            dt = clock.tick(60) / 1000.0
+            draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
+                      interface_transport_active, case_souris, font, joueur_actuel, shop, new_cursor, position_souris,
+                      afficher_grille, dt)
+            
     pygame.quit()
