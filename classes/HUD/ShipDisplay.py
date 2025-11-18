@@ -12,7 +12,7 @@ class ShipDisplay:
     def __init__(self):
         self.ship : Ship = None
         self.width = OFFSET_X
-        self.height = 140  # augmenté pour tenir toutes les stats
+        self.height = 140
         self.alpha = 255
 
         pygame.font.init()
@@ -25,7 +25,7 @@ class ShipDisplay:
     def reset(self):
         """Cache l'affichage et réinitialise le vaisseau."""
         self.ship = None
-        self.alpha = 0  # si tu veux gérer un fade, sinon juste le cacher
+        self.alpha = 0
 
     def _load_icons(self):
         def load(name):

@@ -7,7 +7,7 @@ from classes.ShipAnimator import ShipAnimator
 from classes.PlanetAnimator import PlanetAnimator
 from classes.Animator import Animator
 from classes.Start_Animation.main import create_space_background
-from menu.modifShips import vaisseaux_sliders, limites_params, SHIP_STATS, noms_affichage
+from menu.modifShips import vaisseaux_sliders, limites_params, SHIP_STATS, noms_affichage, appliquer_modifications_sliders
 
 def dessiner_slider(ecran, valeur, min_val, max_val, x, y, largeur, hauteur,
                     couleur_prog=(0, 200, 100), couleur_curseur=(0, 150, 80)):
@@ -639,6 +639,7 @@ def draw(ecran):
         horloge.tick(60)
     
     if lancer_partie == True:
+        appliquer_modifications_sliders()
         ShipAnimator.clear_list()
         PlanetAnimator.clear_list()
         from main import start_game

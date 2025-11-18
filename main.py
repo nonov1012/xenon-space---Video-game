@@ -32,6 +32,7 @@ from classes.HUD.HUD import HUD
 import menu.menuPause
 import menu.menuPrincipal
 import menu.menuFin
+from menu.modifShips import SHIP_STATS
 from classes.Turn import Turn
 from classes.Map import Map
 from classes.Start_Animation.StarField import StarField
@@ -381,7 +382,7 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     classes_vaisseaux = {
         "Petit": Petit,
         "Moyen": Moyen,
-        "Grand": Lourd,  # Grand dans le shop correspond à Lourd | TODO : modifier celui du shop
+        "Grand": Lourd,
         "Foreuse": Foreuse,
         "Transporteur": Transport
     }
@@ -479,9 +480,6 @@ def start_game(ecran, parametres, random_active):
     # Status discord
     discord = DiscordRP(RPC_ID)
     discord.connect()
-    
-    # TODO : refaire le shop pour que ça soit dans les players
-
 
     # ===== Player =====
     Turn.players = [Player("P1", id=0, is_ia = False), Player("P2", id=1, is_ia = True)]

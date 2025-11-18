@@ -1,5 +1,5 @@
 import pygame
-from blazyck import OFFSET_X, SCREEN_WIDTH, SCREEN_HEIGHT
+from blazyck import *
 import math
 
 from classes.MotherShip import MotherShip
@@ -74,6 +74,7 @@ class BarDisplay:
         self.set_money(self.player.economie.solde)
         mother_ship = self.player.getMotherShip()
         health = mother_ship.pv_actuel if mother_ship else 0
+        self.health_max = mother_ship.pv_max if mother_ship else self.health_max
         self.set_health(health)
         self._time += dt
 

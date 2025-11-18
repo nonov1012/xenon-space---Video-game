@@ -12,7 +12,8 @@ class HUD:
     left_bar: BarDisplay = None
     right_bar: BarDisplay = None
     turn_display: TurnDisplay = None
-    ship_display: ShipDisplay = None  # <-- ajout
+    ship_display: ShipDisplay = None
+    screen: pygame.Surface = None
 
     @classmethod
     def init(cls, screen: pygame.Surface):
@@ -21,6 +22,8 @@ class HUD:
         cls.right_bar = BarDisplay(Turn.players[1], left=False)
         cls.turn_display = TurnDisplay(screen)
         cls.ship_display = ShipDisplay()  # initialisation
+        cls.screen = screen
+        cls.render_bottom_background = True
 
     @classmethod
     def update(cls):
@@ -35,14 +38,15 @@ class HUD:
 
     @classmethod
     def draw(cls):
+        cls.draw_bottom_background()
         cls.left_bar.draw(cls.turn_display.screen)
         cls.right_bar.draw(cls.turn_display.screen)
         cls.turn_display.draw()
 
         # --- Dessiner le vaisseau si défini ---
         if cls.ship_display.ship:
-            x = 10 if cls.ship_display_left else SCREEN_WIDTH - cls.ship_display.width - 10
-            y = 0
+            x = 0 if cls.ship_display_left else SCREEN_WIDTH - cls.ship_display.width
+            y = cls.screen.get_height() - cls.ship_display.height
             cls.ship_display.draw(cls.turn_display.screen, x, y)
 
     @classmethod
@@ -66,9 +70,65 @@ class HUD:
         """Cache le vaisseau affiché."""
         cls.ship_display.set_ship(None)
 
+    @classmethod
+    def draw_bottom_background(cls):
+        info = pygame.display.Info()
+        SCREEN_WIDTH = info.current_w
+        SCREEN_HEIGHT = info.current_h
+        BASE_W = 1920
+        BASE_H = 1080
+        SCALE_X = SCREEN_WIDTH / BASE_W
+        SCALE_Y = SCREEN_HEIGHT / BASE_H
+        SCALE = min(SCALE_X, SCALE_Y)
+
+        if cls.render_bottom_background:
+            shop_width = SCREEN_WIDTH
+            bar_height = int(BAR_HEIGHT * SCALE)
+            shop_y = SCREEN_HEIGHT - bar_height
+
+            # Fond du shop avec dégradé
+            shop_bg = pygame.Surface((shop_width, bar_height), pygame.SRCALPHA)
+            for i in range(bar_height):
+                alpha = int(200 - (i / bar_height) * 50)
+                color = (20 + i // 5, 25 + i // 5, 35 + i // 5, alpha)
+                pygame.draw.line(shop_bg, color, (0, i), (shop_width, i))
+            cls.screen.blit(shop_bg, (0, shop_y))
+
+            # Bordure supérieure du shop
+            pygame.draw.line(cls.screen, (100, 150, 200), (0, shop_y), (shop_width, shop_y), int(3 * SCALE))
+            pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y + int(1 * SCALE)), (shop_width, shop_y + int(1 * SCALE)), int(1 * SCALE))
+
+            # Coins décoratifs
+            corner_size = int(20 * SCALE)
+            line_width = int(4 * SCALE)
+
+            # Coin supérieur gauche
+            pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y), (corner_size, shop_y), line_width)
+            pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y), (0, shop_y + corner_size), line_width)
+
+            # Coin supérieur droit
+            # horizontal
+            pygame.draw.line(cls.screen, (150, 200, 255),
+                            (shop_width - corner_size, shop_y),
+                            (shop_width - 1, shop_y),
+                            line_width)
+            # vertical
+            pygame.draw.line(cls.screen, (150, 200, 255),
+                            (shop_width - 1, shop_y),
+                            (shop_width - 1, shop_y + corner_size),
+                            line_width)
+
+            # Motifs décoratifs
+            radius = int(3 * SCALE)
+            for i in range(3):
+                offset = int((30 + i * 40) * SCALE)
+                pygame.draw.circle(cls.screen, (100, 150, 200, 100), (offset, shop_y + bar_height // 2), radius)
+                pygame.draw.circle(cls.screen, (100, 150, 200, 100), (shop_width - offset, shop_y + bar_height // 2), radius)
+
+
 if __name__ == "__main__":
     import pygame
-    from blazyck import SCREEN_WIDTH, SCREEN_HEIGHT, OFFSET_X
+    from blazyck import *
     from classes.HUD.HUD import HUD
     from classes.Player import Player
     from classes.Point import Point
@@ -76,7 +136,7 @@ if __name__ == "__main__":
     from classes.MotherShip import MotherShip
 
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     clock = pygame.time.Clock()
 
     # --- Initialisation des joueurs ---
@@ -93,20 +153,8 @@ if __name__ == "__main__":
     # Initialisation du HUD
     HUD.init(screen)
 
-    # Exemple de vaisseau fictif pour ShipDisplay
-    ship_example = {
-        "name": "Chasseur",
-        "pv_actuel": 40,
-        "pv_max": 100,
-        "attaque": 15,
-        "port_attaque": 3,
-        "port_attaque_max": 5,
-        "port_deplacement": 2,
-        "port_deplacement_max": 4
-    }
-
     # Affichage initial en bas à gauche
-    HUD.show_ship(ship_example, left_side=True)
+    HUD.show_ship(Turn.players[0].ships[0], left_side=True)
     show_ship = True
     left_side = True
 
@@ -120,14 +168,16 @@ if __name__ == "__main__":
                 if event.key == pygame.K_h:
                     show_ship = not show_ship
                     if show_ship:
-                        HUD.show_ship(ship_example, left_side=left_side)
+                        HUD.show_ship(Turn.players[0].ships[0], left_side=left_side)
                     else:
                         HUD.hide_ship()
                 elif event.key == pygame.K_SPACE:
                     # changer de côté
+                    Turn.next()
+                    HUD.change_turn()
                     left_side = not left_side
                     if show_ship:
-                        HUD.show_ship(ship_example, left_side=left_side)
+                        HUD.show_ship(Turn.players[0].ships[0], left_side=left_side)
 
         screen.fill((10, 10, 20))
         HUD.update_and_draw()
