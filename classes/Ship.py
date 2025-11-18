@@ -7,6 +7,9 @@ from classes.Economie import *
 from heapq import heappush, heappop
 from classes.FloatingText import FloatingText
 from menu.modifShips import SHIP_STATS
+from collections import deque
+import threading
+
 
 # =======================
 # Classe Ship = Vaisseau
@@ -124,9 +127,6 @@ class Ship:
         - déclenche animation de tir si le vaisseau est armé
         """
         if self.joueur != cible.joueur:
-            cible.subir_degats(self.attaque)
-            FloatingText(f"-{self.attaque}", (cible.animator.x + cible.animator.pixel_w, cible.animator.y + cible.animator.pixel_h / 2 ), color=(255, 0, 0))
-            
             if self.attaque > 0 and not isinstance(self, Foreuse):
                 # Calcul position centrale de la cible
                 largeur, hauteur = cible.donner_dimensions(cible.direction)
@@ -139,6 +139,12 @@ class Ship:
                     is_fired=True,
                     projectile_speed=3
                 )
+
+                def appliquer_degats():
+                    cible.subir_degats(self.attaque)
+                    FloatingText(f"-{self.attaque}", (cible.animator.x + cible.animator.pixel_w, cible.animator.y + cible.animator.pixel_h / 2 ), color=(255, 0, 0))
+
+                threading.Timer(1, appliquer_degats).start()
 
                 self.port_attaque = 0
         if cible.est_mort():
@@ -466,7 +472,7 @@ class Ship:
                 return True
 
         # ---------------- Déplacement ----------------
-        from collections import deque
+        
 
         start = (self.cordonner.x, self.cordonner.y)
         queue = deque([start])
