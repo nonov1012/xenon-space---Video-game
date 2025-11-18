@@ -48,7 +48,7 @@ SHIP_STATS = {
         "pv_max": attributs(4, 25),
         "attaque": 50,
         "port_attaque": 3,
-        "port_deplacement": attributs(40, 1),
+        "port_deplacement": attributs(6, 1),
         "cout": 250,
         "taille": (1, 1),
         "peut_miner": False,
