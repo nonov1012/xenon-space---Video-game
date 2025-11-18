@@ -315,8 +315,8 @@ class ShipAnimator(Animator):
                     (frame_w / TAILLE_CASE, frame_h / TAILLE_CASE),
                     (proj_x, proj_y),
                     projectile_type=self.projectile_type,
-                    speed=self.projectile_speed,
-                    duration_ms=int((self.distance(self.target) / self.projectile_speed) * (1000 / 10)),
+                    speed=self.projectile_speed*1.7,
+                    duration_ms=int((self.distance(self.target) / self.projectile_speed) * (1000 / 50)),
                 )
                 bullet.play(self.projectile_type, True, frame_size=(frame_w, frame_h))
             else:
