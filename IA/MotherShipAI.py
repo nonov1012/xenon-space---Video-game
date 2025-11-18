@@ -4,7 +4,7 @@ from classes.MotherShip import MotherShip
 from classes.Ship import Ship, Petit, Moyen, Lourd, Foreuse
 from classes.Point import Point, Type
 from menu.modifShips import SHIP_STATS
-
+from IA.IA_Lourd import IA_Lourd
 
 class MotherShipIA(MotherShip):
     """
@@ -339,7 +339,6 @@ class MotherShipIA(MotherShip):
             return Petit(
                 cordonner=position,
                 id=uid,
-                path=paths.get('petit'),
                 image=images.get('petit'),
                 joueur=joueur_id
             )
@@ -352,7 +351,7 @@ class MotherShipIA(MotherShip):
                 joueur=joueur_id
             )
         elif type_vaisseau == "Lourd":
-            return Lourd(
+            return IA_Lourd(
                 cordonner=position,
                 id=uid,
                 path=paths.get('lourd'),

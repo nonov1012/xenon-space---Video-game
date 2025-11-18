@@ -51,10 +51,11 @@ PETIT_SCORE = {
         "Petit" : 0,
         "Moyen" : 25,
         "IA_Lourd" : 50,
-        "Lourd" : 50,
+        "Lourd" : 150,
         "MotherShip" : 250,
-        "Foreuse" : 150,
-        "Transport" : 100
+        "MotherShipIA" : 250,
+        "Foreuse" : 50,
+        "Transport" : 10
     }
 
 RPC_ID = "1419749281190903848"
