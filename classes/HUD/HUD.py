@@ -5,7 +5,8 @@ from classes.MotherShip import MotherShip
 from classes.Player import Player
 from classes.Point import Point
 from classes.Turn import Turn
-from classes.HUD.ShipDisplay import ShipDisplay  # <-- nouveau
+from classes.HUD.ShipDisplay import ShipDisplay
+from classes.Shop import Shop
 from blazyck import *
 
 class HUD:
@@ -21,7 +22,7 @@ class HUD:
         cls.left_bar.highlight = True
         cls.right_bar = BarDisplay(Turn.players[1], left=False)
         cls.turn_display = TurnDisplay(screen)
-        cls.ship_display = ShipDisplay()  # initialisation
+        cls.ship_display = ShipDisplay()
         cls.screen = screen
         cls.render_bottom_background = True
 
@@ -47,6 +48,7 @@ class HUD:
         if cls.ship_display.ship:
             x = 0 if cls.ship_display_left else SCREEN_WIDTH - cls.ship_display.width
             y = cls.screen.get_height() - cls.ship_display.height
+            cls.ship_display.shop = Turn.get_shop_with_id(cls.ship_display.ship.joueur)
             cls.ship_display.draw(cls.turn_display.screen, x, y)
 
     @classmethod
@@ -62,8 +64,8 @@ class HUD:
         :param ship: dictionnaire ou objet représentant le vaisseau
         :param left_side: True pour afficher en bas à gauche, False pour en bas à droite
         """
-        cls.ship_display.set_ship(ship)
-        cls.ship_display_left = left_side  # position
+        cls.ship_display.ship = ship
+        cls.ship_display_left = left_side
 
     @classmethod
     def hide_ship(cls):
@@ -143,6 +145,7 @@ if __name__ == "__main__":
     P1 = Player("Alice")
     P2 = Player("Bob")
     Turn.players = [P1, P2]
+    Turn.shops = [Shop(P1, screen=screen), Shop(P2, screen=screen)]
 
     # Créer des MotherShip fictives
     P1.ships.append(MotherShip(taille=(4,5), tier=1, cordonner=Point(0,0), 
@@ -171,6 +174,8 @@ if __name__ == "__main__":
                         HUD.show_ship(Turn.players[0].ships[0], left_side=left_side)
                     else:
                         HUD.hide_ship()
+                elif event.key == pygame.K_ESCAPE:
+                    running = False
                 elif event.key == pygame.K_SPACE:
                     # changer de côté
                     Turn.next()

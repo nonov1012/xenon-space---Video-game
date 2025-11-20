@@ -5,12 +5,14 @@ from classes.Player import Player
 from classes.Point import Point
 from classes.Ship import Ship
 from classes.Turn import Turn
+from classes.Shop import Shop
 
 class ShipDisplay:
     """Affichage compact futuriste d’un vaisseau sélectionné."""
 
     def __init__(self):
         self.ship : Ship = None
+        self.shop : Shop = None
         self.width = OFFSET_X
         self.height = 140
         self.alpha = 255
@@ -42,13 +44,15 @@ class ShipDisplay:
             "move": load("move"),
         }
 
-    def set_ship(self, ship):
-        self.ship = ship
-
     def draw(self, surface, x, y):
         if not self.ship:
             return
-
+        if isinstance(self.ship, MotherShip):
+            # Quand le vaisseau à afficher est le vaisseau mère, on affiche le shop à la place
+            from classes.Shop import Shop
+            player_id : int = Turn.get_player_with_id(self.ship.joueur)
+            self.shop.draw()
+            return
         panel = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         pygame.draw.rect(panel, (15, 20, 35, 200), (0, 0, self.width, self.height))
         pygame.draw.rect(panel, (80, 210, 255, 255), (0, 0, self.width, self.height), 2)

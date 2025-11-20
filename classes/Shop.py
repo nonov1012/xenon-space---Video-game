@@ -3,7 +3,8 @@ from blazyck import *
 from menu.modifShips import SHIP_STATS
 
 class Shop:
-    def __init__(self, player, font, screen):
+    pygame.font.init()
+    def __init__(self, player, screen, font = pygame.font.Font(None, 30)):
         self.player = player
         self.font = font
         self.screen = screen
@@ -107,6 +108,14 @@ class Shop:
     def draw(self):
         if self.render:
             # --- SCALING ---
+            info = pygame.display.Info()
+            SCREEN_WIDTH = info.current_w
+            SCREEN_HEIGHT = info.current_h
+            BASE_W = 1920
+            BASE_H = 1080
+            SCALE_X = SCREEN_WIDTH / BASE_W
+            SCALE_Y = SCREEN_HEIGHT / BASE_H
+            SCALE = min(SCALE_X, SCALE_Y)
             icon_size_base = int(ICON_SIZE * SCALE)
             padding = int(CASE_PADDING * SCALE)
             margin = int(ICON_MARGIN * SCALE)

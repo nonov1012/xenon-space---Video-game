@@ -439,6 +439,7 @@ def start_game(ecran, parametres, random_active):
 
     # Initialisations rapides
     clock = pygame.time.Clock()
+    pygame.font.init()
     font = pygame.font.Font(None, 30)
     
     # --- AFFICHER ÉCRAN DE CHARGEMENT ---
