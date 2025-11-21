@@ -18,6 +18,8 @@ from blazyck import *
 from classes.Achievements import AchievementManager
 from classes.Animator import Animator
 from classes.Start_Animation.main import create_space_background
+from classes.GlobalVar.ScreenVar import ScreenVar
+from classes.GlobalVar.GridVar import GridVar
 
 # -------------------------------
 # Initialisation Pygame
@@ -25,11 +27,12 @@ from classes.Start_Animation.main import create_space_background
 pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
-ecran = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+ScreenVar(pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE))
+screen = ScreenVar.screen
 pygame.display.set_caption("Xénon Space")
 clock = pygame.time.Clock()
 
-Animator.set_screen(ecran) # initialisation de la classe Animator
+Animator.set_screen(screen) # initialisation de la classe Animator
 
 # Curseur personnalise
 new_cursor = pygame.image.load('assets/img/menu/cursor.png')
@@ -49,7 +52,7 @@ pygame.display.set_icon(icone)
 # -------------------------------
 # Fond anime avec planetes et vaisseau
 # -------------------------------
-screen_ratio = (SCREEN_WIDTH * 100 / 600) / 100
+screen_ratio = (ScreenVar.screen.get_width() * 100 / 600) / 100
 
 # Création du fond spatial et du vaisseau
 stars, planet_manager, B1 = create_space_background(num_stars=100, screen_ratio=screen_ratio)
@@ -58,7 +61,7 @@ stars, planet_manager, B1 = create_space_background(num_stars=100, screen_ratio=
 # Titre centre
 # -------------------------------
 police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 100)
-titre_position = (SCREEN_WIDTH // 2, 200)
+titre_position = (screen.get_width() // 2, 200)
 titre = TitreAnime("XENON-SPACE", police_titre, titre_position,
                    couleur_haut=(255,255,0), couleur_bas=(255,0,255))
 

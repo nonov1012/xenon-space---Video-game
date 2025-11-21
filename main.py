@@ -48,7 +48,8 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
-
+from classes.GlobalVar.ScreenVar import ScreenVar
+from classes.GlobalVar.GridVar import GridVar
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
@@ -98,6 +99,10 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
             elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                 running = end_turn_logic(ecran, map_obj)
+        
+        elif event.type == pygame.VIDEORESIZE:
+            ScreenVar.update_scale()
+            GridVar.update_grid()
 
 
         # --- Clic gauche ---

@@ -6,6 +6,8 @@ from classes.MotherShip import MotherShip
 from classes.Player import Player
 from classes.Point import Point
 from classes.Turn import Turn
+from classes.GlobalVar.ScreenVar import ScreenVar
+from classes.GlobalVar.GridVar import GridVar
 
 class BarDisplay:
     """
@@ -26,8 +28,8 @@ class BarDisplay:
         """
         self.player = player
         self.left = left
-        self.width = OFFSET_X // 2
-        self.height = SCREEN_HEIGHT // 2
+        self.width = GridVar.offset_x // 2
+        self.height = ScreenVar.screen.get_height() // 2
         self.margin = 30
 
         # Vérifie si le joueur a une MotherShip
@@ -84,8 +86,10 @@ class BarDisplay:
 
         :param surface: La surface sur laquelle dessiner la barre d'affichage
         """
-        x = self.margin if self.left else SCREEN_WIDTH - self.width - self.margin
-        y = SCREEN_HEIGHT // 2 - self.height // 2
+        screen = ScreenVar.screen
+        screen_width, screen_height = screen.get_size()
+        x = self.margin if self.left else screen_width - self.width - self.margin
+        y = screen_height // 2 - self.height // 2
 
         # --- Glow animé ---
         if self.highlight:

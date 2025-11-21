@@ -84,7 +84,6 @@ class HUD:
             
             bar_height = min(GridVar.offset_y, 100)
             shop_y = screen_height - bar_height
-            print(shop_y)
 
             # Fond du shop avec dégradé
             shop_bg = pygame.Surface((screen_width, bar_height), pygame.SRCALPHA)
