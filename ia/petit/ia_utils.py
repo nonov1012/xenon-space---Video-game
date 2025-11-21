@@ -202,20 +202,16 @@ def choose_random_best_action(ship: Ship, grille, allies, enemies) -> Tuple[str,
     return ("move", best_pos)
 
 def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
-    print(f"===========================================")
-    print(f"TURN SHIP : {ship.id}")
-    print(f"Stat : port_deplacement : {ship.port_deplacement}, port_attaque : {ship.port_attaque}")
+
 
     # Si le vaisseau est mort → tour fini
     if ship.est_mort():
-        print(f"{ship.id} est mort → fin du tour")
-        print(f"===========================================")
+
         return True
 
     # Si le vaisseau ne peut rien faire → tour fini
     if ship.port_deplacement == 0 and ship.port_attaque == 0:
-        print(f"{ship.id} ne peut plus agir → fin du tour")
-        print(f"===========================================")
+
         return True
 
     sorted_ships = ally_or_enemy(ship, tous_les_vaisseaux)
@@ -231,8 +227,6 @@ def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
             ship.port_deplacement = max(0, ship.port_deplacement - 1)
         else:
             # S’il n’a pas pu bouger, il a fini (aucune action possible)
-            print(f"{ship.id} n’a pas pu se déplacer")
-            print(f"===========================================")
             return True
 
     # ---- ACTION : Attaque ----
@@ -250,36 +244,24 @@ def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
 
     # ---- ACTION : Rester ----
     elif move[0] == "stay":
-        print(f"STAY {ship.cordonner}")
-        print(f"===========================================")
         return True
 
     # ---- Vérifie s’il peut encore jouer ----
     if ship.port_deplacement == 0 and ship.port_attaque == 0:
-        print(f"{ship.id} a fini ses actions")
-        print(f"===========================================")
         return True
 
-    print(f"{ship.id} peut encore jouer")
-    print(f"===========================================")
     return False
 
 def ia_petit_play_random(ship : Ship, map_obj, tous_les_vaisseaux : List[Ship]) -> bool:
     
-    print(f"===========================================")
-    print(f"TURN SHIP : {ship.id}")
-    print(f"Stat : port_deplacement : {ship.port_deplacement}, port_attaque : {ship.port_attaque}")
     if ship.port_deplacement == 0 and ship.port_attaque == 0:
         return True
     if not ship.est_mort():
         sorted_ships = ally_or_enemy(ship, tous_les_vaisseaux)
         move = choose_random_best_action(ship, map_obj.grille, sorted_ships["allies"], sorted_ships["enemies"])
         if move[0] == "move":
-            print(f"MOVE {ship.cordonner} -> {move[1]}")
             ship.deplacement(move[1], map_obj.grille, tous_les_vaisseaux)
         elif move[0] == "stay":
-            print(f"STAY {ship.cordonner}")
-            print(f"===========================================")
             return True
         elif move[0] == "attack":
             if ship.port_attaque == 0:
@@ -289,5 +271,4 @@ def ia_petit_play_random(ship : Ship, map_obj, tous_les_vaisseaux : List[Ship]) 
                 if cible:
                     print(f"ATTACK {cible} -> {move[1]}")
                     ship.attaquer(cible)
-    print(f"===========================================")
     return False

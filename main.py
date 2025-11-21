@@ -32,7 +32,6 @@ from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
 
 import menu.menuPause
-import menu.menuPrincipal
 import menu.menuFin
 
 from classes.Turn import Turn
@@ -533,7 +532,7 @@ def start_game(ecran, parametres, random_active):
     next_uid = [1]
 
     # MotherShip du joueur 1
-    smm1 = MotherShip(
+    smm1 = MotherShipIA(
         tier=1,
         cordonner=Point(0, 0),
         id=next_uid[0],
@@ -564,7 +563,7 @@ def start_game(ecran, parametres, random_active):
     Turn.players[0].ships.append(sf1)
 
     # Foreuse joueur 2
-    sl1 = Lourd(
+    sl1 = IA_Lourd(
         cordonner=Point(5, 5),
         id=next_uid[0],
         path=img_lourd_dir,
@@ -576,7 +575,7 @@ def start_game(ecran, parametres, random_active):
 
     # MotherShip du joueur 2
     smm2 = MotherShipIA(
-        tier=4,
+        tier=1,
         cordonner=Point(25, 46),
         id=next_uid[0],
         path=img_base_dir,
@@ -665,7 +664,7 @@ def start_game(ecran, parametres, random_active):
     # ✨ NOUVELLE BOUCLE DE JEU PRINCIPALE AVEC GESTION DE L'IA ✨
     # =================================================================
     dernier_temps_ia = 0
-    delai_ia_ms = 1000  # 250 ms entre chaque action IA
+    delai_ia_ms = 250  # 250 ms entre chaque action IA
 
     # ---------------------
     # BOUCLE PRINCIPALE
@@ -694,8 +693,6 @@ def start_game(ecran, parametres, random_active):
                     transport_ia_instance = None
                     if str and not str.est_mort():
                         transport_ia_instance = IATransport(str)
-                    if ship_ia.est_mort():
-                        continue  # ignore les vaisseaux détruits
 
                     # Vérifie qu'il ne bouge/attaque pas encore
                     if ship_ia.animator.target == (ship_ia.animator.x, ship_ia.animator.y) or ship_ia.animator.current_anim != "weapon":
@@ -720,6 +717,8 @@ def start_game(ecran, parametres, random_active):
                     else:
                         ships_passed = False  # en cours d’action => pas encore fini
 
+
+            
                 # Si tous les vaisseaux petits ont fini leur tour => fin du tour IA
                 if ships_passed:
                     print("FIN TOUR IA")

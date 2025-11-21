@@ -36,7 +36,6 @@ class IATransport:
         embarques = 0
         for vaisseau in vaisseaux:
             if self.ship.ajouter_cargo(vaisseau, grille):
-                print(f"[EMBARQUEMENT] Vaisseau {vaisseau.id} embarqué dans Transport {self.ship.id}")
                 # Ne pas supprimer la demande ici, on la garde pour la livraison
                 embarques += 1
         return embarques
@@ -48,42 +47,34 @@ class IATransport:
         Tente de débarquer un vaisseau à sa destination.
         Retourne True si le débarquement a réussi, False sinon.
         """
-        print(f"[DEBARQUEMENT] Tentative de débarquement de {vaisseau_embarque.id}")
         
         # Trouver les positions de débarquement disponibles
         positions_debarquement = self.ship.positions_debarquement(vaisseau_embarque, grille)
-        print(f"[DEBUG] Positions disponibles: {positions_debarquement}")
         
         if not positions_debarquement:
-            print(f"[DEBUG] ❌ Aucune position de débarquement disponible!")
             return False
         
         # Choisir la position la plus proche de la destination
         meilleure_position = min(positions_debarquement, 
                                 key=lambda pos: abs(pos[0]-destination[0]) + abs(pos[1]-destination[1]))
         
-        print(f"[DEBUG] Meilleure position: {meilleure_position}")
         
         # Tenter le débarquement
         try:
             index = self.ship.cargaison.index(vaisseau_embarque)
         except ValueError:
-            print(f"[DEBUG] Vaisseau {vaisseau_embarque.id} non trouvé dans la cargaison.")
             return False # Ne devrait pas arriver dans la logique normale
             
         success = self.ship.retirer_cargo(index, meilleure_position[0], 
                                          meilleure_position[1], grille, ships)
         
-        print(f"[DEBUG] Résultat retirer_cargo: {success}")
         
         if success:
-            print(f"[DEBARQUEMENT] ✅ Vaisseau {vaisseau_embarque.id} débarqué à {meilleure_position}")
             # Supprimer la demande de transport
             if vaisseau_embarque in self.demandes_transport:
                 del self.demandes_transport[vaisseau_embarque]
             return True
         else:
-            print(f"[DEBARQUEMENT] ❌ Échec du débarquement")
             return False
 
     # ------------------- Calcul de position -------------------
@@ -145,12 +136,7 @@ class IATransport:
         case = self.trouver_meilleure_case_adjacente(cible, grille, ships)
         if case:
             resultat = self.ship.deplacement(case, grille, ships)
-            if resultat:
-                print(f"[DEPLACEMENT] Transport {self.ship.id} vers {case} (cible {cible})")
-            else:
-                print(f"[DEPLACEMENT] Transport {self.ship.id} bloqué vers {case}")
             return resultat
-        print(f"[DEPLACEMENT] Transport {self.ship.id} aucune case adjacente disponible")
         return False
 
     # ------------------- Déplacer vaisseau allié vers le transport -------------------
@@ -160,16 +146,12 @@ class IATransport:
         if cases_possibles:
             meilleure_case = min(cases_possibles, key=lambda pos: abs(pos[0]-cible[0]) + abs(pos[1]-cible[1]))
             vaisseau.deplacement(meilleure_case, grille, ships)
-            print(f"[DEPLACEMENT ALLIE] Vaisseau {vaisseau.id} vers {meilleure_case} (transport {self.ship.id})")
 
     # ------------------- Gestion des appels -------------------
     def appel_transport(self, vaisseau_appelant: Ship, position_destination: Tuple[int, int] = [15, 15]):
         """Enregistre une demande de transport pour un vaisseau"""
         if self.est_transportable(vaisseau_appelant):
             self.demandes_transport[vaisseau_appelant] = position_destination
-            print(f"[APPEL] Demande : Vaisseau {vaisseau_appelant.id} veut aller à {position_destination}")
-        else:
-            print(f"[APPEL] Rejet : Vaisseau {vaisseau_appelant.id} non transportable")
 
     def calculer_priorite_appel(self, vaisseau_appelant: Ship) -> float:
         """Calcule la priorité d'un appel (distance au transport)"""
@@ -191,13 +173,11 @@ class IATransport:
     # ------------------- Tour de l'IA -------------------
     def jouer_tour(self, grille: List[List[Point]], ships: List[Ship]):
         """Logique principale du tour de l'IA Transport"""
-        print(f"[TOUR] IA Transport {self.ship.id} position ({self.ship.cordonner.x}, {self.ship.cordonner.y})")
         
         # ⚠️ NOUVEAU : Vérification des PV faibles (moins de 15%)
         pv_faibles = self.ship.pv_actuel < 0.15 * self.ship.pv_max
         
         if pv_faibles and self.ship.cargaison:
-            print(f"[URGENCE] PV faibles ({self.ship.pv}/{self.ship.pv_max})! Débarquement de sauvetage...")
             
             derniere_destination = None # Pour calculer la fuite
             
@@ -221,14 +201,12 @@ class IATransport:
             # ➡️ FUITE : Va au point opposé qu'il devait aller (si une destination existait)
             if derniere_destination:
                 position_fuite = self.calculer_position_fuite(derniere_destination, grille)
-                print(f"[FUITE] Se dirige vers {position_fuite} (opposé de {derniere_destination})")
                 self.deplacer_vers(position_fuite, grille, ships)
             else:
                 # Si pas de destination connue, fuir loin des bords (vers le centre) ou rester immobile
                 centre_x = len(grille[0]) // 2
                 centre_y = len(grille) // 2
                 self.deplacer_vers((centre_x, centre_y), grille, ships)
-                print(f"[FUITE] Se dirige vers le centre ({centre_x}, {centre_y})")
 
             return # Fin du tour en cas d'urgence
 
@@ -243,7 +221,6 @@ class IATransport:
                 distance_destination = abs(self.ship.cordonner.x - destination[0]) + \
                                      abs(self.ship.cordonner.y - destination[1])
                 
-                print(f"[TRANSPORT EN COURS] Vaisseau {vaisseau_embarque.id} vers {destination}, distance: {distance_destination}")
                 
                 # Si on est arrivé à destination (distance <= 1)
                 if distance_destination <= 1:
@@ -255,21 +232,17 @@ class IATransport:
                         return 
                     else:
                         # Pas de place pour débarquer, continuer d'avancer
-                        print(f"[INFO] Impossible de débarquer, continue vers {destination}")
                         self.deplacer_vers(destination, grille, ships)
                         return
                 else:
                     # Continuer vers la destination
-                    print(f"[EN ROUTE] Se déplace vers {destination}")
                     self.deplacer_vers(destination, grille, ships)
                     return
     
         # 2️⃣ Embarquer vaisseaux proches
         vaisseaux_proches = self.trouver_vaisseaux_proches(ships)
-        print(f"[RECUP] Vaisseaux proches : {[s.id for s in vaisseaux_proches]}")
         if vaisseaux_proches:
             nb_embarques = self.embarquer_vaisseaux(vaisseaux_proches, grille)
-            print(f"[INFO] {nb_embarques} vaisseau(x) embarqué(s)")
             return
     
         # 3️⃣ Répondre aux appels
@@ -280,18 +253,14 @@ class IATransport:
                 self.deplacer_vaisseau_vers(vaisseau_cible, (self.ship.cordonner.x, self.ship.cordonner.y), grille, ships)
                 # Déplacer le transport vers le vaisseau allié
                 position_cible = (vaisseau_cible.cordonner.x, vaisseau_cible.cordonner.y)
-                print(f"[APPEL CIBLE] Vaisseau {vaisseau_cible.id} cible {position_cible}")
                 self.deplacer_vers(position_cible, grille, ships)
                 return
     
         # 4️⃣ Se rapprocher des alliés restants
         vaisseaux_allies = self.trouver_vaisseaux_allies(ships)
-        print(f"[DEBUG] Total alliés transportables : {len(vaisseaux_allies)}")
         if not vaisseaux_allies:
-            print("[INFO] Aucun vaisseau allié transportable, transport reste immobile")
             return
     
         position_cible = self.calculer_position_moyenne(vaisseaux_allies)
         distance = abs(position_cible[0]-self.ship.cordonner.x) + abs(position_cible[1]-self.ship.cordonner.y)
-        print(f"[CALC] Position cible par défaut : {position_cible}, Distance : {distance}")
         self.deplacer_vers(position_cible, grille, ships)

@@ -165,9 +165,7 @@ class Ship:
             # Supprimer de la liste des vaisseaux vivants
             player_ships = Turn.get_player_with_id(self.joueur).ships
             if self in player_ships:  # ou la liste globale de ships
-                print(player_ships)
                 player_ships.remove(self)
-                print(player_ships)
 
 
     def est_mort(self):

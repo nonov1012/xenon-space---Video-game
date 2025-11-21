@@ -151,7 +151,7 @@ def main():
     
     if success:
         # Importer le menu principal APRÈS le chargement
-        import main_mother
+        import menu.menuPrincipal
         # Le menu principal se lance automatiquement à l'import
     else:
         pygame.quit()

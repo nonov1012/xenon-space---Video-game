@@ -40,8 +40,7 @@ while running:
     clock.tick(60)
 
 # Affichage final des vaisseaux achetés
-print(f"Vaisseaux achetés: {player.ships}")
-print(f"Solde final: {player.economie.solde}")
+
 
 pygame.quit()
 sys.exit()
