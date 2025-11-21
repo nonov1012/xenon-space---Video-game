@@ -1,13 +1,14 @@
 import pygame
 from blazyck import *
 from menu.modifShips import SHIP_STATS
+from classes.GlobalVar.ScreenVar import ScreenVar
+from classes.GlobalVar.GridVar import GridVar
 
 class Shop:
     pygame.font.init()
-    def __init__(self, player, screen, font = pygame.font.Font(None, 30)):
+    def __init__(self, player):
         self.player = player
-        self.font = font
-        self.screen = screen
+        self.font = pygame.font.Font(None, 30)
         self.base_level = 1  # Niveau de base actuel
         
         # Image de la base
@@ -107,19 +108,21 @@ class Shop:
 
     def draw(self):
         if self.render:
-            screen_width = self.screen.get_width()
-            screen_height = self.screen.get_height()
-            scale = min(screen_width / BASE_W, screen_height / BASE_H)
+            screen = ScreenVar.screen
+            screen_width, screen_height = screen.get_size()
+            scale = ScreenVar.scale
+
             # --- SCALING ---
-            icon_size_base = int(ICON_SIZE * scale)
-            padding = int(CASE_PADDING * scale)
-            margin = int(ICON_MARGIN * scale)
-            bar_height = int(BAR_HEIGHT * scale)
+            icon_size_base = max(int(ICON_SIZE * scale), ICON_SIZE // 1.5)
+            padding = max(int(CASE_PADDING * scale), CASE_PADDING // 1.5)
+            margin = max(int(ICON_MARGIN * scale), ICON_MARGIN // 1.5)
+            bar_height = max(int(BAR_HEIGHT * scale), BAR_HEIGHT // 1.5)
+            self.font = pygame.font.Font(None, max(int(30 * scale), 12))
 
             num_ships = len(self.ships)
             total_width = num_ships * (icon_size_base + 2 * padding) + (num_ships - 1) * margin
-            start_x = (self.screen.get_width() - total_width) // 2
-            y = self.screen.get_height() - bar_height + (bar_height - icon_size_base) // 2
+            start_x = (screen_width - total_width) // 2
+            y = screen_height - bar_height + (bar_height - icon_size_base) // 2
 
             mouse_pos = pygame.mouse.get_pos()
 
@@ -139,15 +142,15 @@ class Shop:
                 shadow_rect = case_rect.copy()
                 shadow_rect.x += int(3 * scale)
                 shadow_rect.y += int(3 * scale)
-                pygame.draw.rect(self.screen, (20, 20, 20), shadow_rect, border_radius=int(8 * scale))
+                pygame.draw.rect(screen, (20, 20, 20), shadow_rect, border_radius=int(8 * scale))
 
                 color = (60, 60, 80) if not hovered else (90, 90, 120)
-                pygame.draw.rect(self.screen, color, case_rect, border_radius=int(8 * scale))
+                pygame.draw.rect(screen, color, case_rect, border_radius=int(8 * scale))
 
                 # Bordure
                 border_width = int(2 * scale)
                 pygame.draw.rect(
-                    self.screen,
+                    screen,
                     (100, 100, 140) if not hovered else (150, 200, 255),
                     case_rect,
                     border_radius=int(8 * scale),
@@ -171,9 +174,9 @@ class Shop:
                         (glow_size // 2, glow_size // 2),
                         glow_size // 2
                     )
-                    self.screen.blit(glow_surface, (icon_x - int(4 * scale), icon_y - int(4 * scale)))
+                    screen.blit(glow_surface, (icon_x - int(4 * scale), icon_y - int(4 * scale)))
 
-                self.screen.blit(icon_img, (icon_x, icon_y))
+                screen.blit(icon_img, (icon_x, icon_y))
                 ship["rect"] = case_rect
 
                 # Info hover
@@ -195,7 +198,7 @@ class Shop:
                     info_bg.blit(info_text, text_rect)
 
                     bg_rect = info_bg.get_rect(center=(case_rect.centerx, case_rect.top - int(20 * scale)))
-                    self.screen.blit(info_bg, bg_rect)
+                    screen.blit(info_bg, bg_rect)
 
             # === Bloc base upgrade ===
             base_x = start_x + total_width + int(3 * margin)
@@ -214,18 +217,18 @@ class Shop:
                 for i, col in enumerate(gradient_colors):
                     offset = int(i * 2 * scale)
                     inner = base_case.inflate(-offset, -offset)
-                    pygame.draw.rect(self.screen, col, inner, border_radius=int(8 * scale), width=int(2 * scale))
+                    pygame.draw.rect(screen, col, inner, border_radius=int(8 * scale), width=int(2 * scale))
                 color = (40, 40, 40)
             else:
                 color = (30, 30, 50) if not hovered else (50, 50, 80)
 
-            pygame.draw.rect(self.screen, color, base_case, border_radius=int(8 * scale))
+            pygame.draw.rect(screen, color, base_case, border_radius=int(8 * scale))
 
             border_color = self.get_base_color_filter() if self.base_level < 4 else (255, 215, 0)
             if hovered:
                 border_color = tuple(min(c + 50, 255) for c in border_color)
 
-            pygame.draw.rect(self.screen, border_color, base_case, border_radius=int(8 * scale), width=int(3 * scale))
+            pygame.draw.rect(screen, border_color, base_case, border_radius=int(8 * scale), width=int(3 * scale))
 
             # Icône base
             icon_size = icon_size_base + int(8 * scale) if hovered else icon_size_base
@@ -250,12 +253,12 @@ class Shop:
                         radius
                     )
 
-                self.screen.blit(
+                screen.blit(
                     glow_surface,
                     (icon_x - int(6 * scale), icon_y - int(6 * scale))
                 )
 
-            self.screen.blit(base_icon, (icon_x, icon_y))
+            screen.blit(base_icon, (icon_x, icon_y))
 
             # Étoiles
             star_r = int(4 * scale)
@@ -268,8 +271,8 @@ class Shop:
                 if i >= self.base_level:
                     break
 
-                pygame.draw.circle(self.screen, (255, 255, 100), (int(sx), int(sy)), star_r)
-                pygame.draw.circle(self.screen, (255, 255, 255), (int(sx), int(sy)), star_r // 2)
+                pygame.draw.circle(screen, (255, 255, 100), (int(sx), int(sy)), star_r)
+                pygame.draw.circle(screen, (255, 255, 255), (int(sx), int(sy)), star_r // 2)
 
             self.base_rect = base_case
 
@@ -297,7 +300,7 @@ class Shop:
                 info_bg.blit(info_text, text_rect)
 
                 bg_rect = info_bg.get_rect(center=(base_case.centerx, base_case.top - int(22 * scale)))
-                self.screen.blit(info_bg, bg_rect)
+                screen.blit(info_bg, bg_rect)
 
     def handle_click(self, pos, mothership_actuel):
         """Gère les clics sur les boutons du shop et retourne le type de vaisseau acheté ou 'base_upgrade'"""

@@ -7,23 +7,24 @@ from classes.Point import Point
 from classes.Turn import Turn
 from classes.HUD.ShipDisplay import ShipDisplay
 from classes.Shop import Shop
+from classes.GlobalVar.ScreenVar import ScreenVar
+from classes.GlobalVar.GridVar import GridVar
 from blazyck import *
+
 
 class HUD:
     left_bar: BarDisplay = None
     right_bar: BarDisplay = None
     turn_display: TurnDisplay = None
     ship_display: ShipDisplay = None
-    screen: pygame.Surface = None
 
     @classmethod
-    def init(cls, screen: pygame.Surface):
+    def init(cls):
         cls.left_bar = BarDisplay(Turn.players[0], left=True)
-        cls.left_bar.highlight = True
+        cls.left_bar.highlight = True   
         cls.right_bar = BarDisplay(Turn.players[1], left=False)
-        cls.turn_display = TurnDisplay(screen)
+        cls.turn_display = TurnDisplay()
         cls.ship_display = ShipDisplay()
-        cls.screen = screen
         cls.render_bottom_background = True
 
     @classmethod
@@ -40,16 +41,16 @@ class HUD:
     @classmethod
     def draw(cls):
         cls.draw_bottom_background()
-        cls.left_bar.draw(cls.turn_display.screen)
-        cls.right_bar.draw(cls.turn_display.screen)
+        cls.left_bar.draw(ScreenVar.screen)
+        cls.right_bar.draw(ScreenVar.screen)
         cls.turn_display.draw()
 
         # --- Dessiner le vaisseau si défini ---
         if cls.ship_display.ship:
-            x = 0 if cls.ship_display_left else SCREEN_WIDTH - cls.ship_display.width
-            y = cls.screen.get_height() - cls.ship_display.height
+            x = 0 if cls.ship_display_left else ScreenVar.screen.get_width() - cls.ship_display.width
+            y = ScreenVar.screen.get_height() - cls.ship_display.height
             cls.ship_display.shop = Turn.get_shop_with_id(cls.ship_display.ship.joueur)
-            cls.ship_display.draw(cls.turn_display.screen, x, y)
+            cls.ship_display.draw(ScreenVar.screen, x, y)
 
     @classmethod
     def update_and_draw(cls):
@@ -75,14 +76,13 @@ class HUD:
     @classmethod
     def draw_bottom_background(cls):
         if cls.render_bottom_background:
-            # Récupère les dimensions actuelles directement
-            screen_width = cls.screen.get_width()
-            screen_height = cls.screen.get_height()
-            
+            screen = ScreenVar.screen
+
+            screen_width, screen_height = screen.get_size()
             # Recalcule SCALE basé sur les dimensions actuelles
-            scale = min(screen_width / BASE_W, screen_height / BASE_H)
+            scale = ScreenVar.scale
             
-            bar_height = int(85 * scale)
+            bar_height = min(GridVar.offset_y, 100)
             shop_y = screen_height - bar_height
             print(shop_y)
 
@@ -92,26 +92,26 @@ class HUD:
                 alpha = int(200 - (i / bar_height) * 50)
                 color = (20 + i // 5, 25 + i // 5, 35 + i // 5, alpha)
                 pygame.draw.line(shop_bg, color, (0, i), (screen_width, i))
-            cls.screen.blit(shop_bg, (0, shop_y))
+            screen.blit(shop_bg, (0, shop_y))
 
             # Bordure supérieure du shop
-            pygame.draw.line(cls.screen, (100, 150, 200), (0, shop_y), (screen_width, shop_y), int(3 * scale))
-            pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y + int(1 * scale)), (screen_width, shop_y + int(1 * scale)), int(1 * scale))
+            pygame.draw.line(screen, (100, 150, 200), (0, shop_y), (screen_width, shop_y), int(3 * scale))
+            pygame.draw.line(screen, (150, 200, 255), (0, shop_y + int(1 * scale)), (screen_width, shop_y + int(1 * scale)), int(1 * scale))
 
             # Coins décoratifs
             corner_size = int(20 * scale)
             line_width = int(4 * scale)
 
             # Coin supérieur gauche
-            pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y), (corner_size, shop_y), line_width)
-            pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y), (0, shop_y + corner_size), line_width)
+            pygame.draw.line(screen, (150, 200, 255), (0, shop_y), (corner_size, shop_y), line_width)
+            pygame.draw.line(screen, (150, 200, 255), (0, shop_y), (0, shop_y + corner_size), line_width)
 
             # Coin supérieur droit
-            pygame.draw.line(cls.screen, (150, 200, 255),
+            pygame.draw.line(screen, (150, 200, 255),
                             (screen_width - corner_size, shop_y),
                             (screen_width - 1, shop_y),
                             line_width)
-            pygame.draw.line(cls.screen, (150, 200, 255),
+            pygame.draw.line(screen, (150, 200, 255),
                             (screen_width - 1, shop_y),
                             (screen_width - 1, shop_y + corner_size),
                             line_width)
@@ -120,8 +120,8 @@ class HUD:
             radius = int(3 * scale)
             for i in range(3):
                 offset = int((30 + i * 40) * scale)
-                pygame.draw.circle(cls.screen, (100, 150, 200, 100), (offset, shop_y + bar_height // 2), radius)
-                pygame.draw.circle(cls.screen, (100, 150, 200, 100), (screen_width - offset, shop_y + bar_height // 2), radius)
+                pygame.draw.circle(screen, (100, 150, 200, 100), (offset, shop_y + bar_height // 2), radius)
+                pygame.draw.circle(screen, (100, 150, 200, 100), (screen_width - offset, shop_y + bar_height // 2), radius)
 
 
 if __name__ == "__main__":
@@ -134,14 +134,15 @@ if __name__ == "__main__":
     from classes.MotherShip import MotherShip
 
     pygame.init()
-    screen = pygame.display.set_mode((400, 800), pygame.RESIZABLE)
+    ScreenVar(pygame.display.set_mode((400, 800), pygame.RESIZABLE))
+    GridVar()
     clock = pygame.time.Clock()
 
     # --- Initialisation des joueurs ---
     P1 = Player("Alice")
     P2 = Player("Bob")
     Turn.players = [P1, P2]
-    Turn.shops = [Shop(P1, screen=screen), Shop(P2, screen=screen)]
+    Turn.shops = [Shop(P1), Shop(P2)]
 
     # Créer des MotherShip fictives
     P1.ships.append(MotherShip(taille=(4,5), tier=1, cordonner=Point(0,0), 
@@ -150,7 +151,7 @@ if __name__ == "__main__":
                       id=1, path="assets/img/ships/base", joueur = Turn.players[1].id))
 
     # Initialisation du HUD
-    HUD.init(screen)
+    HUD.init()
 
     # Affichage initial en bas à gauche
     HUD.show_ship(Turn.players[0].ships[0], left_side=True)
@@ -180,8 +181,11 @@ if __name__ == "__main__":
                     left_side = not left_side
                     if show_ship:
                         HUD.show_ship(Turn.players[0].ships[0], left_side=left_side)
+            elif event.type == pygame.VIDEORESIZE:
+                ScreenVar.update_scale()
+                GridVar.update_grid()
 
-        screen.fill((10, 10, 20))
+        ScreenVar.screen.fill((10, 10, 20))
         HUD.update_and_draw()
         pygame.display.flip()
 
