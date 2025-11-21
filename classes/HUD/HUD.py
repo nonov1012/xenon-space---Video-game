@@ -74,58 +74,54 @@ class HUD:
 
     @classmethod
     def draw_bottom_background(cls):
-        info = pygame.display.Info()
-        SCREEN_WIDTH = info.current_w
-        SCREEN_HEIGHT = info.current_h
-        BASE_W = 1920
-        BASE_H = 1080
-        SCALE_X = SCREEN_WIDTH / BASE_W
-        SCALE_Y = SCREEN_HEIGHT / BASE_H
-        SCALE = min(SCALE_X, SCALE_Y)
-
         if cls.render_bottom_background:
-            shop_width = SCREEN_WIDTH
-            bar_height = int(BAR_HEIGHT * SCALE)
-            shop_y = SCREEN_HEIGHT - bar_height
+            # Récupère les dimensions actuelles directement
+            screen_width = cls.screen.get_width()
+            screen_height = cls.screen.get_height()
+            
+            # Recalcule SCALE basé sur les dimensions actuelles
+            scale = min(screen_width / BASE_W, screen_height / BASE_H)
+            
+            bar_height = int(85 * scale)
+            shop_y = screen_height - bar_height
+            print(shop_y)
 
             # Fond du shop avec dégradé
-            shop_bg = pygame.Surface((shop_width, bar_height), pygame.SRCALPHA)
+            shop_bg = pygame.Surface((screen_width, bar_height), pygame.SRCALPHA)
             for i in range(bar_height):
                 alpha = int(200 - (i / bar_height) * 50)
                 color = (20 + i // 5, 25 + i // 5, 35 + i // 5, alpha)
-                pygame.draw.line(shop_bg, color, (0, i), (shop_width, i))
+                pygame.draw.line(shop_bg, color, (0, i), (screen_width, i))
             cls.screen.blit(shop_bg, (0, shop_y))
 
             # Bordure supérieure du shop
-            pygame.draw.line(cls.screen, (100, 150, 200), (0, shop_y), (shop_width, shop_y), int(3 * SCALE))
-            pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y + int(1 * SCALE)), (shop_width, shop_y + int(1 * SCALE)), int(1 * SCALE))
+            pygame.draw.line(cls.screen, (100, 150, 200), (0, shop_y), (screen_width, shop_y), int(3 * scale))
+            pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y + int(1 * scale)), (screen_width, shop_y + int(1 * scale)), int(1 * scale))
 
             # Coins décoratifs
-            corner_size = int(20 * SCALE)
-            line_width = int(4 * SCALE)
+            corner_size = int(20 * scale)
+            line_width = int(4 * scale)
 
             # Coin supérieur gauche
             pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y), (corner_size, shop_y), line_width)
             pygame.draw.line(cls.screen, (150, 200, 255), (0, shop_y), (0, shop_y + corner_size), line_width)
 
             # Coin supérieur droit
-            # horizontal
             pygame.draw.line(cls.screen, (150, 200, 255),
-                            (shop_width - corner_size, shop_y),
-                            (shop_width - 1, shop_y),
+                            (screen_width - corner_size, shop_y),
+                            (screen_width - 1, shop_y),
                             line_width)
-            # vertical
             pygame.draw.line(cls.screen, (150, 200, 255),
-                            (shop_width - 1, shop_y),
-                            (shop_width - 1, shop_y + corner_size),
+                            (screen_width - 1, shop_y),
+                            (screen_width - 1, shop_y + corner_size),
                             line_width)
 
             # Motifs décoratifs
-            radius = int(3 * SCALE)
+            radius = int(3 * scale)
             for i in range(3):
-                offset = int((30 + i * 40) * SCALE)
+                offset = int((30 + i * 40) * scale)
                 pygame.draw.circle(cls.screen, (100, 150, 200, 100), (offset, shop_y + bar_height // 2), radius)
-                pygame.draw.circle(cls.screen, (100, 150, 200, 100), (shop_width - offset, shop_y + bar_height // 2), radius)
+                pygame.draw.circle(cls.screen, (100, 150, 200, 100), (screen_width - offset, shop_y + bar_height // 2), radius)
 
 
 if __name__ == "__main__":
@@ -138,7 +134,7 @@ if __name__ == "__main__":
     from classes.MotherShip import MotherShip
 
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+    screen = pygame.display.set_mode((400, 800), pygame.RESIZABLE)
     clock = pygame.time.Clock()
 
     # --- Initialisation des joueurs ---
@@ -163,6 +159,7 @@ if __name__ == "__main__":
 
     running = True
     while running:
+
         dt = clock.tick(60) / 1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
