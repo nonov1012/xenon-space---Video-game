@@ -440,11 +440,14 @@ def end_turn_logic(ecran, map_obj):
     
     return True # Le jeu continue
 
-def start_game(ecran, parametres, random_active):
+def start_game(parametres, random_active):
 
     # Initialisations rapides
     clock = pygame.time.Clock()
     pygame.font.init()
+    screen = ScreenVar.screen
+    ScreenVar.update_scale()
+    GridVar.update_grid()
     font = pygame.font.Font(None, 30)
     
     # --- AFFICHER ÉCRAN DE CHARGEMENT ---
@@ -456,7 +459,7 @@ def start_game(ecran, parametres, random_active):
 
 
     # Générer la map
-    screen_width, screen_height = ecran.get_size()
+    screen_width, screen_height = screen.get_size()
     num_stars=100
     screen_ratio=1.0
     stars = StarField(
@@ -489,7 +492,7 @@ def start_game(ecran, parametres, random_active):
 
     # ===== Player =====
     Turn.players = [Player("P1", id=0, is_ia = False), Player("P2", id=1, is_ia = True)]
-    shops=[Shop(Turn.players[0], font, ecran), Shop(Turn.players[1], font, ecran)]
+    shops=[Shop(Turn.players[0], font, screen), Shop(Turn.players[1], font, screen)]
 
     # ===== Images et chemins pour les vaisseaux =====
     # Dictionnaires pour stocker les images et chemins
@@ -539,28 +542,6 @@ def start_game(ecran, parametres, random_active):
     next_uid[0] += 1
     Turn.players[0].ships.append(smm1)
 
-    # Petit vaisseau joueur 1
-    sp1 = Petit(
-        cordonner=Point(5, 1),
-        id=next_uid[0],
-        path=img_petit_dir,
-        image=img_petit,
-        joueur=Turn.players[0].id
-    )
-    next_uid[0] += 1
-    Turn.players[0].ships.append(sp1)
-
-    # Foreuse joueur 1
-    sf1 = Foreuse(
-        cordonner=Point(1, 5),
-        id=next_uid[0],
-        path=img_foreuse_dir,
-        image=img_foreuse,
-        joueur=Turn.players[0].id
-    )
-    next_uid[0] += 1
-    Turn.players[0].ships.append(sf1)
-
     # MotherShip du joueur 2
     smm2 = MotherShip(
         tier=1,
@@ -572,48 +553,12 @@ def start_game(ecran, parametres, random_active):
     next_uid[0] += 1
     Turn.players[1].ships.append(smm2)
 
-        # Petit vaisseau joueur 2
-    sp2 = Petit(
-        cordonner=Point(24, 45),
-        id=next_uid[0],
-        path=img_petit_dir,
-        image=img_petit,
-        joueur=Turn.players[1].id
-    )
-    next_uid[0] += 1
-    Turn.players[1].ships.append(sp2)
-
-    # Foreuse joueur 2
-    sf2 = Foreuse(
-        cordonner=Point(23, 44),
-        id=next_uid[0],
-        path=img_foreuse_dir,
-        image=img_foreuse,
-        joueur=Turn.players[1].id
-    )
-    next_uid[0] += 1
-    Turn.players[1].ships.append(sf2)
-
-    # Foreuse joueur 2
-    sl2 = Lourd(
-        cordonner=Point(14, 44),
-        id=next_uid[0],
-        path=img_lourd_dir,
-        image=img_Lourd,
-        joueur=Turn.players[1].id
-    )
-    next_uid[0] += 1
-    Turn.players[1].ships.append(sl2)
-
-
-    
-
     # --- Placer vaisseaux sur la grille ---
     for s in Turn.get_players_ships():
         s.occuper_plateau(map_obj.grille, Type.VAISSEAU)
 
     # --- initialisation du HUD ---
-    HUD.init(ecran)
+    HUD.init()
 
     # --- Variables de sélection et contrôle ---
     selection_ship = None
@@ -675,7 +620,7 @@ def start_game(ecran, parametres, random_active):
             for player in Turn.players:
                 if not player.getMotherShip() or player.getMotherShip().est_mort():
                     gagnant = [p for p in Turn.players if p != player][0]
-                    menu.menuFin.main(ecran, gagnant, victoire=True)
+                    menu.menuFin.main(screen, gagnant, victoire=True)
                     running = False
                     break
         
@@ -685,7 +630,7 @@ def start_game(ecran, parametres, random_active):
         else:
             running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid = \
                 handle_events(running, selection_ship, selection_cargo, interface_transport_active,
-                              afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris,
+                              afficher_grille, map_obj, Turn.get_players_ships(), shop, screen, position_souris, case_souris,
                               next_uid, images, paths)
         
         # ---------------------
@@ -693,7 +638,7 @@ def start_game(ecran, parametres, random_active):
         # ---------------------
         if not joueur_actuel.is_ia and running:
             dt = clock.tick(60) / 1000.0
-            draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
+            draw_game(screen, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
                       interface_transport_active, case_souris, font, joueur_actuel, shop, new_cursor, position_souris,
                       afficher_grille, dt)
             

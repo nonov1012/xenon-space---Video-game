@@ -190,10 +190,7 @@ class MenuParametres:
         
     def _init_background(self):
         """Initialise le fond animé"""
-        screen_ratio = (self.largeur_ecran * 100 / 600) / 100
-        self.stars, self.planet_manager, _ = create_space_background(
-            num_stars=100, screen_ratio=screen_ratio
-        )
+        self.stars, self.planet_manager, _ = create_space_background()
         
     def _init_ui_elements(self):
         """Initialise les éléments de l'interface"""

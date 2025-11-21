@@ -58,8 +58,7 @@ def main(ecran):
     horloge = pygame.time.Clock()
 
     # Fond animé
-    screen_ratio = (largeur_ecran * 100 / 600) / 100
-    stars, planet_manager, _ = create_space_background(num_stars=100, screen_ratio=screen_ratio)
+    stars, planet_manager, _ = create_space_background()
 
     police = pygame.font.Font("assets/fonts/SpaceNova.otf", 40)
     police_info = pygame.font.Font("assets/fonts/SpaceNova.otf", 22)

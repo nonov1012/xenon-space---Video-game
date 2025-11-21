@@ -29,12 +29,8 @@ def main(ecran):
     # Fond animé (comme menu personnalisation)
     # -------------------------------
     largeur_ecran, hauteur_ecran = ecran.get_size()
-    screen_ratio = (largeur_ecran * 100 / 600) / 100
     
-    stars, planet_manager, vaisseau_fond = create_space_background(
-        num_stars=100, 
-        screen_ratio=screen_ratio
-    )
+    stars, planet_manager, vaisseau_fond = create_space_background()
 
     # -------------------------------
     # Curseur

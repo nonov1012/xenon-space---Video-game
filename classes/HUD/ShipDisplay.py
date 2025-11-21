@@ -1,5 +1,6 @@
 import pygame
-from blazyck import OFFSET_X, ICONES_PATH
+from blazyck import ICONES_PATH
+from classes.GlobalVar.GridVar import GridVar
 from classes.MotherShip import MotherShip
 from classes.Player import Player
 from classes.Point import Point
@@ -13,7 +14,7 @@ class ShipDisplay:
     def __init__(self):
         self.ship : Ship = None
         self.shop : Shop = None
-        self.width = OFFSET_X
+        self.width = GridVar.offset_x
         self.height = 140
         self.alpha = 255
 
