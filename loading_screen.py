@@ -151,6 +151,7 @@ def main():
     
     if success:
         # Importer le menu principal APRÈS le chargement
+        Animator.clear_list()
         import menu.menuPrincipal
         # Le menu principal se lance automatiquement à l'import
     else:
