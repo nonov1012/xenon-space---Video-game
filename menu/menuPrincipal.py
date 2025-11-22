@@ -3,9 +3,6 @@ import pygame
 import sys
 from classes.PlanetAnimator import PlanetAnimator
 from classes.ShipAnimator import ShipAnimator
-import menu.menuJouer
-import menu.menuParam
-import menu.menuSucces
 import menu.credit
 
 from classes.TitreAnime import TitreAnime
@@ -21,6 +18,9 @@ from classes.Start_Animation.main import create_space_background
 from classes.GlobalVar.ScreenVar import ScreenVar
 from classes.GlobalVar.GridVar import GridVar
 from menu.menuJouer import MenuPlay
+from menu.menuSucces import MenuSucces
+from menu.menuParam import MenuParametres
+from menu.credit import MenuCredits
 
 # -------------------------------
 # Initialisation Pygame
@@ -133,18 +133,62 @@ def draw_main_menu():
         rect_texte = texte.get_rect(center=rect_zoom.center)
         screen.blit(texte, rect_texte.topleft)
 
+
+def gerer_menu_generique(menu, flag_menu):
+    """
+    Gère un menu générique de manière unifiée
+    
+    Args:
+        menu: Instance du menu (MenuPlay, MenuSucces, MenuParametres)
+        flag_menu: Nom de la variable de flag ("play_menu", "succes_menu", etc.)
+    
+    Returns:
+        tuple: (continuer_menu, retour_main_menu, lancer_partie)
+    """
+    global main_menu
+    
+    # Dessiner le menu
+    menu.draw()
+    
+    # Gérer les événements
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return False, False, False  # Arrêter tout
+        else:
+            menu.handle_events(event)
+    
+    # Mise à jour spécifique selon le type de menu
+    if isinstance(menu, MenuPlay):
+        menu.update_slider_vaisseau()
+    elif isinstance(menu, MenuParametres):
+        menu.update_slider()
+    
+    # Vérifier si on doit retourner au menu principal
+    if not menu.en_cours:
+        # Si c'est le menu play et qu'on lance la partie
+        if isinstance(menu, MenuPlay) and menu.lancer_partie:
+            return False, False, True  # Arrêter le menu, lancer la partie
+        # Sinon retour au menu principal
+        return False, True, False
+    
+    return True, False, False  # Continuer le menu actuel
+
+
 # -------------------------------
 # Boucle principale
 # -------------------------------
 en_cours = True
-main_menu = True  # État du menu principal
-succes_menu = False
+main_menu = True
 play_menu = False
+succes_menu = False
 param_menu = False
 credits_menu = False
 
-# Créer l'instance du menu play
-menu_play = MenuPlay()
+# Instances des menus (seront recréées à chaque ouverture)
+menu_play = None
+menu_succes = None
+menu_param = None
+menu_credits = None
 
 while en_cours:
     clock.tick(30)
@@ -166,83 +210,110 @@ while en_cours:
     # --- Affichage selon l'état ---
     if main_menu:
         draw_main_menu()
-    elif play_menu:
-        # Mettre à jour le menu play à chaque frame
-        menu_play.draw()
-        # Gérer les événements du menu play
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                en_cours = False
-            else:
-                menu_play.handle_events(event)
         
-        # Mettre à jour le slider pendant le drag
-        menu_play.update_slider_vaisseau()
+    elif play_menu and menu_play:
+        continuer, retour_main, lancer = gerer_menu_generique(menu_play, "play_menu")
         
-        # Vérifier si on doit retourner au menu principal
-        if not menu_play.en_cours:
+        if not continuer:
             play_menu = False
-            main_menu = True
-            
-            # Si on lance la partie
-            if menu_play.lancer_partie:
+            if retour_main:
+                main_menu = True
+            elif lancer:
+                # Lancer la partie
                 from menu.modifShips import appliquer_modifications_sliders
                 appliquer_modifications_sliders()
                 ShipAnimator.clear_list()
                 PlanetAnimator.clear_list()
                 from main import start_game
                 start_game(menu_play.parametres, menu_play.random_active)
-                # Réinitialiser après le jeu
-                menu_play.lancer_partie = False
-                menu_play = MenuPlay()  # Recréer une nouvelle instance
-                menu_play.update()
+                # Retour au menu après la partie
+                main_menu = True
+                menu_play = None
         
         # Curseur et affichage
         screen.blit(new_cursor, souris)
         pygame.display.flip()
-        continue  # Sauter le reste de la boucle
+        continue
     
-    elif succes_menu:
-        menu.menuSucces.main(screen)
-    elif param_menu:
-        menu.menuParam.main(screen)
+    elif succes_menu and menu_succes:
+        continuer, retour_main, _ = gerer_menu_generique(menu_succes, "succes_menu")
+        
+        if not continuer:
+            succes_menu = False
+            if retour_main:
+                main_menu = True
+                menu_succes = None
+        
+        screen.blit(new_cursor, souris)
+        pygame.display.flip()
+        continue
+    
+    elif param_menu and menu_param:
+        continuer, retour_main, _ = gerer_menu_generique(menu_param, "param_menu")
+        
+        if not continuer:
+            param_menu = False
+            if retour_main:
+                main_menu = True
+                menu_param = None
+        
+        screen.blit(new_cursor, souris)
+        pygame.display.flip()
+        continue
+    
     elif credits_menu:
         menu.credit.main(screen)
+        credits_menu = False
+        main_menu = True
 
     # --- Curseur ---
     screen.blit(new_cursor, souris)
     pygame.display.flip()
 
-    # --- Evenements du menu principal uniquement ---
+    # --- Événements du menu principal uniquement ---
     if main_menu:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 en_cours = False
+                
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if bouton_jouer.collidepoint(event.pos):
                     sm.play_sfx("son_click")
                     main_menu = False
                     play_menu = True
-                    # Réinitialiser et mettre à jour le menu play
                     menu_play = MenuPlay()
                     menu_play.update()
                     menu_play.en_cours = True
+                    
                 elif bouton_param.collidepoint(event.pos):
                     sm.play_sfx("son_click")
                     main_menu = False
                     param_menu = True
+                    menu_param = MenuParametres()
+                    menu_param.update()
+                    menu_param.en_cours = True
+                    
                 elif bouton_succes.collidepoint(event.pos):
                     sm.play_sfx("son_click")
                     main_menu = False
                     succes_menu = True
+                    menu_succes = MenuSucces()
+                    menu_succes.update()
+                    menu_succes.en_cours = True
+                    
                 elif bouton_credit.collidepoint(event.pos):
                     sm.play_sfx("son_click")
                     main_menu = False
                     credits_menu = True
+                    menu_credits = MenuCredits()
+                    menu_credits.update()
+                    menu_credits.en_cours = True
+                    
                 elif bouton_quitter.collidepoint(event.pos):
                     sm.play_sfx("son_click")
                     pygame.quit()
                     sys.exit()
+                    
             elif event.type == pygame.VIDEORESIZE:
                 ScreenVar.update_scale()
                 GridVar.update_grid()
