@@ -603,4 +603,4 @@ def draw(ecran):
         ShipAnimator.clear_list()
         PlanetAnimator.clear_list()
         from main import start_game
-        start_game(ecran, menu.parametres, menu.random_active)
+        start_game(menu.parametres, menu.random_active)

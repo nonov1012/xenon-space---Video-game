@@ -1,5 +1,6 @@
 import pygame
 from typing import Tuple, List, Optional
+from classes.GlobalVar.GridVar import GridVar
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point, Type
@@ -129,8 +130,8 @@ class Ship:
             if self.attaque > 0 and not isinstance(self, Foreuse):
                 # Calcul position centrale de la cible
                 largeur, hauteur = cible.donner_dimensions(cible.direction)
-                target_x = (cible.cordonner.y * TAILLE_CASE) + (largeur * TAILLE_CASE) / 2 + OFFSET_X
-                target_y = (cible.cordonner.x * TAILLE_CASE) + (hauteur * TAILLE_CASE) / 2
+                target_x = (cible.cordonner.y * GridVar.cell_size) + (largeur * GridVar.cell_size) / 2 + GridVar.offset_x
+                target_y = (cible.cordonner.x * GridVar.cell_size) + (hauteur * GridVar.cell_size) / 2
 
                 self.animator.fire(
                     projectile_type=self.projectile_type,
@@ -553,14 +554,14 @@ class Ship:
 
         # Mise à jour de l'animator
         largeur, hauteur = self.donner_dimensions(self.direction)
-        x = colonne * TAILLE_CASE + OFFSET_X
-        y = ligne * TAILLE_CASE
+        x = colonne * GridVar.cell_size + GridVar.offset_x
+        y = ligne * GridVar.cell_size
 
         self.prevision.x = ligne
         self.prevision.y = colonne
         self.animator.set_target((x, y))
-        self.animator.pixel_w = largeur * TAILLE_CASE
-        self.animator.pixel_h = hauteur * TAILLE_CASE
+        self.animator.pixel_w = largeur * GridVar.cell_size
+        self.animator.pixel_h = hauteur * GridVar.cell_size
 
         angles = {"haut": 0, "droite": -90, "gauche": 90, "bas": 180}
         if cible_direction in angles:
@@ -598,9 +599,9 @@ class Ship:
             self.aperçu_cordonner._y = nouvelle_col
             
             # Mise à jour du visualiseur de prévision
-            x = nouvelle_col * TAILLE_CASE + OFFSET_X
-            y = nouvelle_ligne * TAILLE_CASE
-            w, h = largeur * TAILLE_CASE, hauteur * TAILLE_CASE
+            x = nouvelle_col * GridVar.cell_size + GridVar.offset_x
+            y = nouvelle_ligne * GridVar.cell_size
+            w, h = largeur * GridVar.cell_size, hauteur * GridVar.cell_size
 
             self.prevision.x = x
             self.prevision.y = y
@@ -617,8 +618,8 @@ class Ship:
         self.aperçu_cordonner._x = case_souris[0]
         self.aperçu_cordonner._y = case_souris[1]
         
-        self.prevision.x = case_souris[1] * TAILLE_CASE + OFFSET_X
-        self.prevision.y = case_souris[0] * TAILLE_CASE
+        self.prevision.x = case_souris[1] * GridVar.cell_size + GridVar.offset_x
+        self.prevision.y = case_souris[0] * GridVar.cell_size
         
         self.rotation_aperçu(grille)
 
@@ -633,7 +634,7 @@ class Petit(Ship):
         
         # Créer l'image si non fournie
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -662,7 +663,7 @@ class Moyen(Ship):
         stats = SHIP_STATS["Moyen"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -691,7 +692,7 @@ class Lourd(Ship):
         stats = SHIP_STATS["Lourd"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -720,7 +721,7 @@ class Foreuse(Ship):
         stats = SHIP_STATS["Foreuse"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -747,7 +748,7 @@ class Transport(Ship):
         stats = SHIP_STATS["Transport"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -843,10 +844,10 @@ class Transport(Ship):
 
             # Repositionner le sprite
             largeur, hauteur = ship.donner_dimensions(ship.direction)
-            ship.animator.x = colonne * TAILLE_CASE + OFFSET_X
-            ship.animator.y = ligne * TAILLE_CASE
-            ship.animator.pixel_w = largeur * TAILLE_CASE
-            ship.animator.pixel_h = hauteur * TAILLE_CASE
+            ship.animator.x = colonne * GridVar.cell_size + GridVar.offset_x
+            ship.animator.y = ligne * GridVar.cell_size
+            ship.animator.pixel_w = largeur * GridVar.cell_size
+            ship.animator.pixel_h = hauteur * GridVar.cell_size
 
             # Retirer du cargo
             self.cargaison[index] = None
@@ -871,8 +872,8 @@ class Transport(Ship):
             if ship is None:
                 continue
             mini_img = pygame.transform.scale(ship.image, (20, 20))
-            x = (self.cordonner.y * TAILLE_CASE) + OFFSET_X + (i * 22)
-            y = self.cordonner.x * TAILLE_CASE - 22
+            x = (self.cordonner.y * GridVar.cell_size) + GridVar.offset_x + (i * 22)
+            y = self.cordonner.x * GridVar.cell_size - 22
             fenetre.blit(mini_img, (x, y))
 
     def positions_debarquement(self, ship_stocke: Ship, grille: List[List[Point]]) -> List[Tuple[int, int]]:

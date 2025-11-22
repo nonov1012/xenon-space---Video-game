@@ -68,7 +68,7 @@ class Animator:
 
         # position
         self.x = coord[0] * self.tile_size
-        self.x += GridVar.offset_x // 2
+        self.x += GridVar.offset_x
         self.y = coord[1] * self.tile_size
 
         # image statique (chargée une seule fois)

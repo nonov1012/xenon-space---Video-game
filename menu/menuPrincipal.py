@@ -191,7 +191,7 @@ while en_cours:
                 ShipAnimator.clear_list()
                 PlanetAnimator.clear_list()
                 from main import start_game
-                start_game(screen, menu_play.parametres, menu_play.random_active)
+                start_game(menu_play.parametres, menu_play.random_active)
                 # Réinitialiser après le jeu
                 menu_play.lancer_partie = False
                 menu_play = MenuPlay()  # Recréer une nouvelle instance

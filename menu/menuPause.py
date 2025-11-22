@@ -115,10 +115,7 @@ class MenuPause:
         
     def _init_background(self):
         """Initialise le fond animé (étoiles uniquement)"""
-        screen_ratio = (self.largeur_ecran * 100 / 600) / 100
-        self.stars, _, _ = create_space_background(
-            num_stars=100, screen_ratio=screen_ratio
-        )
+        self.stars, _, _ = create_space_background()
         
     def _init_buttons(self):
         """Initialise les boutons"""

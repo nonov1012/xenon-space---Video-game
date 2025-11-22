@@ -137,10 +137,7 @@ class MenuFin:
     def _init_background(self):
         """Initialise le fond animé"""
         screen_ratio = (self.largeur_ecran * 100 / 600) / 100
-        self.stars, self.planet_manager, self.vaisseau_fond = create_space_background(
-            num_stars=100,
-            screen_ratio=screen_ratio
-        )
+        self.stars, self.planet_manager, self.vaisseau_fond = create_space_background()
         
     def _init_panel(self):
         """Initialise le panneau central"""
@@ -349,7 +346,8 @@ def main(ecran, player, victoire=True, sound_manager=None):
     action = menu.run()
     
     if action == "quitter":
-        pygame.quit()
-        sys.exit()
-        
-    return action
+        return 1
+    elif action == "menu_principal":
+        return 2
+    else:
+        return 0
