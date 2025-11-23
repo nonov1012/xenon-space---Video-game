@@ -721,7 +721,6 @@ def start_game(ecran, parametres, random_active):
             
                 # Si tous les vaisseaux petits ont fini leur tour => fin du tour IA
                 if ships_passed:
-                    print("FIN TOUR IA")
                     running = end_turn_logic(ecran, map_obj)
 
 

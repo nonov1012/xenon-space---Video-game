@@ -219,7 +219,7 @@ def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
 
     # ---- ACTION : Déplacement ----
     if move[0] == "move":
-        print(f"MOVE {ship.cordonner} -> {move[1]}")
+        # print(f"MOVE {ship.cordonner} -> {move[1]}")
         action_ok = ship.deplacement(move[1], map_obj.grille, tous_les_vaisseaux)
 
         # Si le déplacement a réussi, on attend la fin avant de continuer
@@ -234,13 +234,13 @@ def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
         if ship.port_attaque > 0:
             cible = get_ship(move[1], tous_les_vaisseaux)
             if cible:
-                print(f"ATTACK {cible} -> {move[1]}")
+                # print(f"ATTACK {cible} -> {move[1]}")
                 ship.attaquer(cible)
                 ship.port_attaque = max(0, ship.port_attaque - 1)
-            else:
-                print(f"{ship.id} a voulu attaquer, mais cible introuvable")
-        else:
-            print(f"{ship.id} ne peut plus attaquer")
+        #     else:
+        #         print(f"{ship.id} a voulu attaquer, mais cible introuvable")
+        # else:
+        #     print(f"{ship.id} ne peut plus attaquer")
 
     # ---- ACTION : Rester ----
     elif move[0] == "stay":
@@ -269,6 +269,6 @@ def ia_petit_play_random(ship : Ship, map_obj, tous_les_vaisseaux : List[Ship]) 
             else:
                 cible = get_ship(move[1], tous_les_vaisseaux)
                 if cible:
-                    print(f"ATTACK {cible} -> {move[1]}")
+                    # print(f"ATTACK {cible} -> {move[1]}")
                     ship.attaquer(cible)
     return False
