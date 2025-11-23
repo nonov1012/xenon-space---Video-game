@@ -106,12 +106,10 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                     running = False
                 elif end_choice == 2:
                     running = 2
-                    
-        
+                            
         elif event.type == pygame.VIDEORESIZE:
             ScreenVar.update_scale()
             GridVar.update_grid()
-
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -120,6 +118,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             joueur_actuel = Turn.players[0]
             mothership_actuel = joueur_actuel.getMotherShip()
             type_action = shop.handle_click(event.pos, mothership_actuel)
+            HUD.handle_click(event.pos)
 
             if type_action:
 
@@ -171,15 +170,18 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                         success = selection_ship.deplacement(case_souris, map_obj.grille, ships)
                         if success:
                             selection_ship, selection_cargo = None, None
+                            HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
                     # 🟥 Si on clique sur le vaisseau sélectionné → on le désélectionne
                     elif (case_souris[0] == selection_ship.cordonner.x and
                           case_souris[1] == selection_ship.cordonner.y):
                         selection_ship, selection_cargo = None, None
+                        HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
                     # ⚪ Sinon → clic en dehors de toute zone utile → désélection
                     else:
                         selection_ship, selection_cargo = None, None
+                        HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
                 else:
                     # Tentative de sélection d'un nouveau vaisseau
@@ -189,6 +191,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             ship.cordonner.y <= case_souris[1] < ship.cordonner.y + largeur):
                             if ship.joueur == Turn.players[0].id:
                                 selection_ship = ship
+                                HUD.ship_display.ship = selection_ship
                                 selection_ship.aperçu_direction = ship.direction
                                 selection_ship.aperçu_cordonner._x = ship.cordonner.x
                                 selection_ship.aperçu_cordonner._y = ship.cordonner.y
@@ -196,6 +199,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                     else:
                         # Aucun vaisseau cliqué → désélection
                         selection_ship, selection_cargo = None, None
+                        HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
         # --- Clic droit ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and selection_ship:
@@ -247,7 +251,7 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
     keys = pygame.key.get_pressed()
     afficher_zones = keys[pygame.K_LSHIFT]
 
-    map_obj.generer_grille(ecran, afficher_zones, afficher_grille, colors)
+    map_obj.generer_grille(ecran, HUD.show_colors, HUD.show_grid, colors)
 
     for (ax, ay), img in map_obj.asteroide_img_map.items():
         ecran.blit(img, (ax * GridVar.cell_size + GridVar.offset_x, ay * GridVar.cell_size))
@@ -323,7 +327,6 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
         info_text = f"{selection_ship.__class__.__name__} - PV: {selection_ship.pv_actuel}/{selection_ship.pv_max}"
         ecran.blit(font.render(info_text, True, (255, 255, 255)), (10, 40))
 
-    shop.draw()
     ecran.blit(new_cursor, position_souris)
 
     pygame.display.flip()
@@ -565,6 +568,7 @@ def start_game(parametres, random_active):
 
     # --- initialisation du HUD ---
     HUD.init()
+    HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
     # --- Variables de sélection et contrôle ---
     selection_ship = None

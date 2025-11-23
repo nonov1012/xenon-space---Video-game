@@ -17,6 +17,16 @@ class HUD:
     right_bar: BarDisplay = None
     turn_display: TurnDisplay = None
     ship_display: ShipDisplay = None
+    
+    # Boutons toggle
+    show_grid_button = None
+    show_colors_button = None
+    show_grid = False
+    show_colors = False
+    
+    # Tooltip
+    tooltip_text = None
+    tooltip_pos = None
 
     @classmethod
     def init(cls):
@@ -26,12 +36,68 @@ class HUD:
         cls.turn_display = TurnDisplay()
         cls.ship_display = ShipDisplay()
         cls.render_bottom_background = True
+        
+        # Initialiser les boutons toggle
+        cls.init_toggle_buttons()
+
+    @classmethod
+    def init_toggle_buttons(cls):
+        """Initialise les boutons de toggle pour la grille et les couleurs."""
+        screen_width = ScreenVar.screen.get_width()
+        screen_height = ScreenVar.screen.get_height()
+        scale = ScreenVar.scale
+        
+        button_size = int(45 * scale)
+        margin = int(15 * scale)
+        bottom_offset = int(15 * scale)
+        right_offset = int(15 * scale)
+        
+        # Position en bas à droite
+        x_pos_2 = screen_width - button_size - right_offset
+        x_pos_1 = x_pos_2 - button_size - margin
+        y_pos = screen_height - button_size - bottom_offset
+        
+        cls.show_grid_button = {
+            'rect': pygame.Rect(x_pos_1, y_pos, button_size, button_size),
+            'active': cls.show_grid,
+            'tooltip': 'Afficher/Masquer la grille',
+            'icon': 'grid'
+        }
+        
+        cls.show_colors_button = {
+            'rect': pygame.Rect(x_pos_2, y_pos, button_size, button_size),
+            'active': cls.show_colors,
+            'tooltip': 'Afficher/Masquer les couleurs',
+            'icon': 'colors'
+        }
 
     @classmethod
     def update(cls):
         cls.left_bar.update()
         cls.right_bar.update()
-        cls.turn_display.update()
+        
+        # Mettre à jour la position des boutons si l'écran a été redimensionné
+        if cls.show_grid_button:
+            screen_width = ScreenVar.screen.get_width()
+            screen_height = ScreenVar.screen.get_height()
+            scale = ScreenVar.scale
+            
+            button_size = int(45 * scale)
+            margin = int(15 * scale)
+            bottom_offset = int(15 * scale)
+            right_offset = int(15 * scale)
+            
+            # Position en bas à droite
+            x_pos_2 = screen_width - button_size - right_offset
+            x_pos_1 = x_pos_2 - button_size - margin
+            y_pos = screen_height - button_size - bottom_offset
+            
+            cls.show_grid_button['rect'] = pygame.Rect(x_pos_1, y_pos, button_size, button_size)
+            cls.show_colors_button['rect'] = pygame.Rect(x_pos_2, y_pos, button_size, button_size)
+            
+            # Mettre à jour l'état actif
+            cls.show_grid_button['active'] = cls.show_grid
+            cls.show_colors_button['active'] = cls.show_colors
 
     @classmethod
     def change_turn(cls):
@@ -44,13 +110,165 @@ class HUD:
         cls.left_bar.draw(ScreenVar.screen)
         cls.right_bar.draw(ScreenVar.screen)
         cls.turn_display.draw()
+        
+        # Dessiner les boutons toggle
+        cls.draw_toggle_buttons()
+        
+        # Dessiner le tooltip si présent
+        if cls.tooltip_text and cls.tooltip_pos:
+            cls.draw_tooltip()
 
         # --- Dessiner le vaisseau si défini ---
         if cls.ship_display.ship:
-            x = 0 if cls.ship_display_left else ScreenVar.screen.get_width() - cls.ship_display.width
+            x = 0 if cls.ship_display else ScreenVar.screen.get_width() - cls.ship_display.width
             y = ScreenVar.screen.get_height() - cls.ship_display.height
             cls.ship_display.shop = Turn.get_shop_with_id(cls.ship_display.ship.joueur)
             cls.ship_display.draw(ScreenVar.screen, x, y)
+
+    @classmethod
+    def draw_toggle_buttons(cls):
+        """Dessine les boutons toggle avec un style futuriste."""
+        screen = ScreenVar.screen
+        scale = ScreenVar.scale
+        mouse_pos = pygame.mouse.get_pos()
+        
+        for button in [cls.show_grid_button, cls.show_colors_button]:
+            if not button:
+                continue
+                
+            rect = button['rect']
+            active = button['active']
+            is_hover = rect.collidepoint(mouse_pos)
+            
+            # Couleurs selon l'état
+            if active:
+                bg_color = (50, 150, 255, 200)
+                border_color = (100, 200, 255)
+                glow_color = (100, 200, 255, 100)
+            else:
+                bg_color = (30, 35, 45, 180)
+                border_color = (80, 100, 130)
+                glow_color = (80, 100, 130, 50)
+            
+            # Effet hover
+            if is_hover:
+                border_color = tuple(min(c + 50, 255) for c in border_color[:3])
+                cls.tooltip_text = button['tooltip']
+                cls.tooltip_pos = mouse_pos
+            
+            # Fond avec effet de glow si actif
+            if active:
+                glow_rect = rect.inflate(int(8 * scale), int(8 * scale))
+                glow_surf = pygame.Surface((glow_rect.width, glow_rect.height), pygame.SRCALPHA)
+                pygame.draw.rect(glow_surf, glow_color, glow_surf.get_rect(), border_radius=int(8 * scale))
+                screen.blit(glow_surf, glow_rect.topleft)
+            
+            # Fond du bouton
+            button_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(button_surf, bg_color, button_surf.get_rect(), border_radius=int(6 * scale))
+            screen.blit(button_surf, rect.topleft)
+            
+            # Bordure
+            pygame.draw.rect(screen, border_color, rect, int(2 * scale), border_radius=int(6 * scale))
+            
+            # Dessiner l'icône
+            cls.draw_button_icon(screen, rect, button['icon'], active, scale)
+
+    @classmethod
+    def draw_button_icon(cls, screen, rect, icon_type, active, scale):
+        """Dessine l'icône du bouton."""
+        center_x, center_y = rect.center
+        icon_color = (255, 255, 255) if active else (150, 160, 180)
+        line_width = int(2 * scale)
+        
+        if icon_type == 'grid':
+            # Icône grille 3x3
+            size = int(20 * scale)
+            offset = size // 3
+            start_x = center_x - size // 2
+            start_y = center_y - size // 2
+            
+            # Lignes verticales
+            for i in range(4):
+                x = start_x + i * offset
+                pygame.draw.line(screen, icon_color, (x, start_y), (x, start_y + size), line_width)
+            
+            # Lignes horizontales
+            for i in range(4):
+                y = start_y + i * offset
+                pygame.draw.line(screen, icon_color, (start_x, y), (start_x + size, y), line_width)
+        
+        elif icon_type == 'colors':
+            # Icône palette de couleurs
+            size = int(18 * scale)
+            colors = [(255, 80, 80), (80, 255, 80), (80, 80, 255), (255, 255, 80)]
+            
+            for i, color in enumerate(colors):
+                angle = i * 90
+                rad = 3.14159 * angle / 180
+                offset_x = int(size * 0.35 * (1 if i % 2 == 0 else -1) * (1 if i < 2 else -1))
+                offset_y = int(size * 0.35 * (1 if i < 2 else -1) * (1 if i % 2 == 0 else -1))
+                
+                circle_color = color if active else tuple(c // 2 for c in color)
+                pygame.draw.circle(screen, circle_color, 
+                                 (center_x + offset_x // 2, center_y + offset_y // 2), 
+                                 int(5 * scale))
+
+    @classmethod
+    def draw_tooltip(cls):
+        """Dessine l'infobulle au survol."""
+        if not cls.tooltip_text:
+            return
+            
+        screen = ScreenVar.screen
+        scale = ScreenVar.scale
+        font = pygame.font.Font(None, int(20 * scale))
+        
+        # Créer le texte
+        text_surf = font.render(cls.tooltip_text, True, (255, 255, 255))
+        padding = int(8 * scale)
+        
+        # Position du tooltip (au-dessus du curseur)
+        tooltip_width = text_surf.get_width() + padding * 2
+        tooltip_height = text_surf.get_height() + padding * 2
+        tooltip_x = cls.tooltip_pos[0] - tooltip_width // 2
+        tooltip_y = cls.tooltip_pos[1] - tooltip_height - int(10 * scale)
+        
+        # S'assurer que le tooltip reste dans l'écran
+        tooltip_x = max(5, min(tooltip_x, screen.get_width() - tooltip_width - 5))
+        tooltip_y = max(5, tooltip_y)
+        
+        # Fond du tooltip
+        tooltip_rect = pygame.Rect(tooltip_x, tooltip_y, tooltip_width, tooltip_height)
+        tooltip_surf = pygame.Surface((tooltip_width, tooltip_height), pygame.SRCALPHA)
+        pygame.draw.rect(tooltip_surf, (20, 25, 35, 230), tooltip_surf.get_rect(), border_radius=int(4 * scale))
+        screen.blit(tooltip_surf, (tooltip_x, tooltip_y))
+        
+        # Bordure
+        pygame.draw.rect(screen, (100, 150, 200), tooltip_rect, int(2 * scale), border_radius=int(4 * scale))
+        
+        # Texte
+        screen.blit(text_surf, (tooltip_x + padding, tooltip_y + padding))
+        
+        # Réinitialiser le tooltip pour le prochain frame
+        cls.tooltip_text = None
+        cls.tooltip_pos = None
+
+    @classmethod
+    def handle_click(cls, pos):
+        """Gère les clics sur les boutons toggle."""
+        if cls.show_grid_button and cls.show_grid_button['rect'].collidepoint(pos):
+            cls.show_grid = not cls.show_grid
+            cls.show_grid_button['active'] = cls.show_grid
+            return True
+            
+        if cls.show_colors_button and cls.show_colors_button['rect'].collidepoint(pos):
+            cls.show_colors = not cls.show_colors
+            cls.show_colors_button['active'] = cls.show_colors
+            return True
+            
+        # Passer le clic au turn_display
+        return cls.turn_display.handle_click(pos)
 
     @classmethod
     def update_and_draw(cls):
@@ -180,12 +398,21 @@ if __name__ == "__main__":
                     left_side = not left_side
                     if show_ship:
                         HUD.show_ship(Turn.players[0].ships[0], left_side=left_side)
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                HUD.handle_click(event.pos)
             elif event.type == pygame.VIDEORESIZE:
                 ScreenVar.update_scale()
                 GridVar.update_grid()
 
         ScreenVar.screen.fill((10, 10, 20))
         HUD.update_and_draw()
+        
+        # Afficher l'état des toggles pour le debug
+        font = pygame.font.Font(None, 24)
+        debug_text = f"Grille: {HUD.show_grid} | Couleurs: {HUD.show_colors}"
+        text_surf = font.render(debug_text, True, (255, 255, 255))
+        ScreenVar.screen.blit(text_surf, (10, ScreenVar.screen.get_height() - 30))
+        
         pygame.display.flip()
 
     pygame.quit()

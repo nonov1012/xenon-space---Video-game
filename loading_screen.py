@@ -3,6 +3,7 @@ import threading
 import time
 from blazyck import *
 from classes.Animator import Animator
+from classes.GlobalVar.GridVar import GridVar
 from classes.ResourceManager import ResourceManager
 import os
 
@@ -37,8 +38,8 @@ class LoadingScreen:
         # L'animation sera centrée, disons 200x200 pixels
         self.loading_animator = Animator(
             IMG_PATH,
-            (200 // TAILLE_CASE, 200 // TAILLE_CASE),  # dimensions en cases
-            ((center_x - 100) // TAILLE_CASE, (center_y - 150) // TAILLE_CASE),  # position
+            (200 // GridVar.cell_size, 200 // GridVar.cell_size),  # dimensions en cases
+            ((center_x - 100) // GridVar.cell_size, (center_y - 150) // GridVar.cell_size),  # position
             default_fps=30
         )
         
