@@ -87,7 +87,6 @@ class MenuPause:
         # Initialisation
         self._init_colors()
         self._init_fonts()
-        self._init_cursor()
         self._init_background()
         self._init_buttons()
         
@@ -107,15 +106,10 @@ class MenuPause:
         self.police_bouton = pygame.font.Font("assets/fonts/SpaceNova.otf", 42)
         self.police_titre = pygame.font.Font("assets/fonts/SpaceNova.otf", 72)
         
-    def _init_cursor(self):
-        """Initialise le curseur personnalisé"""
-        self.cursor = pygame.image.load('assets/img/menu/cursor.png')
-        self.cursor = pygame.transform.scale(self.cursor, (40, 40))
-        pygame.mouse.set_visible(False)
-        
     def _init_background(self):
         """Initialise le fond animé (étoiles uniquement)"""
-        self.stars, _, _ = create_space_background()
+        self.stars, _, ship = create_space_background()
+        ship.animator.remove_from_list()
         
     def _init_buttons(self):
         """Initialise les boutons"""
@@ -234,17 +228,11 @@ class MenuPause:
         """Dessine les boutons"""
         for button in self.buttons:
             button.draw(self.ecran)
-            
-    def _draw_cursor(self):
-        """Dessine le curseur"""
-        mouse_pos = pygame.mouse.get_pos()
-        self.ecran.blit(self.cursor, mouse_pos)
         
     def _render(self):
         """Effectue le rendu complet"""
         self._draw_background()
         self._draw_buttons()
-        self._draw_cursor()
         
         pygame.display.update()
         

@@ -174,11 +174,6 @@ class MenuParametres:
         self.screen = ScreenVar.screen
         self.screen_width, self.screen_height = self.screen.get_size()
         
-        # Curseur personnalisé
-        self.curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-        self.curseur_img = pygame.transform.scale(self.curseur_img, (40, 40))
-        pygame.mouse.set_visible(False)
-        
         # Panneau principal
         self.panneau_largeur = 800
         self.panneau_hauteur = 500
@@ -212,6 +207,25 @@ class MenuParametres:
                 slider_x, y, slider_largeur, slider_hauteur,
                 0, 100, self.settings["audio"][param_id]
             )
+
+    def update_slider(self):
+        """Met à jour le slider actif ET applique le volume"""
+        if self.slider_actif and pygame.mouse.get_pressed()[0]:
+            mouse_pos = pygame.mouse.get_pos()
+            slider = self.sliders[self.slider_actif]
+            slider.update_valeur(mouse_pos[0])
+            self.settings["audio"][self.slider_actif] = slider.valeur
+            
+            # NOUVEAU : Appliquer le volume en temps réel
+            from classes.Sounds import SoundManager
+            # Récupérer l'instance globale (tu dois la passer)
+            if hasattr(self, 'sound_manager'):
+                if self.slider_actif == "volume_general":
+                    self.sound_manager.set_master_volume(slider.valeur)
+                elif self.slider_actif == "volume_musique":
+                    self.sound_manager.set_music_volume(slider.valeur)
+                elif self.slider_actif == "volume_sons":
+                    self.sound_manager.set_sfx_volume(slider.valeur)
             
     def _init_buttons(self):
         """Initialise les boutons"""
@@ -248,8 +262,15 @@ class MenuParametres:
     # =====================================
     
     def _action_sauvegarder(self):
-        """Sauvegarde les paramètres"""
+        """Sauvegarde les paramètres et applique les volumes"""
         sauvegarder_parametres(self.settings)
+        
+        # Appliquer les volumes
+        if hasattr(self, 'sound_manager') and self.sound_manager:
+            self.sound_manager.set_master_volume(self.settings["audio"]["volume_general"])
+            self.sound_manager.set_music_volume(self.settings["audio"]["volume_musique"])
+            self.sound_manager.set_sfx_volume(self.settings["audio"]["volume_sons"])
+        
         print("Parametres sauvegardes dans", SAVE_FILE)
         
     def _action_reset(self):
@@ -331,18 +352,6 @@ class MenuParametres:
         for param_id, slider in self.sliders.items():
             if slider.rect.collidepoint(mouse_pos):
                 self.slider_actif = param_id
-                
-    # =====================================
-    # MISE À JOUR
-    # =====================================
-    
-    def update_slider(self):
-        """Met à jour le slider actif"""
-        if self.slider_actif and pygame.mouse.get_pressed()[0]:
-            mouse_pos = pygame.mouse.get_pos()
-            slider = self.sliders[self.slider_actif]
-            slider.update_valeur(mouse_pos[0])
-            self.settings["audio"][self.slider_actif] = slider.valeur
             
     # =====================================
     # RENDU
@@ -462,29 +471,34 @@ class MenuParametres:
             self.draw_onglet_audio()
             
         self.draw_boutons()
-        
-        # Curseur
-        self.screen.blit(self.curseur_img, self.souris)
 
 
 # =====================================
 # FONCTION PRINCIPALE
 # =====================================
 
-def main(ecran):
+def main(ecran, sound_manager=None):
     """
     Lance le menu des paramètres
     
     Args:
         ecran: Surface Pygame
+        sound_manager: Instance du SoundManager
     """
     # Création du fond spatial animé
     stars, planet_manager, vaisseau_fond = create_space_background()
     
     # Création de l'instance du menu
     menu = MenuParametres()
+    menu.sound_manager = sound_manager  # NOUVEAU : Passer le sound manager
     menu.update()
     menu.en_cours = True
+    
+    # NOUVEAU : Charger et appliquer les volumes sauvegardés
+    if sound_manager:
+        sound_manager.set_master_volume(menu.settings["audio"]["volume_general"])
+        sound_manager.set_music_volume(menu.settings["audio"]["volume_musique"])
+        sound_manager.set_sfx_volume(menu.settings["audio"]["volume_sons"])
     
     horloge = pygame.time.Clock()
 

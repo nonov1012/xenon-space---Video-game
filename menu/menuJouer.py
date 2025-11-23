@@ -70,11 +70,6 @@ class MenuPlay:
         self.screen_width, self.screen_height = self.screen.get_size()
         self.scale = ScreenVar.scale
         
-        # Curseur personnalise
-        self.curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-        self.curseur_img = pygame.transform.scale(self.curseur_img, (40, 40))
-        pygame.mouse.set_visible(False)
-        
         self.update_base_game_param()
         self.update_ship_param()
 
@@ -411,9 +406,6 @@ class MenuPlay:
             texte_surf = Police.bouton.render(label, True, Couleur.BLANC)
             rect_texte = texte_surf.get_rect(center=rect_zoom.center)
             self.screen.blit(texte_surf, rect_texte)
-
-        # Curseur
-        self.screen.blit(self.curseur_img, self.souris)
 
     def handle_events(self, event):
         """Gère les événements de manière centralisée"""

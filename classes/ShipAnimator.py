@@ -126,7 +126,7 @@ class ShipAnimator(Animator):
                 """
                 self.frame_index = 0
                 if self.current_anim == "weapons":
-                    self.finished = True  # seule ici
+                    self.finished = True
                 self.current_anim = None
             else:
                 """
@@ -317,8 +317,8 @@ class ShipAnimator(Animator):
                     (frame_w / GridVar.cell_size, frame_h / GridVar.cell_size),
                     (proj_x, proj_y),
                     projectile_type=self.projectile_type,
-                    speed=self.projectile_speed,
-                    duration_ms=int((self.distance(self.target) / self.projectile_speed) * (1000 / 10)),
+                    speed=self.projectile_speed*1.7,
+                    duration_ms=int((self.distance(self.target) / self.projectile_speed) * (1000 / 50)),
                 )
                 bullet.play(self.projectile_type, True, frame_size=(frame_w, frame_h))
             else:

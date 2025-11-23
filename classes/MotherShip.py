@@ -54,7 +54,6 @@ class MotherShip(Ship):
         self.animator.show_health = show_health
         self.gain = stats.get("gain", 300)
 
-
     # ---------------- Déplacement et rotation désactivés ----------------
     def deplacement(self, *args, **kwargs):
         return False
@@ -71,10 +70,13 @@ class MotherShip(Ship):
         return max(LEVELS.keys())
 
     def can_upgrade(self) -> bool:
-        return (self.tier + 1 in LEVELS) and LEVELS[self.tier].get("cout_upgrade") is not None
+        return (self.tier + 1 < 5) and LEVELS[self.tier+1].get("cout") is not None
 
     def get_next_tier_cost(self) -> Optional[int]:
-        return LEVELS[self.tier].get("cout_upgrade")
+        if self.tier < 4:
+            return LEVELS[self.tier+1].get("cout")
+        else :
+            return 100000000000000000000000
 
     def apply_level(self, tier: int) -> None:
         if tier not in LEVELS: raise ValueError(f"Tier inconnu {tier}")

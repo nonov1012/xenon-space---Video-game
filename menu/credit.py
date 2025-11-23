@@ -130,11 +130,6 @@ class MenuCredits:
         # Position initiale des crédits
         self.credit_y = self.screen_height
         
-        # Curseur personnalisé
-        self.curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-        self.curseur_img = pygame.transform.scale(self.curseur_img, (40, 40))
-        pygame.mouse.set_visible(False)
-        
         # Bouton retour (optionnel, en bas à gauche)
         self.rect_retour = pygame.Rect(20, self.screen_height - 80, 180, 60)
         
@@ -286,9 +281,6 @@ class MenuCredits:
         
         # Informations
         self.draw_info()
-        
-        # Curseur
-        self.screen.blit(self.curseur_img, self.souris)
     
     def handle_events(self, event):
         """Gère les événements"""

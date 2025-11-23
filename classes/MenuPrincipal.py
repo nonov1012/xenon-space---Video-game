@@ -6,6 +6,8 @@ import pygame
 import sys
 import os
 
+from classes.Sounds import SoundManager
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from classes.PlanetAnimator import PlanetAnimator
@@ -88,17 +90,25 @@ class MenuPrincipal:
         
         # Horloge
         self.clock = pygame.time.Clock()
-        
-        # État
-        self.running = True
-        
-        # Initialisation des composants
-        self._setup_background()
-        self._setup_title()
-        self._setup_buttons()
-        
-    def _setup_background(self):
-        """Configure le fond spatial animé"""
+
+        Animator.set_screen(self.ecran)  # initialisation de la classe Animator
+
+        # Sons
+        self.sm = SoundManager()
+        self.sm.play_music("../assets/sounds/musics/music_ingame.mp3")
+        self.sm.load_sfx("son_hover", "../assets/sounds/menu/buttons/button_hover.mp3")
+        self.sm.load_sfx("son_click", "../assets/sounds/menu/buttons/button_pressed.mp3")
+
+        # Icone
+        icone = pygame.image.load("../assets/img/menu/logo.png")
+        pygame.display.set_icon(icone)
+
+        # -------------------------------
+        # Fond anime avec planetes et vaisseau
+        # -------------------------------
+        self.screen_ratio = (self.screen_width * 100 / 600) / 100
+
+        # Création du fond spatial et du vaisseau
         self.stars, self.planet_manager, self.B1 = create_space_background(
             num_stars=100,
             screen_ratio=self.screen_ratio

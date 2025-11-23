@@ -320,11 +320,11 @@ class Shop:
     
 if __name__ == "__main__":
     pygame.init()
+    
+    ScreenVar(pygame.display.set_mode((1920, 1080)))
+    screen = ScreenVar.screen
 
-    # Créer la fenêtre à la taille de l'écran
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
-
-    font = pygame.font.SysFont("Arial", int(20 * scale))   # police scalable
+    font = pygame.font.SysFont("Arial", int(20 * ScreenVar.scale))   # police scalable
     shop = Shop(None, font, screen)
     clock = pygame.time.Clock()
 

@@ -19,11 +19,11 @@ class ProjectileAnimator(Animator):
         dimensions: Tuple[int, int],
         coord: Tuple[int, int],
         default_fps: int = 10,
-        speed: int = 1,
+        speed: int = 3,
         movable: bool = True,
         projectile_type: str = "projectile",
         dissipate_speed: Optional[float] = None,
-        duration_ms: Optional[int] = 5000
+        duration_ms: Optional[int] = 30
     ):
         """
         Initialisation de l'Animator de projetile.

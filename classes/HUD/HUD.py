@@ -260,12 +260,12 @@ class HUD:
         if cls.show_grid_button and cls.show_grid_button['rect'].collidepoint(pos):
             cls.show_grid = not cls.show_grid
             cls.show_grid_button['active'] = cls.show_grid
-            return True
+            return False
             
         if cls.show_colors_button and cls.show_colors_button['rect'].collidepoint(pos):
             cls.show_colors = not cls.show_colors
             cls.show_colors_button['active'] = cls.show_colors
-            return True
+            return False
             
         # Passer le clic au turn_display
         return cls.turn_display.handle_click(pos)

@@ -55,11 +55,6 @@ class MenuSucces:
         self.screen = ScreenVar.screen
         self.screen_width, self.screen_height = self.screen.get_size()
         
-        # Curseur personnalisé
-        self.curseur_img = pygame.image.load('assets/img/menu/cursor.png')
-        self.curseur_img = pygame.transform.scale(self.curseur_img, (40, 40))
-        pygame.mouse.set_visible(False)
-        
         # Bouton Retour
         self.texte_retour = Police.bouton.render("RETOUR", True, Couleur.BLANC)
         self.image_retour = self.creer_image_bouton(self.texte_retour.get_width() + 150, 
@@ -282,9 +277,6 @@ class MenuSucces:
         self.draw_grille_succes()
         self.draw_tooltip()
         self.draw_bouton_retour()
-        
-        # Curseur
-        self.screen.blit(self.curseur_img, self.souris)
 
     def handle_events(self, event):
         """Gère les événements"""

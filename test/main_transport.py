@@ -25,19 +25,18 @@
 # Import lib
 from pickle import NONE
 import pygame
-import time
 
 # Import classes
 from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
-
 import menu.menuPause
+import menu.menuPrincipal
 import menu.menuFin
-from menu.modifShips import SHIP_STATS
 from classes.Turn import Turn
 from classes.Map import Map
 from classes.Start_Animation.StarField import StarField
 from classes.Point import Type, Point
+from blazyck import *
 from classes.Discord import DiscordRP
 from classes.Animator import Animator
 from classes.PlanetAnimator import PlanetAnimator
@@ -48,23 +47,15 @@ from classes.MotherShip import MotherShip
 from classes.ProjectileAnimator import ProjectileAnimator
 from classes.Economie import Economie
 from classes.Ship import Transport, Foreuse, Petit, Moyen, Lourd
-from classes.GlobalVar.ScreenVar import ScreenVar
-from classes.GlobalVar.GridVar import GridVar
+from ia.IATransport import IATransport
 
-from blazyck import *
-
-from IA.petit.ia_utils import *
-from IA.IA_Lourd import IA_Lourd
-from IA.MotherShipAI import MotherShipIA
-from IA.foreuse import jouer_tour_foreuse
-from IA.IATransport import IATransport
 
 def set_prevision_for_ship(ship, case, direction):
     largeur, hauteur = ship.donner_dimensions(direction)
-    ship.prevision.pixel_w = largeur * GridVar.cell_size
-    ship.prevision.pixel_h = hauteur * GridVar.cell_size
-    ship.prevision.x = case[1] * GridVar.cell_size + GridVar.offset_x
-    ship.prevision.y = case[0] * GridVar.cell_size
+    ship.prevision.pixel_w = largeur * TAILLE_CASE
+    ship.prevision.pixel_h = hauteur * TAILLE_CASE
+    ship.prevision.x = case[1] * TAILLE_CASE + OFFSET_X
+    ship.prevision.y = case[0] * TAILLE_CASE
 
     if direction == "haut":
         ship.prevision.target_angle = 0
@@ -75,10 +66,9 @@ def set_prevision_for_ship(ship, case, direction):
     elif direction == "bas":
         ship.prevision.target_angle = 180
 
-def draw_glowing_rect(ecran, x, y, color, thickness=2):
+def draw_glowing_rect(ecran, x, y, color, size=TAILLE_CASE, thickness=2):
     """Dessine un carré façon 'hologramme' avec glow futuriste, sans croix."""
     r, g, b = color
-    size = GridVar.cell_size
     rect = pygame.Rect(x, y, size, size)
 
     # contours superposés pour un effet lumineux
@@ -107,17 +97,8 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             elif event.key == pygame.K_r and selection_ship:
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
             elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                end_choice = end_turn_logic(ecran, map_obj)
-                if end_choice == 0:
-                    continue
-                elif end_choice == 1:
-                    running = False
-                elif end_choice == 2:
-                    running = 2
-                            
-        elif event.type == pygame.VIDEORESIZE:
-            ScreenVar.update_scale()
-            GridVar.update_grid()
+                running = end_turn_logic(ecran, map_obj)
+
 
         # --- Clic gauche ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -125,17 +106,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             # Gérer les clics via la fonction du shop
             joueur_actuel = Turn.players[0]
             mothership_actuel = joueur_actuel.getMotherShip()
-            type_action = shop.handle_click(event.pos, mothership_actuel)
-
-            is_skipping =HUD.handle_click(event.pos)
-            if is_skipping:
-                end_choice = end_turn_logic(ecran, map_obj)
-                if end_choice == 0:
-                    continue
-                elif end_choice == 1:
-                    running = False
-                elif end_choice == 2:
-                    running = 2
+            type_action = shop.handle_click(event.pos)
 
             if type_action:
 
@@ -187,18 +158,15 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                         success = selection_ship.deplacement(case_souris, map_obj.grille, ships)
                         if success:
                             selection_ship, selection_cargo = None, None
-                            HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
                     # 🟥 Si on clique sur le vaisseau sélectionné → on le désélectionne
                     elif (case_souris[0] == selection_ship.cordonner.x and
                           case_souris[1] == selection_ship.cordonner.y):
                         selection_ship, selection_cargo = None, None
-                        HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
                     # ⚪ Sinon → clic en dehors de toute zone utile → désélection
                     else:
                         selection_ship, selection_cargo = None, None
-                        HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
                 else:
                     # Tentative de sélection d'un nouveau vaisseau
@@ -208,7 +176,6 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             ship.cordonner.y <= case_souris[1] < ship.cordonner.y + largeur):
                             if ship.joueur == Turn.players[0].id:
                                 selection_ship = ship
-                                HUD.ship_display.ship = selection_ship
                                 selection_ship.aperçu_direction = ship.direction
                                 selection_ship.aperçu_cordonner._x = ship.cordonner.x
                                 selection_ship.aperçu_cordonner._y = ship.cordonner.y
@@ -216,7 +183,6 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                     else:
                         # Aucun vaisseau cliqué → désélection
                         selection_ship, selection_cargo = None, None
-                        HUD.ship_display.ship = Turn.players[0].getMotherShip()
 
         # --- Clic droit ---
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and selection_ship:
@@ -225,8 +191,8 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                 for i, ship in enumerate(selection_ship.cargaison):
                     if ship is None:
                         continue
-                    rect = pygame.Rect(selection_ship.cordonner.y * GridVar.cell_size + GridVar.offset_x + i*22,
-                                       selection_ship.cordonner.x * GridVar.cell_size - 22, 20, 20)
+                    rect = pygame.Rect(selection_ship.cordonner.y * TAILLE_CASE + OFFSET_X + i*22,
+                                       selection_ship.cordonner.x * TAILLE_CASE - 22, 20, 20)
                     if rect.collidepoint(position_souris):
                         selection_cargo = ship
                         interface_transport_active = True
@@ -259,7 +225,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
     return running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid
 
 def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_cargo,
-              interface_transport_active, case_souris, font, player, shop, position_souris,
+              interface_transport_active, case_souris, font, player, shop, new_cursor, position_souris,
               afficher_grille, dt):
     ecran.fill((0, 0, 0, 0))
     stars.update()
@@ -268,10 +234,10 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
     keys = pygame.key.get_pressed()
     afficher_zones = keys[pygame.K_LSHIFT]
 
-    map_obj.generer_grille(ecran, HUD.show_colors, HUD.show_grid, colors)
+    map_obj.generer_grille(ecran, afficher_zones, afficher_grille, colors)
 
     for (ax, ay), img in map_obj.asteroide_img_map.items():
-        ecran.blit(img, (ax * GridVar.cell_size + GridVar.offset_x, ay * GridVar.cell_size))
+        ecran.blit(img, (ax * TAILLE_CASE + OFFSET_X, ay * TAILLE_CASE))
 
     if selection_ship and isinstance(selection_ship, Transport):
         selection_ship.afficher_cargaison(ecran)
@@ -283,8 +249,8 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
             positions_possibles = selection_ship.positions_debarquement(selection_cargo, map_obj.grille)
             for ligne, colonne in positions_possibles:
                 draw_glowing_rect(ecran,
-                                colonne * GridVar.cell_size + GridVar.offset_x,
-                                ligne * GridVar.cell_size,
+                                colonne * TAILLE_CASE + OFFSET_X,
+                                ligne * TAILLE_CASE,
                                 (255, 255, 120))
 
             if case_souris in positions_possibles:
@@ -300,8 +266,8 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
             )
             for ligne, colonne in positions_possibles:
                 draw_glowing_rect(ecran,
-                                colonne * GridVar.cell_size + GridVar.offset_x,
-                                ligne * GridVar.cell_size,
+                                colonne * TAILLE_CASE + OFFSET_X,
+                                ligne * TAILLE_CASE,
                                 (80, 200, 255))
 
             if case_souris in positions_possibles:
@@ -318,16 +284,16 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
         )
         for ligne, colonne in positions_attaque:
             draw_glowing_rect(ecran,
-                            colonne * GridVar.cell_size + GridVar.offset_x,
-                            ligne * GridVar.cell_size,
+                            colonne * TAILLE_CASE + OFFSET_X,
+                            ligne * TAILLE_CASE,
                             (255, 80, 80))
 
             # Si astéroïde minable → orange
             if (0 <= ligne < len(map_obj.grille) and 0 <= colonne < len(map_obj.grille[0]) and
                 map_obj.grille[ligne][colonne].type == Type.ASTEROIDE and selection_ship.peut_miner):
                 draw_glowing_rect(ecran,
-                                colonne * GridVar.cell_size + GridVar.offset_x,
-                                ligne * GridVar.cell_size,
+                                colonne * TAILLE_CASE + OFFSET_X,
+                                ligne * TAILLE_CASE,
                                 (255, 180, 80))
 
 
@@ -343,6 +309,9 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
     if selection_ship:
         info_text = f"{selection_ship.__class__.__name__} - PV: {selection_ship.pv_actuel}/{selection_ship.pv_max}"
         ecran.blit(font.render(info_text, True, (255, 255, 255)), (10, 40))
+
+    shop.draw()
+    ecran.blit(new_cursor, position_souris)
 
     pygame.display.flip()
     
@@ -360,21 +329,21 @@ def trouver_position_libre_base(map_obj, joueur_id, taille_vaisseau):
         start_x, end_x = 0, 7
     else:  # joueur_id == 2
         # Base en bas à droite
-        start_y = max(0, GridVar.nb_cells_y - 7)
-        end_y = GridVar.nb_cells_y
-        start_x = max(0, GridVar.nb_cells_x - 7)
-        end_x = GridVar.nb_cells_x
+        start_y = max(0, NB_CASE_Y - 7)
+        end_y = NB_CASE_Y
+        start_x = max(0, NB_CASE_X - 7)
+        end_x = NB_CASE_X
     
     largeur, hauteur = taille_vaisseau
     
     # Chercher une position libre dans la zone
-    for y in range(start_y, min(end_y, GridVar.nb_cells_y - hauteur + 1)):
-        for x in range(start_x, min(end_x, GridVar.nb_cells_x - largeur + 1)):
+    for y in range(start_y, min(end_y, NB_CASE_Y - hauteur + 1)):
+        for x in range(start_x, min(end_x, NB_CASE_X - largeur + 1)):
             # Vérifier si toutes les cases sont libres
             position_valide = True
             for dy in range(hauteur):
                 for dx in range(largeur):
-                    if y + dy >= GridVar.nb_cells_y or x + dx >= GridVar.nb_cells_x:
+                    if y + dy >= NB_CASE_Y or x + dx >= NB_CASE_X:
                         position_valide = False
                         break
                     case = grille[y + dy][x + dx]
@@ -388,8 +357,8 @@ def trouver_position_libre_base(map_obj, joueur_id, taille_vaisseau):
                 return Point(y, x)
     
     # Si aucune position trouvée dans la zone préférée, chercher ailleurs
-    for y in range(GridVar.nb_cells_y - hauteur + 1):
-        for x in range(GridVar.nb_cells_x - largeur + 1):
+    for y in range(NB_CASE_Y - hauteur + 1):
+        for x in range(NB_CASE_X - largeur + 1):
             position_valide = True
             for dy in range(hauteur):
                 for dx in range(largeur):
@@ -413,7 +382,7 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     classes_vaisseaux = {
         "Petit": Petit,
         "Moyen": Moyen,
-        "Grand": Lourd,
+        "Grand": Lourd,  # Grand dans le shop correspond à Lourd | TODO : modifier celui du shop
         "Foreuse": Foreuse,
         "Transporteur": Transport
     }
@@ -426,13 +395,6 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     type_key = "lourd" if type_vaisseau == "Grand" else type_vaisseau.lower()
     if type_vaisseau == "Transporteur":
         type_key = "transport"
-
-    if type_vaisseau == "Petit":
-        return Petit(
-            cordonner=position,
-            id=next_uid,
-            joueur=joueur_id
-        )
     
     return classe(
         cordonner=position,
@@ -468,22 +430,27 @@ def end_turn_logic(ecran, map_obj):
         mother_ships = [s for s in player.ships if isinstance(s, MotherShip) and not s.est_mort()]
         if not mother_ships:
             gagnant = [p for p in Turn.players if p != player][0]
-            return menu.menuFin.main(ecran, gagnant, victoire=True)
+            menu.menuFin.main(ecran, gagnant, victoire=True)
+            return False # Retourne False pour arrêter la boucle de jeu
     
-    return 0 # Le jeu continue
+    return True # Le jeu continue
 
-def start_game(parametres, random_active):
+def start_game(ecran, parametres, random_active):
 
     # Initialisations rapides
     clock = pygame.time.Clock()
-    screen = ScreenVar.screen
-    ScreenVar.update_scale()
-    GridVar.update_grid()
     font = pygame.font.Font(None, 30)
     
+    # --- AFFICHER ÉCRAN DE CHARGEMENT ---
+    # Afficher le tout début du chargement
+
+    new_cursor = pygame.image.load('assets/img/menu/cursor.png')
+    new_cursor = pygame.transform.scale(new_cursor, (40, 40))
+    pygame.mouse.set_visible(False)
+
 
     # Générer la map
-    screen_width, screen_height = screen.get_size()
+    screen_width, screen_height = ecran.get_size()
     num_stars=100
     screen_ratio=1.0
     stars = StarField(
@@ -497,8 +464,8 @@ def start_game(parametres, random_active):
 
 
     map_obj = Map()
-    map_obj.generer_planet(parametres["Nombre de planètes"]["valeur"])
-    map_obj.generer_asteroides(parametres["Nombre d'astéroïdes"]["valeur"])
+    map_obj.generer_planet(parametres["Nombre de planetes"]["valeur"])
+    map_obj.generer_asteroides(parametres["Nombre d'asteroides"]["valeur"])
     
     # couleurs pour l'affichage des zones
     colors = {
@@ -513,10 +480,13 @@ def start_game(parametres, random_active):
     # Status discord
     discord = DiscordRP(RPC_ID)
     discord.connect()
+    
+    # TODO : refaire le shop pour que ça soit dans les players
+
 
     # ===== Player =====
-    Turn.players = [Player("P1", id=0, is_ia = False), Player("P2", id=1, is_ia = False)]
-    Turn.shops=[Shop(Turn.players[0]), Shop(Turn.players[1])]
+    Turn.players = [Player("P1", id=0, is_ia = False), Player("P2", id=1, is_ia = True)]
+    shops=[Shop(Turn.players[0], font, ecran), Shop(Turn.players[1], font, ecran)]
 
     # ===== Images et chemins pour les vaisseaux =====
     # Dictionnaires pour stocker les images et chemins
@@ -566,6 +536,30 @@ def start_game(parametres, random_active):
     next_uid[0] += 1
     Turn.players[0].ships.append(smm1)
 
+    # Petit vaisseau joueur 1
+    sp1 = Petit(
+        cordonner=Point(5, 1),
+        id=next_uid[0],
+        path=img_petit_dir,
+        image=img_petit,
+        joueur=Turn.players[0].id
+    )
+    sp1.pv_actuel = 10
+    next_uid[0] += 1
+    Turn.players[0].ships.append(sp1)
+
+    # Foreuse joueur 1
+    sf1 = Foreuse(
+        cordonner=Point(1, 5),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[0].id
+    )
+    sp1.pv_actuel = 10
+    next_uid[0] += 1
+    Turn.players[0].ships.append(sf1)
+
     # MotherShip du joueur 2
     smm2 = MotherShip(
         tier=1,
@@ -577,13 +571,58 @@ def start_game(parametres, random_active):
     next_uid[0] += 1
     Turn.players[1].ships.append(smm2)
 
+        # Petit vaisseau joueur 2
+    sp2 = Petit(
+        cordonner=Point(24, 45),
+        id=next_uid[0],
+        path=img_petit_dir,
+        image=img_petit,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sp2)
+
+    # Foreuse joueur 2
+    sf2 = Foreuse(
+        cordonner=Point(23, 44),
+        id=next_uid[0],
+        path=img_foreuse_dir,
+        image=img_foreuse,
+        joueur=Turn.players[1].id
+    )
+
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sf2)
+
+    # Foreuse joueur 2
+    sl2 = Lourd(
+        cordonner=Point(14, 44),
+        id=next_uid[0],
+        path=img_lourd_dir,
+        image=img_Lourd,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(sl2)
+
+        # Foreuse joueur 2
+    str = Transport(
+        cordonner=Point(5, 44),
+        id=next_uid[0],
+        path=img_transport_dir,
+        image=img_transport,
+        joueur=Turn.players[1].id
+    )
+    next_uid[0] += 1
+    Turn.players[1].ships.append(str)
+
+
     # --- Placer vaisseaux sur la grille ---
     for s in Turn.get_players_ships():
         s.occuper_plateau(map_obj.grille, Type.VAISSEAU)
 
     # --- initialisation du HUD ---
-    HUD.init()
-    HUD.ship_display.ship = Turn.players[0].getMotherShip()
+    HUD.init(ecran)
 
     # --- Variables de sélection et contrôle ---
     selection_ship = None
@@ -591,90 +630,78 @@ def start_game(parametres, random_active):
     interface_transport_active = False
     afficher_grille = False
     running = True
-    ships_passed = False
+
 
     pygame.time.wait(500) # Petite pause pour que le joueur voie le message "Prêt
 
     # =================================================================
     # ✨ NOUVELLE BOUCLE DE JEU PRINCIPALE AVEC GESTION DE L'IA ✨
     # =================================================================
-    dernier_temps_ia = 0
-    delai_ia_ms = 250  # 250 ms entre chaque action IA
-
-    # ---------------------
-    # BOUCLE PRINCIPALE
-    # ---------------------
     while running:
         discord.update("En jeu")
         position_souris = pygame.mouse.get_pos()
-        case_souris = ((position_souris[1]) // GridVar.cell_size, 
-                       (position_souris[0] - GridVar.offset_x) // GridVar.cell_size)
+        case_souris = ((position_souris[1]) // TAILLE_CASE, 
+                       (position_souris[0] - OFFSET_X) // TAILLE_CASE)
+
 
         joueur_actuel = Turn.players[0]
-        shop = Turn.shops[0]
+        shop = shops[joueur_actuel.id]
 
         # ---------------------
         # TOUR DE L'IA
         # ---------------------
         if joueur_actuel.is_ia:
-            maintenant = pygame.time.get_ticks()
-            if maintenant - dernier_temps_ia >= delai_ia_ms:
-                dernier_temps_ia = maintenant  # réinitialise le timer
+            # L'IA fait jouer chacun de ses vaisseaux
+            tous_les_vaisseaux = Turn.get_players_ships()
+            for ship_ia in joueur_actuel.ships[:]: # On utilise une copie [:] car la liste peut être modifiée
+                transport_ia_instance = None
+                if str and not str.est_mort():
+                    transport_ia_instance = IATransport(str)  # ✅ IATransport, pas StarField !
+                    print(f"[TEST] Transport {str.id} initialisé")
 
-                tous_les_vaisseaux = Turn.get_players_ships()
-                ships_passed = True  # suppose que tous ont fini
+                # 2️⃣ Faire appeler le transport par sf2 (Foreuse)
+                if transport_ia_instance and sf2 in joueur_actuel.ships and not sf2.est_mort():
+                    destination_test = (5, 5)
+                    transport_ia_instance.appel_transport(sf2, destination_test)  # ✅ Sur l'instance
+                    print(f"[TEST] Foreuse {sf2.id} appelle le transport pour aller à {destination_test}")
 
-                for ship_ia in joueur_actuel.ships[:]:
-                    transport_ia_instance = None
-                    if ship_ia and not ship_ia.est_mort():
-                        transport_ia_instance = IATransport(str)
-
-                    # Vérifie qu'il ne bouge/attaque pas encore
-                    if ship_ia.animator.target == (ship_ia.animator.x, ship_ia.animator.y) or ship_ia.animator.current_anim != "weapon":
-                        if isinstance(ship_ia, IA_Lourd):
-                            ship_ia.jouer_tour_ia(map_obj.grille, tous_les_vaisseaux, Turn.players[1].ships)
-
-                        elif isinstance(ship_ia, Petit):
-                            ships_passed = ia_petit_play(ship_ia, map_obj, tous_les_vaisseaux)
-
-                        elif isinstance(ship_ia, Moyen):
-                            pass 
-
-                        elif isinstance(ship_ia, Foreuse):
-                            jouer_tour_foreuse(ship_ia, map_obj.grille, tous_les_vaisseaux)
-
-                        elif isinstance(ship_ia, Transport):
-                            transport_ia_instance.jouer_tour(map_obj.grille, joueur_actuel.ships)
-
-                        elif isinstance(ship_ia, MotherShipIA):
-                            if not ship_ia.est_mort():
-                                ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux, joueur_actuel, shop, map_obj, next_uid, images, paths)
-                    else:
-                        ships_passed = False  # en cours d’action => pas encore fini
-
+                # 3️⃣ Faire jouer le transport (il devrait réagir à l'appel)
+                if transport_ia_instance:
+                    transport_ia_instance.jouer_tour(map_obj.grille, joueur_actuel.ships)  # ✅ Sur l'instance
+                    print(f"[TEST] Transport joue son tour")
 
             
-                # Si tous les vaisseaux petits ont fini leur tour => fin du tour IA
-                if ships_passed:
-                    running = end_turn_logic(screen, map_obj)
+            # Logique de fin de tour pour l'IA
+            for ship in joueur_actuel.ships:
+                ship.reset_porters()
+            joueur_actuel.gain()
+            Turn.next()
+            HUD.change_turn()
 
-
+            # Vérification de victoire
+            for player in Turn.players:
+                if not player.getMotherShip() or player.getMotherShip().est_mort():
+                    gagnant = [p for p in Turn.players if p != player][0]
+                    menu.menuFin.main(ecran, gagnant, victoire=True)
+                    running = False
+                    break
+        
         # ---------------------
         # TOUR DU JOUEUR HUMAIN
         # ---------------------
         else:
             running, selection_ship, selection_cargo, interface_transport_active, afficher_grille, next_uid = \
                 handle_events(running, selection_ship, selection_cargo, interface_transport_active,
-                              afficher_grille, map_obj, Turn.get_players_ships(), shop, screen, position_souris, case_souris,
+                              afficher_grille, map_obj, Turn.get_players_ships(), shop, ecran, position_souris, case_souris,
                               next_uid, images, paths)
-        if running == 2:
-            return 2
         
         # ---------------------
         # DESSIN (pour le joueur humain, l'IA dessine pendant son tour)
         # ---------------------
         if not joueur_actuel.is_ia and running:
             dt = clock.tick(60) / 1000.0
-            draw_game(screen, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
-                      interface_transport_active, case_souris, font, joueur_actuel, shop, position_souris,
+            draw_game(ecran, stars, map_obj, colors, Turn.get_players_ships(), selection_ship, selection_cargo,
+                      interface_transport_active, case_souris, font, joueur_actuel, shop, new_cursor, position_souris,
                       afficher_grille, dt)
+            
+    pygame.quit()
