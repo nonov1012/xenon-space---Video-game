@@ -875,8 +875,8 @@ class Transport(Ship):
         nb_lignes = len(grille)
         nb_colonnes = len(grille[0])
 
-        for dy in range(-port, port + 1):
-            for dx in range(-port, port + 1):
+        for dy in range(port, port + 1):
+            for dx in range(port, port + 1):
                 if abs(dy) + abs(dx) > port:
                     continue
                     
