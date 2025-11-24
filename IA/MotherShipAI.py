@@ -197,12 +197,13 @@ class MotherShipIA(MotherShip):
             
             
             # Priorité 1 : Upgrade de la base si rentable
-            cout_upgrade = self.get_next_tier_cost()
-            if cout_upgrade and argent_disponible >= cout_upgrade and self.tier < 4:
-                # Upgrade si le coût est inférieur à 2x notre argent (on garde une marge)
-                if argent_disponible >= cout_upgrade * 1.2:
-                    if self.upgrade(player.buy):
-                        return
+            if self.tier != 4 :
+                cout_upgrade = self.get_next_tier_cost()
+                if cout_upgrade and argent_disponible >= cout_upgrade and self.tier < 4:
+                    # Upgrade si le coût est inférieur à 2x notre argent (on garde une marge)
+                    if argent_disponible >= cout_upgrade * 1.2:
+                        if self.upgrade():
+                            return
             
             # Priorité 2 : Maintenir au moins 2 foreuses pour l'économie
             if nb_foreuses < 2:
@@ -223,12 +224,12 @@ class MotherShipIA(MotherShip):
         # SITUATION DOMINANTE : Focus économie et tech
         else:
             
-            
-            # Priorité 1 : Upgrade de la base (débloquer attaque au tier 4)
-            cout_upgrade = self.get_next_tier_cost()
-            if cout_upgrade and argent_disponible >= cout_upgrade:
-                if self.upgrade(player.buy):
-                    return
+            if self.tier != 4 :
+                # Priorité 1 : Upgrade de la base (débloquer attaque au tier 4)
+                cout_upgrade = self.get_next_tier_cost()
+                if cout_upgrade and argent_disponible >= cout_upgrade:
+                    if self.upgrade():
+                        return
             
             # Priorité 2 : Acheter un Lourd si tier 4 et qu'on en a moins de 2
             if self.tier >= 4 and nb_lourds < 2 and argent_disponible >= 1050:
