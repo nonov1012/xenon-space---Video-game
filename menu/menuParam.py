@@ -504,8 +504,6 @@ def main(ecran, sound_manager=None):
         ecran: Surface Pygame
         sound_manager: Instance du SoundManager
     """
-    # Création du fond spatial animé
-    stars, planet_manager, vaisseau_fond = create_space_background()
     
     # Création de l'instance du menu
     menu = MenuParametres()
@@ -524,12 +522,6 @@ def main(ecran, sound_manager=None):
     while menu.en_cours:
         # Fond animé
         ecran.fill((0, 0, 0))
-        stars.update()
-        stars.draw(ecran)
-        planet_manager.update_and_draw()
-        Animator.update_all()
-        PlanetAnimator.update_all()
-        ShipAnimator.update_all()
         
         # Gestion des événements
         for event in pygame.event.get():
@@ -543,7 +535,3 @@ def main(ecran, sound_manager=None):
         
         pygame.display.flip()
         horloge.tick(60)
-    
-    # Nettoyage
-    ShipAnimator.clear_list()
-    PlanetAnimator.clear_list()

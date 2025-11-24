@@ -99,7 +99,8 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
         # --- Touches clavier ---
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                menu.menuPause.main_pause(ecran)
+                running = menu.menuPause.main_pause(ecran)
+                continue
             elif event.key == pygame.K_LCTRL:
                 afficher_grille = not afficher_grille
             elif event.key == pygame.K_LSHIFT:

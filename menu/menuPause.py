@@ -154,14 +154,14 @@ class MenuPause:
         
     def _action_parametres(self):
         """Ouvre le menu des paramètres"""
-        menuParam.main(self.ecran, animation=False)
+        menuParam.main(self.ecran)
         
     def _action_retour_menu(self):
         """Quitte la partie pour retourner au menu principal"""
         classes.ShipAnimator.ShipAnimator.clear_list()
         PlanetAnimator.clear_list()
         self.running = False
-        self.action_result = "go_to_main_menu"
+        self.action_result = False
         
     def _action_quitter(self):
         """Quitte le jeu"""
