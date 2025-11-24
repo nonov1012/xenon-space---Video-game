@@ -14,7 +14,7 @@ class LoadingScreen:
         info = pygame.display.Info()
         self.screen_width = info.current_w
         self.screen_height = info.current_h
-        ScreenVar(pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN))
+        ScreenVar(pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE | pygame.FULLSCREEN))
         self.screen = ScreenVar.screen
         GridVar()
         pygame.display.set_caption("Chargement - Xenon Space")

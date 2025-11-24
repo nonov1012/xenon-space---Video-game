@@ -28,8 +28,6 @@ from menu.credit import MenuCredits
 pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
-ScreenVar(pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE))
-GridVar()
 
 ScreenVar.update_scale()
 GridVar.update_grid()

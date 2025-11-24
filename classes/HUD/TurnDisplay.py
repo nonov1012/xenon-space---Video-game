@@ -234,7 +234,6 @@ class TurnDisplay:
         :return: True si le bouton a été cliqué, False sinon
         """
         if self.button_rect and self.button_rect.collidepoint(mouse_pos):
-            Turn.next()
             return True
         return False
 

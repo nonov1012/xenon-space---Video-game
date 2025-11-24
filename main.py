@@ -127,7 +127,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             mothership_actuel = joueur_actuel.getMotherShip()
             type_action = shop.handle_click(event.pos, mothership_actuel)
 
-            is_skipping =HUD.handle_click(event.pos)
+            is_skipping = HUD.handle_click(event.pos)
             if is_skipping:
                 end_choice = end_turn_logic(ecran, map_obj)
                 if end_choice == 0:
@@ -460,7 +460,9 @@ def end_turn_logic(ecran, map_obj):
     current_player.gain()
 
     # Passer au joueur suivant
+    print("Joueur", current_player.name, "a terminé son tour.")
     Turn.next()
+    print("Joueur", Turn.players[0].name, "a terminé son tour.")
     HUD.change_turn()
 
     # Vérification de la condition de victoire
