@@ -94,8 +94,13 @@ class Slider:
         
     def update_valeur(self, mouse_x):
         """Met à jour la valeur selon la position de la souris"""
-        rel_x = max(0, min(self.rect.width, mouse_x - self.rect.x))
-        self.valeur = int((rel_x / self.rect.width) * (self.max_val - self.min_val) + self.min_val)
+        # Calcul simplifié et correct
+        rel_x = mouse_x - self.rect.x
+        rel_x = max(0, min(self.rect.width, rel_x))
+        
+        # Calcul de la valeur proportionnelle (float pour plus de fluidité)
+        proportion = rel_x / self.rect.width
+        self.valeur = round(proportion * (self.max_val - self.min_val) + self.min_val)
         
     def draw(self, surface):
         """Dessine le slider"""
@@ -210,16 +215,19 @@ class MenuParametres:
 
     def update_slider(self):
         """Met à jour le slider actif ET applique le volume"""
-        if self.slider_actif and pygame.mouse.get_pressed()[0]:
-            mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = pygame.mouse.get_pos()
+        
+        # Si un slider est actif et bouton souris enfoncé
+        if self.slider_actif:
             slider = self.sliders[self.slider_actif]
+            
+            # Mise à jour continue de la valeur
             slider.update_valeur(mouse_pos[0])
             self.settings["audio"][self.slider_actif] = slider.valeur
             
-            # NOUVEAU : Appliquer le volume en temps réel
+            # Appliquer le volume en temps réel
             from classes.Sounds import SoundManager
-            # Récupérer l'instance globale (tu dois la passer)
-            if hasattr(self, 'sound_manager'):
+            if hasattr(self, 'sound_manager') and self.sound_manager:
                 if self.slider_actif == "volume_general":
                     self.sound_manager.set_master_volume(slider.valeur)
                 elif self.slider_actif == "volume_musique":
@@ -236,26 +244,32 @@ class MenuParametres:
         ]
         
         self.buttons = []
-        espacement = 50
-        y_boutons = self.screen_height - 170
+        espacement = 40
+        y_boutons = self.screen_height - 140
         
-        # Calcul des positions
-        total_width = sum(len(text) * 15 + 160 for text, _ in button_configs)
-        total_width += espacement * (len(button_configs) - 1)
-        x = (self.screen_width - total_width) // 2
-        
+        # Calculer les largeurs des boutons
+        button_data = []
         for text, action in button_configs:
             text_surf = Police.bouton.render(text, True, Couleur.BLANC)
-            image = pygame.transform.scale(
-                self.image_bouton_base,
-                (text_surf.get_width() + 160, text_surf.get_height() + 130)
-            )
-            rect = pygame.Rect(x, y_boutons, image.get_width(), image.get_height())
+            # Adapter la largeur au texte avec un padding proportionnel
+            padding = max(60, text_surf.get_width() // 3)
+            width = text_surf.get_width() + padding
+            height = text_surf.get_height() + 40
+            button_data.append((text, action, width, height))
+        
+        # Calculer position de départ centrée
+        total_width = sum(w for _, _, w, _ in button_data) + espacement * (len(button_configs) - 1)
+        x = (self.screen_width - total_width) // 2
+        
+        # Créer les boutons
+        for text, action, width, height in button_data:
+            image = pygame.transform.scale(self.image_bouton_base, (width, height))
+            rect = pygame.Rect(x, y_boutons, width, height)
             
             button = ButtonParam(rect, text, Police.bouton, image, action)
             self.buttons.append(button)
             
-            x += image.get_width() + espacement
+            x += width + espacement
             
     # =====================================
     # ACTIONS DES BOUTONS
@@ -350,8 +364,13 @@ class MenuParametres:
     def _check_slider_click(self, mouse_pos):
         """Vérifie le clic sur les sliders"""
         for param_id, slider in self.sliders.items():
-            if slider.rect.collidepoint(mouse_pos):
+            # CORRECTION : Agrandir la zone cliquable du slider
+            zone_etendue = slider.rect.inflate(0, 20)  # Ajoute 10px en haut et en bas
+            if zone_etendue.collidepoint(mouse_pos):
                 self.slider_actif = param_id
+                # CORRECTION : Mettre à jour immédiatement la valeur au clic
+                slider.update_valeur(mouse_pos[0])
+                self.settings["audio"][param_id] = slider.valeur
             
     # =====================================
     # RENDU
@@ -490,11 +509,11 @@ def main(ecran, sound_manager=None):
     
     # Création de l'instance du menu
     menu = MenuParametres()
-    menu.sound_manager = sound_manager  # NOUVEAU : Passer le sound manager
+    menu.sound_manager = sound_manager  # Passer le sound manager
     menu.update()
     menu.en_cours = True
     
-    # NOUVEAU : Charger et appliquer les volumes sauvegardés
+    # Charger et appliquer les volumes sauvegardés
     if sound_manager:
         sound_manager.set_master_volume(menu.settings["audio"]["volume_general"])
         sound_manager.set_music_volume(menu.settings["audio"]["volume_musique"])
