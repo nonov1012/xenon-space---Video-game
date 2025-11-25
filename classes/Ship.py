@@ -877,9 +877,9 @@ class Transport(Ship):
         nb_lignes = len(grille)
         nb_colonnes = len(grille[0])
 
-        for dy in range(-port_entier, port_entier + 1):
-            for dx in range(-port_entier, port_entier + 1):
-                if abs(dy) + abs(dx) > port_entier:
+        for dy in range(port, port + 1):
+            for dx in range(port, port + 1):
+                if abs(dy) + abs(dx) > port:
                     continue
                     
                 nl = self.cordonner.x + dy

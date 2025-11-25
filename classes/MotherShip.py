@@ -85,14 +85,14 @@ class MotherShip(Ship):
         self.pv_max = new_conf["pv_max"]
         self.attaque = new_conf.get("attaque", self.attaque)
         self.port_attaque = new_conf.get("port_attaque", self.port_attaque)
-        self.cout = new_conf.get("cout_upgrade", self.cout)
-        self.gain = new_conf.get("gain", self.gain)
+        self.cout = new_conf.get("cout", self.cout)
         self.pv_actuel = self.pv_max
+        self.gain = new_conf.get("gain", self.gain)
 
-    def upgrade(self, payer_fct) -> bool:
+    def upgrade(self) -> bool:
         if not self.can_upgrade(): return False
         price = self.get_next_tier_cost()
-        if price is None or not payer_fct(price): return False
+        if price is None: return False
         self.apply_level(self.tier + 1)
         return True
     
