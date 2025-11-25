@@ -60,10 +60,26 @@ class MenuPlay:
         # Variables pour dropdown et scroll
         self.dropdown_ouvert = False
         self.dropdown_scroll = 0
-        self.max_items_dropdown = 5
+        self.max_items_dropdown = 2
         self.scroll_offset = 0
         self.max_scroll = 0
         self.slider_vaisseau_actif = None
+
+        # Paramètres joueurs
+        self.joueurs = {
+            "Joueur 1": {
+                "nom": "Joueur 1",
+                "est_ia": False
+            },
+            "Joueur 2": {
+                "nom": "Joueur 2", 
+                "est_ia": True
+            }
+        }
+        
+        # Variables pour l'édition des noms
+        self.nom_en_edition = None  # "Joueur 1" ou "Joueur 2" ou None
+        self.texte_temp = ""
 
     def update(self):
         self.screen = ScreenVar.screen
@@ -112,7 +128,7 @@ class MenuPlay:
         self.panneau_x = (self.screen_width - self.panneau_largeur) // 2
         self.panneau_y = 205
 
-        self.onglets = ["Classique", "Avance", "Vaisseaux"]
+        self.onglets = ["Classique", "Avance", "Vaisseaux", "Joueurs"]
         self.onglet_actif = "Classique"
 
     def update_ship_param(self):
@@ -211,6 +227,67 @@ class MenuPlay:
             pygame.draw.rect(self.screen, Couleur.VERT if self.random_active else Couleur.GRIS_CLAIR, rect_random, border_radius=10)
             txt_random = Police.param.render("RANDOM " + ("ON" if self.random_active else "OFF"), True, Couleur.BLANC)
             self.screen.blit(txt_random, txt_random.get_rect(center=rect_random.center))
+
+    def draw_joueurs_param(self):
+        """Dessine l'onglet de configuration des joueurs"""
+        if self.onglet_actif != "Joueurs":
+            return
+        
+        y_start = self.panneau_y + 50
+        espacement = 200
+        
+        for i, (joueur_key, joueur_data) in enumerate(self.joueurs.items()):
+            y_pos = y_start + i * espacement
+            
+            # Titre du joueur
+            titre = Police.param.render(joueur_key, True, Couleur.BLEU_ACCENT)
+            titre_rect = titre.get_rect(center=(self.screen_width // 2, y_pos))
+            self.screen.blit(titre, titre_rect)
+            
+            # === NOM ===
+            y_nom = y_pos + 40
+            texte_nom_label = Police.petite.render("Nom:", True, Couleur.BLANC)
+            self.screen.blit(texte_nom_label, (self.panneau_x + 50, y_nom))
+            
+            # Zone de texte pour le nom
+            input_rect = pygame.Rect(self.panneau_x + 150, y_nom - 5, 350, 35)
+            couleur_input = Couleur.BLEU_ACCENT if self.nom_en_edition == joueur_key else Couleur.GRIS_MOYEN
+            pygame.draw.rect(self.screen, couleur_input, input_rect, border_radius=5)
+            pygame.draw.rect(self.screen, Couleur.BLANC, input_rect, 2, border_radius=5)
+            
+            # Afficher le texte
+            if self.nom_en_edition == joueur_key:
+                texte_affiche = self.texte_temp + "|"  # Curseur clignotant
+            else:
+                texte_affiche = joueur_data["nom"]
+            
+            texte_nom_surface = Police.petite.render(texte_affiche, True, Couleur.BLANC)
+            texte_nom_rect = texte_nom_surface.get_rect(midleft=(input_rect.x + 10, input_rect.centery))
+            self.screen.blit(texte_nom_surface, texte_nom_rect)
+            
+            # === EST IA ===
+            y_ia = y_pos + 90
+            texte_ia_label = Police.petite.render("Type:", True, Couleur.BLANC)
+            self.screen.blit(texte_ia_label, (self.panneau_x + 50, y_ia))
+            
+            # Boutons Humain / IA
+            btn_humain_rect = pygame.Rect(self.panneau_x + 150, y_ia - 5, 160, 35)
+            btn_ia_rect = pygame.Rect(self.panneau_x + 330, y_ia - 5, 160, 35)
+            
+            couleur_humain = Couleur.VERT if not joueur_data["est_ia"] else Couleur.GRIS_MOYEN
+            couleur_ia = Couleur.VERT if joueur_data["est_ia"] else Couleur.GRIS_MOYEN
+            
+            pygame.draw.rect(self.screen, couleur_humain, btn_humain_rect, border_radius=5)
+            pygame.draw.rect(self.screen, Couleur.BLANC, btn_humain_rect, 2, border_radius=5)
+            
+            pygame.draw.rect(self.screen, couleur_ia, btn_ia_rect, border_radius=5)
+            pygame.draw.rect(self.screen, Couleur.BLANC, btn_ia_rect, 2, border_radius=5)
+            
+            texte_humain = Police.petite.render("Humain", True, Couleur.BLANC)
+            texte_ia = Police.petite.render("IA", True, Couleur.BLANC)
+            
+            self.screen.blit(texte_humain, texte_humain.get_rect(center=btn_humain_rect.center))
+            self.screen.blit(texte_ia, texte_ia.get_rect(center=btn_ia_rect.center))
 
     def draw_ship_param(self):
         self.dropdown_x = self.panneau_x + 10
@@ -389,6 +466,7 @@ class MenuPlay:
         self.draw_base_game_param()
         self.draw_avanced_game_param()
         self.draw_ship_param()
+        self.draw_joueurs_param()
 
         # Boutons principaux
         for image, rect, label in self.boutons:
@@ -411,6 +489,27 @@ class MenuPlay:
         """Gère les événements de manière centralisée"""
         if event.type == pygame.QUIT:
             self.en_cours = False
+
+        # === GESTION DU CLAVIER POUR ÉDITION DES NOMS ===
+        elif event.type == pygame.KEYDOWN:
+            if self.nom_en_edition:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                    # Valider le nom
+                    if self.texte_temp.strip():
+                        self.joueurs[self.nom_en_edition]["nom"] = self.texte_temp.strip()
+                    self.nom_en_edition = None
+                    self.texte_temp = ""
+                elif event.key == pygame.K_ESCAPE:
+                    # Annuler l'édition
+                    self.nom_en_edition = None
+                    self.texte_temp = ""
+                elif event.key == pygame.K_BACKSPACE:
+                    # Supprimer un caractère
+                    self.texte_temp = self.texte_temp[:-1]
+                else:
+                    # Ajouter le caractère (limiter à 20 caractères)
+                    if len(self.texte_temp) < 20 and event.unicode.isprintable():
+                        self.texte_temp += event.unicode
             
         # MOLETTE pour scroll
         elif event.type == pygame.MOUSEWHEEL:
@@ -430,6 +529,7 @@ class MenuPlay:
                     if label == "JOUER":
                         print("JOUER avec parametres:", {k: v["valeur"] for k, v in self.parametres.items()},
                               "Random:", self.random_active)
+                        print("Joueurs:", self.joueurs)
                         print("Vaisseau :", self.vaisseau_actif)
                         if self.vaisseau_actif == "MotherShip":
                             print("Tier:", self.tier_actif, vaisseaux_sliders[self.vaisseau_actif][self.tier_actif])
@@ -463,6 +563,30 @@ class MenuPlay:
                     self.scroll_offset = 0
                     self.dropdown_scroll = 0
                     self.dropdown_ouvert = False
+
+            if self.onglet_actif == "Joueurs":
+                y_start = self.panneau_y + 50
+                espacement = 200
+                
+                for i, (joueur_key, joueur_data) in enumerate(self.joueurs.items()):
+                    y_pos = y_start + i * espacement
+                    
+                    # Clic sur input nom
+                    y_nom = y_pos + 40
+                    input_rect = pygame.Rect(self.panneau_x + 150, y_nom - 5, 350, 35)
+                    if input_rect.collidepoint(event.pos):
+                        self.nom_en_edition = joueur_key
+                        self.texte_temp = joueur_data["nom"]
+                    
+                    # Clic sur boutons Humain/IA
+                    y_ia = y_pos + 90
+                    btn_humain_rect = pygame.Rect(self.panneau_x + 150, y_ia - 5, 160, 35)
+                    btn_ia_rect = pygame.Rect(self.panneau_x + 330, y_ia - 5, 160, 35)
+                    
+                    if btn_humain_rect.collidepoint(event.pos):
+                        joueur_data["est_ia"] = False
+                    elif btn_ia_rect.collidepoint(event.pos):
+                        joueur_data["est_ia"] = True
             
             # Gestion Vaisseaux
             if self.onglet_actif == "Vaisseaux":
@@ -595,4 +719,4 @@ def draw(ecran):
         ShipAnimator.clear_list()
         PlanetAnimator.clear_list()
         from main import start_game
-        start_game(menu.parametres, menu.random_active)
+        start_game(menu.parametres, menu.random_active, menu.joueurs)

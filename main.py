@@ -131,7 +131,6 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             is_skipping = HUD.handle_click(event.pos)
             if is_skipping:
                 end_choice = end_turn_logic(ecran, map_obj)
-                print("end_choice:", end_choice)
                 if end_choice == 0:
                     continue
                 elif end_choice == 1:
@@ -513,7 +512,40 @@ def end_turn_logic(ecran, map_obj):
     
     return 0 # Le jeu continue
 
-def start_game(parametres, random_active):
+def draw_ia_tour_termine_message(ecran):
+    """Affiche un message stylisé 'Tour terminé' en haut à droite"""
+    screen_width = ecran.get_width()
+    
+    # Créer les fonts
+    font_titre = pygame.font.Font(None, 36)
+    font_instruction = pygame.font.Font(None, 24)
+    
+    # Texte principal
+    message = font_titre.render("Tour terminé", True, (100, 255, 100))
+    instruction = font_instruction.render("Appuyez sur ENTRÉE", True, (200, 200, 200))
+    
+    # Position en haut à droite
+    padding = 20
+    box_width = max(message.get_width(), instruction.get_width()) + 40
+    box_height = message.get_height() + instruction.get_height() + 30
+    box_x = screen_width - box_width - padding
+    box_y = padding
+    
+    # Fond semi-transparent avec bordure
+    background = pygame.Surface((box_width, box_height), pygame.SRCALPHA)
+    pygame.draw.rect(background, (0, 0, 0, 180), background.get_rect(), border_radius=10)
+    pygame.draw.rect(background, (100, 255, 100, 255), background.get_rect(), 3, border_radius=10)
+    
+    ecran.blit(background, (box_x, box_y))
+    
+    # Afficher les textes
+    msg_rect = message.get_rect(center=(box_x + box_width // 2, box_y + 25))
+    inst_rect = instruction.get_rect(center=(box_x + box_width // 2, box_y + 55))
+    
+    ecran.blit(message, msg_rect)
+    ecran.blit(instruction, inst_rect)
+
+def start_game(parametres, random_active, joueurs):
 
     # Initialisations rapides
     clock = pygame.time.Clock()
@@ -556,7 +588,7 @@ def start_game(parametres, random_active):
     discord.connect()
 
     # ===== Player =====
-    Turn.players = [Player("P1", id=0, is_ia = True), Player("P2", id=1, is_ia = True)]
+    Turn.players = [Player(joueurs["Joueur 1"]["nom"], id=0, is_ia = joueurs["Joueur 1"]["est_ia"]), Player(joueurs["Joueur 2"]["nom"], id=1, is_ia = joueurs["Joueur 2"]["est_ia"])]
     Turn.shops=[Shop(Turn.players[0]), Shop(Turn.players[1])]
 
     # ===== Images et chemins pour les vaisseaux =====
@@ -731,7 +763,6 @@ def start_game(parametres, random_active):
                         is_skipping = HUD.handle_click(event.pos)
                         if is_skipping:
                             end_choice = end_turn_logic(screen, map_obj)
-                            print("end_choice:", end_choice)
                             if end_choice == 0:
                                 continue
                             elif end_choice == 1:

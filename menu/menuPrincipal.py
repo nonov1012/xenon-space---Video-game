@@ -248,8 +248,9 @@ while en_cours:
                 appliquer_modifications_sliders()
                 ShipAnimator.clear_list()
                 PlanetAnimator.clear_list()
+                joueurs = menu_play.joueurs
                 from main import start_game
-                start_game(menu_play.parametres, menu_play.random_active)
+                start_game(menu_play.parametres, menu_play.random_active, joueurs)
                 # Retour au menu après la partie
                 main_menu = True
                 menu_play = None
