@@ -131,6 +131,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             is_skipping = HUD.handle_click(event.pos)
             if is_skipping:
                 end_choice = end_turn_logic(ecran, map_obj)
+                print("end_choice:", end_choice)
                 if end_choice == 0:
                     continue
                 elif end_choice == 1:
@@ -555,7 +556,7 @@ def start_game(parametres, random_active):
     discord.connect()
 
     # ===== Player =====
-    Turn.players = [Player("P1", id=0, is_ia = False), Player("P2", id=1, is_ia = False)]
+    Turn.players = [Player("P1", id=0, is_ia = True), Player("P2", id=1, is_ia = True)]
     Turn.shops=[Shop(Turn.players[0]), Shop(Turn.players[1])]
 
     # ===== Images et chemins pour les vaisseaux =====
@@ -596,7 +597,7 @@ def start_game(parametres, random_active):
     next_uid = [1]
 
     # MotherShip du joueur 1
-    smm1 = MotherShip(
+    smm1 = MotherShipIA(
         tier=4,
         cordonner=Point(0, 0),
         id=next_uid[0],
@@ -628,7 +629,7 @@ def start_game(parametres, random_active):
 
 
     # MotherShip du joueur 2
-    smm2 = MotherShip(
+    smm2 = MotherShipIA(
         tier=4,
         cordonner=Point(25, 46),
         id=next_uid[0],
@@ -714,11 +715,31 @@ def start_game(parametres, random_active):
                         if event.key == pygame.K_ESCAPE:
                             menu.menuPause.main_pause(screen)
                         elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                            # Passer au tour suivant
-                            running = end_turn_logic(screen, map_obj)
-                            ia_tour_termine = False  # Réinitialiser pour le prochain tour IA
-            
-            # ✨ Sinon, l'IA continue de jouer
+                            ia_tour_termine = False
+                            end_choice = end_turn_logic(screen, map_obj)
+                            if end_choice == 0:
+                                continue
+                            elif end_choice == 1:
+                                running = False
+                            elif end_choice == 2:
+                                running = 2
+                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        ia_tour_termine = False
+                        # Gérer les clics via la fonction du shop
+                        joueur_actuel = Turn.players[0]
+                        mothership_actuel = joueur_actuel.getMotherShip()
+                        is_skipping = HUD.handle_click(event.pos)
+                        if is_skipping:
+                            end_choice = end_turn_logic(screen, map_obj)
+                            print("end_choice:", end_choice)
+                            if end_choice == 0:
+                                continue
+                            elif end_choice == 1:
+                                running = False
+                            elif end_choice == 2:
+                                running = 2
+                        
+            # Sinon, l'IA continue de jouer
             else:
                 # Gérer seulement QUIT et ESC pendant que l'IA joue
                 for event in pygame.event.get():
@@ -743,12 +764,12 @@ def start_game(parametres, random_active):
                             elif isinstance(ship_ia, Petit):
                                 ships_passed = ia_petit_play(ship_ia, map_obj, tous_les_vaisseaux)
                             elif isinstance(ship_ia, Moyen):
-                                pass 
+                                ships_passed = ia_petit_play(ship_ia, map_obj, tous_les_vaisseaux)
                             elif isinstance(ship_ia, Foreuse):
                                 jouer_tour_foreuse(ship_ia, map_obj.grille, tous_les_vaisseaux)
                             elif isinstance(ship_ia, Transport):
                                 transport_ia_instance.jouer_tour(map_obj.grille, joueur_actuel.ships)
-                            elif isinstance(ship_ia, MotherShip):
+                            elif isinstance(ship_ia, MotherShipIA):
                                 if not ship_ia.est_mort():
                                     ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux, joueur_actuel, shop, map_obj, next_uid, images, paths)
                         else:

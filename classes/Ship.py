@@ -1,6 +1,7 @@
 import pygame
 from typing import Tuple, List, Optional
 from classes.GlobalVar.GridVar import GridVar
+from classes.ProjectileAnimator import ProjectileAnimator
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point, Type

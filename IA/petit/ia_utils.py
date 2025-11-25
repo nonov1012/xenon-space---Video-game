@@ -38,7 +38,7 @@ def utility_defend_pos(ship: Ship, allies: List[Ship], enemies: List[Ship], pos:
     score : int = 0
     danger_max : int = 0
     for ally in allies:
-        if ally == ship:
+        if ally == ship or isinstance(ally, Petit):
             continue
         dist = distance(pos, (ally.cordonner.x, ally.cordonner.y))
         if dist <= 2:
@@ -53,6 +53,15 @@ def utility_defend_pos(ship: Ship, allies: List[Ship], enemies: List[Ship], pos:
                     danger_max = danger
         if danger_max:
             score += max(0, PETIT_SCORE[ally.__class__.__name__] - 10 * danger_max)
+
+        # Vérifie si d'autre vaisseau petit sont proches de l'allié
+        if not isinstance(ally, Petit):
+            for a in allies:
+                if a == ally:
+                    continue
+                dist = distance((ally.cordonner.x, ally.cordonner.y), (a.cordonner.x, a.cordonner.y))
+                if dist <= 7:    
+                    score = score // 2
 
     return score
 
