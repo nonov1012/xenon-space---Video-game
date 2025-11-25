@@ -141,13 +141,14 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
             if type_action:
 
                 # Si le joueur a acheté un vaisseau
-                if type_action in ["Petit", "Moyen", "Grand", "Foreuse", "Transporteur"]:
+                if type_action in ["Petit", "Moyen", "Lourd", "Foreuse", "Transport"]:
+                    
                     tailles = {
                         "Petit": (2, 2),
                         "Moyen": (2, 2),
-                        "Grand": (3, 3),
+                        "Lourd": (3, 3),
                         "Foreuse": (2, 2),
-                        "Transporteur": (3, 4)
+                        "Transport": (3, 4)
                     }
                     position = trouver_position_libre_base(map_obj, joueur_actuel.id, tailles[type_action])
 
@@ -156,6 +157,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             type_action, position, next_uid[0],
                             joueur_actuel.id, images, paths
                         )
+                        
                         if nouveau_vaisseau:
                             next_uid[0] += 1
                             joueur_actuel.ships.append(nouveau_vaisseau)
@@ -431,37 +433,53 @@ def creer_vaisseau_achete(type_vaisseau, position, next_uid, joueur_id, images, 
     """
     Crée une instance du vaisseau acheté selon son type.
     """
-    classes_vaisseaux = {
-        "Petit": Petit,
-        "Moyen": Moyen,
-        "Grand": Lourd,
-        "Foreuse": Foreuse,
-        "Transporteur": Transport
-    }
-    
-    classe = classes_vaisseaux.get(type_vaisseau)
-    if classe is None:
-        return None
     
     # Type simplifié selon le vaisseau
-    type_key = "lourd" if type_vaisseau == "Grand" else type_vaisseau.lower()
-    if type_vaisseau == "Transporteur":
+    type_key = type_vaisseau.lower()
+    if type_vaisseau == "lourd":
+        type_key = "lourd"
+    elif type_vaisseau == "transport":
         type_key = "transport"
-
+    
+    
+    # Cas spécial : Petit n'a pas besoin de path/image
     if type_vaisseau == "Petit":
-        return Petit(
+        vaisseau = Petit(
             cordonner=position,
             id=next_uid,
             joueur=joueur_id
         )
+        return vaisseau
     
-    return classe(
-        cordonner=position,
-        id=next_uid,
-        path=paths.get(type_key, paths['petit']),
-        image=images.get(type_key, images['petit']),
-        joueur=joueur_id
-    )
+    # Mapping des types vers les classes
+    classes_vaisseaux = {
+        "Moyen": Moyen,
+        "Lourd": Lourd,
+        "Foreuse": Foreuse,
+        "Transport": Transport
+    }
+    
+    classe = classes_vaisseaux.get(type_vaisseau)
+    
+    if classe is None:
+        return None
+    
+    path = paths.get(type_key, paths['petit'])
+    image = images.get(type_key, images['petit'])
+    
+    try:
+        vaisseau = classe(
+            cordonner=position,
+            id=next_uid,
+            path=path,
+            image=image,
+            joueur=joueur_id
+        )
+        return vaisseau
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return None
 
 def end_turn_logic(ecran, map_obj):
     """
@@ -481,9 +499,7 @@ def end_turn_logic(ecran, map_obj):
     current_player.gain()
 
     # Passer au joueur suivant
-    print("Joueur", current_player.name, "a terminé son tour.")
     Turn.next()
-    print("Joueur", Turn.players[0].name, "a terminé son tour.")
     HUD.change_turn()
 
     # Vérification de la condition de victoire
@@ -580,7 +596,7 @@ def start_game(parametres, random_active):
 
     # MotherShip du joueur 1
     smm1 = MotherShip(
-        tier=1,
+        tier=4,
         cordonner=Point(0, 0),
         id=next_uid[0],
         path=img_base_dir,
@@ -612,7 +628,7 @@ def start_game(parametres, random_active):
 
     # MotherShip du joueur 2
     smm2 = MotherShip(
-        tier=1,
+        tier=4,
         cordonner=Point(25, 46),
         id=next_uid[0],
         path=img_base_dir,
