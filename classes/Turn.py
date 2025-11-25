@@ -1,9 +1,11 @@
 from typing import List, Optional
 from classes.Ship import Ship
 from classes.Player import Player
+from classes.Shop import Shop
 
 class Turn:
     players : list[Player] = []
+    shops : list[Shop] = []
     sentence = "Tour"
     _nb_turns : float = 1
 
@@ -24,7 +26,9 @@ class Turn:
 
         # Le joueur actuel est mis en fin de liste
         player = cls.players.pop(0)
+        shop = cls.shops.pop(0)
         cls.players.append(player)
+        cls.shops.append(shop)
         # Le nombre de tours est augmenté de 1 divisé par le nombre de joueurs
         cls._nb_turns += 1 / len(cls.players)
         return None
@@ -78,6 +82,21 @@ class Turn:
         for player in cls.players:
             if player.id == id:
                 return player
+        return None
+            
+    @classmethod
+    def get_shop_with_id(cls, id : int) -> Shop:
+        """
+        Retourne la boutique qui correspond à l'identifiant id.
+        La méthode itère sur chaque boutique et vérifie si son identifiant est égal à id.
+        Si c'est le cas, la méthode retourne la boutique, sinon None.
+        :param id: L'identifiant de la boutique à trouver
+        :return: La boutique qui correspond à l'identifiant id, ou None si il n'y a pas de boutique
+        """
+        for shop in cls.shops:
+            if shop.player.id == id:
+                return shop
+        return None
 
 if __name__ == "__main__":
     Turn.players = [Player("Alice"), Player("Bob")]

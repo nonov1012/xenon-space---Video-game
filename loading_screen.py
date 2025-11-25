@@ -3,6 +3,8 @@ import threading
 import time
 from blazyck import *
 from classes.Animator import Animator
+from classes.GlobalVar.GridVar import GridVar
+from classes.GlobalVar.ScreenVar import ScreenVar
 from classes.ResourceManager import ResourceManager
 import os
 
@@ -12,10 +14,12 @@ class LoadingScreen:
         info = pygame.display.Info()
         self.screen_width = info.current_w
         self.screen_height = info.current_h
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+        ScreenVar(pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE | pygame.FULLSCREEN))
+        self.screen = ScreenVar.screen
+        GridVar()
         pygame.display.set_caption("Chargement - Xenon Space")
-        
-        Animator.set_screen(self.screen)
+
+
         
         self.clock = pygame.time.Clock()
         self.running = True
@@ -30,15 +34,29 @@ class LoadingScreen:
         
     def setup_loading_animation(self):
         """Configure l'animation de chargement"""
-        # Position centrale
-        center_x = self.screen_width // 2
-        center_y = self.screen_height // 2
+        # Taille de ton animation (px)
+        anim_w = 200
+        anim_h = 200
+
+        # Position de la planète en cases (supposons qu'elle soit au centre de la grille)
+        grid_cols = (self.screen_width - GridVar.offset_x * 2) // GridVar.cell_size
+        grid_rows = (self.screen_height - GridVar.offset_y * 2) // GridVar.cell_size
         
-        # L'animation sera centrée, disons 200x200 pixels
+        planet_cell_x = grid_cols // 2
+        planet_cell_y = grid_rows // 2
+
+        # Conversion de l'animation en cases
+        anim_w_cells = anim_w // GridVar.cell_size
+        anim_h_cells = anim_h // GridVar.cell_size
+
+        # Position en cases pour centrer l'animation sur la planète
+        pos_x_cells = planet_cell_x - (anim_w_cells // 2)
+        pos_y_cells = planet_cell_y - (anim_h_cells // 2)
+
         self.loading_animator = Animator(
             IMG_PATH,
-            (200 // TAILLE_CASE, 200 // TAILLE_CASE),  # dimensions en cases
-            ((center_x - 100) // TAILLE_CASE, (center_y - 150) // TAILLE_CASE),  # position
+            (anim_w_cells, anim_h_cells),
+            (pos_x_cells, pos_y_cells),
             default_fps=30
         )
         

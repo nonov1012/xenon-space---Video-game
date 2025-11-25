@@ -1,5 +1,6 @@
 import pygame
 from typing import Optional, Tuple
+from classes.GlobalVar.GridVar import GridVar
 from classes.Ship import Ship
 from classes.Point import Point
 from classes.Animator import Animator
@@ -41,7 +42,7 @@ class MotherShip(Ship):
             taille=taille_finale,
             peut_miner=stats["peut_miner"],
             peut_transporter=stats["peut_transporter"],
-            image=pygame.Surface((taille_finale[1]*TAILLE_CASE, taille_finale[0]*TAILLE_CASE)),
+            image=pygame.Surface((taille_finale[1] * GridVar.cell_size, taille_finale[0] * GridVar.cell_size)),
             tier=tier,
             cordonner=cordonner,
             id=id,
