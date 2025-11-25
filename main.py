@@ -161,6 +161,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             joueur_actuel.ships.append(nouveau_vaisseau)
                             ships.append(nouveau_vaisseau)
                             nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
+                            HUD.ship_display.ship = nouveau_vaisseau
                     else:
                         # Si aucune position libre, on rembourse
                         # On retrouve le prix via le shop
@@ -694,10 +695,10 @@ def start_game(parametres, random_active):
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
-                            menu.menuPause.main_pause(ecran)
+                            menu.menuPause.main_pause(screen)
                         elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                             # Passer au tour suivant
-                            running = end_turn_logic(ecran, map_obj)
+                            running = end_turn_logic(screen, map_obj)
                             ia_tour_termine = False  # Réinitialiser pour le prochain tour IA
             
             # ✨ Sinon, l'IA continue de jouer
@@ -707,7 +708,7 @@ def start_game(parametres, random_active):
                     if event.type == pygame.QUIT:
                         running = False
                     elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                        menu.menuPause.main_pause(ecran)
+                        menu.menuPause.main_pause(screen)
                 
                 maintenant = pygame.time.get_ticks()
                 if maintenant - dernier_temps_ia >= delai_ia_ms:

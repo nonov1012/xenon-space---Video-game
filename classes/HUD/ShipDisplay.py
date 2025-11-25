@@ -77,21 +77,15 @@ class ShipDisplay:
         panel = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         
         # Charger et afficher l'image du vaisseau à gauche
-        ship_img = None
+        ship_img = self.ship.animator.static_image
         ship_size = int(70 * scale)
-        try:
-            # Essayer de charger l'image du vaisseau
-            ship_img = pygame.image.load(f"{self.ship.path}.png").convert_alpha()
-            ship_img = pygame.transform.scale(ship_img, (ship_size, ship_size))
-        except:
-            # Si pas d'image, dessiner un rectangle stylisé
-            ship_placeholder = pygame.Surface((ship_size, ship_size), pygame.SRCALPHA)
-            pygame.draw.rect(ship_placeholder, (80, 120, 180, 150), (0, 0, ship_size, ship_size), border_radius=int(4 * scale))
-            pygame.draw.rect(ship_placeholder, (120, 180, 255, 200), (0, 0, ship_size, ship_size), int(2 * scale), border_radius=int(4 * scale))
-            ship_img = ship_placeholder
-        
+
+        # Redimensionner l'image
+        ship_img_scaled = pygame.transform.scale(ship_img, (ship_size, ship_size))
+
         # Blitter l'image du vaisseau
-        panel.blit(ship_img, (5, (self.height - ship_size) // 2))
+        panel.blit(ship_img_scaled, (5, (self.height - ship_size) // 2))
+
         
         # Décalage pour le texte (après l'image)
         text_start_x = ship_size + int(15 * scale)

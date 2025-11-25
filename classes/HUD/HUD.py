@@ -103,6 +103,7 @@ class HUD:
     def change_turn(cls):
         cls.left_bar.highlight = not cls.left_bar.highlight
         cls.right_bar.highlight = not cls.right_bar.highlight
+        cls.ship_display.ship = Turn.players[0].getMotherShip()
 
     @classmethod
     def draw(cls):
