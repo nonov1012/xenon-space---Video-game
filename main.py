@@ -164,6 +164,7 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             ships.append(nouveau_vaisseau)
                             nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
                             HUD.ship_display.ship = nouveau_vaisseau
+                            selection_ship = nouveau_vaisseau
                     else:
                         # Si aucune position libre, on rembourse
                         # On retrouve le prix via le shop
