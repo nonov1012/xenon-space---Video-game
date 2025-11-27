@@ -8,7 +8,7 @@
     },
     "audio": {
         "volume_general": 50,
-        "volume_musique": 50,
+        "volume_musique": 0,
         "volume_sons": 50
     }
 }

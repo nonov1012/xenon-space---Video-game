@@ -52,6 +52,20 @@ sm = SoundManager()
 sm.play_music("assets/sounds/musics/music_ingame.mp3")
 sm.load_sfx("son_hover", "assets/sounds/menu/buttons/button_hover.mp3")
 sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
+sm.load_sfx("shop_yes", "assets/sounds/others/Complete_02.ogg")
+sm.load_sfx("shop_no", "assets/sounds/others/Denied_03.ogg")
+
+# Charger et appliquer les paramètres au démarrage
+import json
+try:
+    
+    with open(get_resource_path("save_parametre.json"), 'r') as f:
+        saved_settings = json.load(f)
+        sm.set_master_volume(saved_settings["audio"]["volume_general"])
+        sm.set_music_volume(saved_settings["audio"]["volume_musique"])
+        sm.set_sfx_volume(saved_settings["audio"]["volume_sons"])
+except:
+    pass
 
 # Charger et appliquer les paramètres au démarrage
 import json
