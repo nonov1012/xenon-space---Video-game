@@ -73,6 +73,7 @@ pygame.display.set_icon(icone)
 # Fond anime avec planetes et vaisseau
 # -------------------------------
 stars, planet_manager, B1 = create_space_background()
+animator_main_ship = B1.animator
 
 # -------------------------------
 # Titre centre
@@ -212,6 +213,8 @@ while en_cours:
     Animator.update_all()
     PlanetAnimator.update_all()
     ShipAnimator.update_all()
+    animator_main_ship.update_and_draw()
+
 
     # --- Affichage selon l'état ---
     if main_menu:
