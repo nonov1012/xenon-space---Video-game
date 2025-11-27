@@ -114,13 +114,13 @@ class MenuPause:
     def _init_buttons(self):
         """Initialise les boutons"""
         image_base = pygame.image.load("assets/img/menu/bouton_menu.png").convert_alpha()
-        button_width, button_height = 500, 100
+        button_width, button_height = 500, 200
         
         # Configuration des boutons
         button_configs = [
             ("REPRENDRE", self._action_reprendre),
             ("PARAMETRES", self._action_parametres),
-            ("RETOUR AU MENU PRINCIPAL", self._action_retour_menu),
+            ("MENU PRINCIPAL", self._action_retour_menu),
             ("QUITTER", self._action_quitter)
         ]
         
@@ -135,12 +135,12 @@ class MenuPause:
         for i, (text, action) in enumerate(button_configs):
 
             # --- Taille du bouton ---
-            if text == "RETOUR AU MENU PRINCIPAL":
-                btn_w, btn_h = 1250, 130   # ← largeur augmentée
+            if text == "MENU PRINCIPAL":
+                btn_w, btn_h = button_width + 300, button_height   # ← largeur augmentée
             elif text == "QUITTER":
-                btn_w, btn_h = 500, 130   # ← largeur augmentée
+                btn_w, btn_h = button_width + 130, button_height   # ← largeur augmentée
             else:
-                btn_w, btn_h = 630, 130   # ← taille normale
+                btn_w, btn_h = button_width + 130, button_height   # ← taille normale
 
             image = pygame.transform.scale(image_base, (btn_w, btn_h))
             
