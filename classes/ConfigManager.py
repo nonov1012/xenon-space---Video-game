@@ -1,6 +1,7 @@
 import json
 import pygame
-from pathlib import Path
+import os
+from blazyck import get_resource_path
 
 
 class ConfigManager:
@@ -39,14 +40,14 @@ class ConfigManager:
             return
 
         self._initialized = True
-        self.config_path = Path(__file__).parent.parent / "save_parametre.json"
+        self.config_path = get_resource_path("save_parametre.json")
         self.settings = self._load_settings()
         self.sound_manager = None  # Sera défini plus tard
 
     def _load_settings(self):
         """Charge les paramètres depuis le fichier JSON"""
         try:
-            if self.config_path.exists():
+            if os.path.exists(self.config_path):
                 with open(self.config_path, 'r', encoding='utf-8') as f:
                     loaded_settings = json.load(f)
 
@@ -181,6 +182,27 @@ class ConfigManager:
         """
         keys = pygame.key.get_pressed()
         return keys[self.get_key(action)]
+
+    def get_all_keys(self):
+        """
+        Retourne toutes les touches configurées
+
+        Returns:
+            dict: Dictionnaire des touches avec leurs actions
+        """
+        return self.settings["touches"].copy()
+
+    def export_settings(self):
+        """
+        Exporte les paramètres pour affichage ou debug
+
+        Returns:
+            dict: Copie des paramètres actuels
+        """
+        return {
+            "touches": {k: pygame.key.name(v) for k, v in self.settings["touches"].items()},
+            "audio": self.settings["audio"].copy()
+        }
 
 
 # Instance globale

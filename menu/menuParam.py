@@ -7,6 +7,7 @@ import sys
 import os
 import json
 import copy
+from blazyck import get_resource_path
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -17,7 +18,7 @@ from classes.ShipAnimator import ShipAnimator
 from classes.Start_Animation.main import create_space_background
 from classes.GlobalVar.ScreenVar import ScreenVar
 
-SAVE_FILE = "save_parametre.json"
+SAVE_FILE = get_resource_path("save_parametre.json")
 
 DEFAULT_SETTINGS = {
     "touches": {

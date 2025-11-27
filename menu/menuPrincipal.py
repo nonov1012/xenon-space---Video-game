@@ -60,7 +60,8 @@ sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 # Charger et appliquer les paramètres au démarrage
 import json
 try:
-    with open("save_parametre.json", 'r') as f:
+    
+    with open(get_resource_path("save_parametre.json"), 'r') as f:
         saved_settings = json.load(f)
         sm.set_master_volume(saved_settings["audio"]["volume_general"])
         sm.set_music_volume(saved_settings["audio"]["volume_musique"])
