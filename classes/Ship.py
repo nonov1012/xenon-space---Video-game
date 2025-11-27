@@ -893,3 +893,6 @@ class Transport(Ship):
                     positions_valides.append((nl, nc))
 
         return positions_valides
+
+
+
