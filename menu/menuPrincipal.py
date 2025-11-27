@@ -29,7 +29,7 @@ from tuto import lancer_tutoriel
 pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
-ScreenVar(pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE))
+ScreenVar(pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE | pygame.FULLSCREEN))
 GridVar()
 
 ScreenVar.update_scale()
