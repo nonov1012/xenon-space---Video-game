@@ -21,6 +21,7 @@ from menu.menuJouer import MenuPlay
 from menu.menuSucces import MenuSucces
 from menu.menuParam import MenuParametres
 from menu.credit import MenuCredits
+from tuto import lancer_tutoriel
 
 # -------------------------------
 # Initialisation Pygame
@@ -28,6 +29,8 @@ from menu.credit import MenuCredits
 pygame.init()
 screen_info = pygame.display.Info()
 screen_width, screen_height = screen_info.current_w, screen_info.current_h
+ScreenVar(pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE))
+GridVar()
 
 ScreenVar.update_scale()
 GridVar.update_grid()
@@ -37,17 +40,10 @@ pygame.display.set_caption("Xénon Space")
 clock = pygame.time.Clock()
 
 # Curseur personnalise
-# Charger l'image du curseur
 cursor_image = pygame.image.load(os.path.join(MENU_PATH, "cursor.png")).convert_alpha()
-
-# Redimensionner si nécessaire
 CURSOR_SIZE = (48, 32)
 cursor_image = pygame.transform.smoothscale(cursor_image, CURSOR_SIZE)
-
-# Définir le hotspot (point actif du curseur)
 hotspot = (CURSOR_SIZE[0] // 2, CURSOR_SIZE[1] // 2)
-
-# Créer le curseur Pygame
 custom_cursor = pygame.cursors.Cursor(hotspot, cursor_image)
 pygame.mouse.set_cursor(custom_cursor)
 
@@ -60,18 +56,14 @@ sm.load_sfx("son_click", "assets/sounds/menu/buttons/button_pressed.mp3")
 # Charger et appliquer les paramètres au démarrage
 import json
 try:
-    with open("save_parametre.json", 'r') as f:
+    
+    with open(get_resource_path("save_parametre.json"), 'r') as f:
         saved_settings = json.load(f)
         sm.set_master_volume(saved_settings["audio"]["volume_general"])
         sm.set_music_volume(saved_settings["audio"]["volume_musique"])
         sm.set_sfx_volume(saved_settings["audio"]["volume_sons"])
 except:
-    pass  # Utiliser les valeurs par défaut
-
-# ...
-
-# Dans la boucle principale, quand tu ouvres le menu paramètres :
-
+    pass
 
 # Icone
 icone = pygame.image.load("assets/img/menu/logo.png")
@@ -81,6 +73,7 @@ pygame.display.set_icon(icone)
 # Fond anime avec planetes et vaisseau
 # -------------------------------
 stars, planet_manager, B1 = create_space_background()
+animator_main_ship = B1.animator
 
 # -------------------------------
 # Titre centre
@@ -104,16 +97,20 @@ x_bouton = screen_width // 2 - largeur_bouton // 2 + decalage_boutons
 y_bouton = screen_height // 2
 
 texte_jouer = police.render("Jouer", True, blanc)
+texte_tutoriel = police.render("Tutoriel", True, blanc)
 texte_param = police.render("Parametres", True, blanc)
 texte_succes = police.render("Succes", True, blanc)
 texte_quitter = police.render("Quitter", True, blanc)
 texte_credit = police.render("Credits", True, blanc)
 
-bouton_jouer   = pygame.Rect(x_bouton, y_bouton - hauteur_bouton / 1.25 - 20, largeur_bouton, hauteur_bouton)
-bouton_param   = pygame.Rect(x_bouton, y_bouton - (hauteur_bouton / 4) - 10, largeur_bouton, hauteur_bouton)
-bouton_succes  = pygame.Rect(x_bouton, y_bouton + (hauteur_bouton / 4) + 10, largeur_bouton, hauteur_bouton)
-bouton_quitter = pygame.Rect(x_bouton, y_bouton + hauteur_bouton / 1.25 + 20, largeur_bouton, hauteur_bouton)
-bouton_credit  = pygame.Rect(screen_width - largeur_bouton - 30,
+# Ajustement des positions des boutons pour faire de la place au tutoriel
+espacement = 5
+bouton_jouer    = pygame.Rect(x_bouton, y_bouton - hauteur_bouton * 1.5 - espacement * 2, largeur_bouton, hauteur_bouton)
+bouton_tutoriel = pygame.Rect(x_bouton, y_bouton - hauteur_bouton * 0.75 - espacement, largeur_bouton, hauteur_bouton)
+bouton_param    = pygame.Rect(x_bouton, y_bouton, largeur_bouton, hauteur_bouton)
+bouton_succes   = pygame.Rect(x_bouton, y_bouton + hauteur_bouton * 0.75 + espacement, largeur_bouton, hauteur_bouton)
+bouton_quitter  = pygame.Rect(x_bouton, y_bouton + hauteur_bouton * 1.5 + espacement * 2, largeur_bouton, hauteur_bouton)
+bouton_credit   = pygame.Rect(screen_width - largeur_bouton - 30,
                             screen_height - hauteur_bouton - 30,
                             largeur_bouton, hauteur_bouton)
 
@@ -127,6 +124,7 @@ def draw_main_menu():
 
     boutons = [
         (bouton_jouer, texte_jouer),
+        (bouton_tutoriel, texte_tutoriel),
         (bouton_param, texte_param),
         (bouton_succes, texte_succes),
         (bouton_quitter, texte_quitter),
@@ -159,43 +157,28 @@ def draw_main_menu():
 
 
 def gerer_menu_generique(menu, flag_menu):
-    """
-    Gère un menu générique de manière unifiée
-    
-    Args:
-        menu: Instance du menu (MenuPlay, MenuSucces, MenuParametres)
-        flag_menu: Nom de la variable de flag ("play_menu", "succes_menu", etc.)
-    
-    Returns:
-        tuple: (continuer_menu, retour_main_menu, lancer_partie)
-    """
+    """Gère un menu générique de manière unifiée"""
     global main_menu
     
-    # Dessiner le menu
     menu.draw()
     
-    # Gérer les événements
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            return False, False, False  # Arrêter tout
+            return False, False, False
         else:
             menu.handle_events(event)
     
-    # Mise à jour spécifique selon le type de menu
     if isinstance(menu, MenuPlay):
         menu.update_slider_vaisseau()
     elif isinstance(menu, MenuParametres):
         menu.update_slider()
     
-    # Vérifier si on doit retourner au menu principal
     if not menu.en_cours:
-        # Si c'est le menu play et qu'on lance la partie
         if isinstance(menu, MenuPlay) and menu.lancer_partie:
-            return False, False, True  # Arrêter le menu, lancer la partie
-        # Sinon retour au menu principal
+            return False, False, True
         return False, True, False
     
-    return True, False, False  # Continuer le menu actuel
+    return True, False, False
 
 
 # -------------------------------
@@ -204,11 +187,11 @@ def gerer_menu_generique(menu, flag_menu):
 en_cours = True
 main_menu = True
 play_menu = False
+tutoriel_menu = False
 succes_menu = False
 param_menu = False
 credits_menu = False
 
-# Instances des menus (seront recréées à chaque ouverture)
 menu_play = None
 menu_succes = None
 menu_param = None
@@ -230,10 +213,17 @@ while en_cours:
     Animator.update_all()
     PlanetAnimator.update_all()
     ShipAnimator.update_all()
+    animator_main_ship.update_and_draw()
+
 
     # --- Affichage selon l'état ---
     if main_menu:
         draw_main_menu()
+        
+    elif tutoriel_menu:
+        resultat_tuto = lancer_tutoriel(screen, stars, planet_manager)
+        tutoriel_menu = False
+        main_menu = True
         
     elif play_menu and menu_play:
         continuer, retour_main, lancer = gerer_menu_generique(menu_play, "play_menu")
@@ -243,7 +233,6 @@ while en_cours:
             if retour_main:
                 main_menu = True
             elif lancer:
-                # Lancer la partie
                 from menu.modifShips import appliquer_modifications_sliders
                 appliquer_modifications_sliders()
                 ShipAnimator.clear_list()
@@ -251,11 +240,9 @@ while en_cours:
                 joueurs = menu_play.joueurs
                 from main import start_game
                 start_game(menu_play.parametres, menu_play.random_active, joueurs)
-                # Retour au menu après la partie
                 main_menu = True
                 menu_play = None
         
-        # Curseur et affichage
         pygame.display.flip()
         continue
     
@@ -288,7 +275,6 @@ while en_cours:
         credits_menu = False
         main_menu = True
 
-    # --- Curseur ---
     pygame.display.flip()
 
     # --- Événements du menu principal uniquement ---
@@ -305,6 +291,11 @@ while en_cours:
                     menu_play = MenuPlay()
                     menu_play.update()
                     menu_play.en_cours = True
+                
+                elif bouton_tutoriel.collidepoint(event.pos):
+                    sm.play_sfx("son_click")
+                    main_menu = False
+                    tutoriel_menu = True
                     
                 elif bouton_param.collidepoint(event.pos):
                     sm.play_sfx("son_click")

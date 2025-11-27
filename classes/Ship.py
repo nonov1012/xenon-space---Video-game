@@ -866,7 +866,8 @@ class Transport(Ship):
         for i, ship in enumerate(self.cargaison):
             if ship is None:
                 continue
-            mini_img = pygame.transform.scale(ship.image, (20, 20))
+
+            mini_img = pygame.transform.scale(ship.animator.static_image, (20, 20))
             x = (self.cordonner.y * GridVar.cell_size) + GridVar.offset_x + (i * 22)
             y = self.cordonner.x * GridVar.cell_size - 22
             fenetre.blit(mini_img, (x, y))

@@ -30,6 +30,7 @@ import time
 # Import classes
 from classes.FloatingText import FloatingText
 from classes.HUD.HUD import HUD
+from classes.ConfigManager import config
 
 import menu.menuPause
 import menu.menuFin
@@ -98,16 +99,16 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
 
         # --- Touches clavier ---
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+            if config.is_key_pressed("menu_pause", event):
                 running = menu.menuPause.main_pause(ecran)
                 continue
-            elif event.key == pygame.K_LCTRL:
+            elif config.is_key_pressed("afficher_grille", event):
                 afficher_grille = not afficher_grille
-            elif event.key == pygame.K_LSHIFT:
+            elif config.is_key_pressed("afficher_zones", event):
                 afficher_zones = True
-            elif event.key == pygame.K_r and selection_ship:
+            elif config.is_key_pressed("rotation_vaisseau", event) and selection_ship:
                 selection_ship.rotation_aperçu_si_possible(case_souris, map_obj.grille)
-            elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+            elif config.is_key_pressed("terminer_tour", event):
                 end_choice = end_turn_logic(ecran, map_obj)
                 if end_choice == 0:
                     continue
@@ -276,8 +277,7 @@ def draw_game(ecran, stars, map_obj, colors, ships, selection_ship, selection_ca
     stars.update()
     stars.draw(ecran)
 
-    keys = pygame.key.get_pressed()
-    afficher_zones = keys[pygame.K_LSHIFT]
+    afficher_zones = config.is_key_held("afficher_zones")
 
     map_obj.generer_grille(ecran, HUD.show_colors, HUD.show_grid, colors)
 
@@ -750,9 +750,9 @@ def start_game(parametres, random_active, joueurs):
                     if event.type == pygame.QUIT:
                         running = False
                     elif event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
+                        if config.is_key_pressed("menu_pause", event):
                             menu.menuPause.main_pause(screen)
-                        elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                        elif config.is_key_pressed("terminer_tour", event):
                             ia_tour_termine = False
                             end_choice = end_turn_logic(screen, map_obj)
                             if end_choice == 0:
@@ -782,7 +782,7 @@ def start_game(parametres, random_active, joueurs):
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
-                    elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    elif event.type == pygame.KEYDOWN and config.is_key_pressed("menu_pause", event):
                         menu.menuPause.main_pause(screen)
                 
                 maintenant = pygame.time.get_ticks()
