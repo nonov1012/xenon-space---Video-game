@@ -45,10 +45,10 @@ class MenuPlay:
         
         # Parametres avec sliders
         self.parametres = {
-            "Nombre de planètes": {"valeur": 3, "min": 1, "max": 10},
-            "Nombre d'astéroïdes": {"valeur": 5, "min": 1, "max": 20},
-            "Niveau de départ de la base": {"valeur": 1, "min": 1, "max": 5},
-            "Argent de départ": {"valeur": 1000, "min": 500, "max": 5000},
+            "Nombre de planetes": {"valeur": 3, "min": 1, "max": 10},
+            "Nombre d'asteroides": {"valeur": 5, "min": 1, "max": 20},
+            "Niveau de depart de la base": {"valeur": 1, "min": 1, "max": 5},
+            "Argent de depart": {"valeur": 1000, "min": 500, "max": 5000},
         }
 
         self.random_active = False
@@ -65,7 +65,7 @@ class MenuPlay:
         self.max_scroll = 0
         self.slider_vaisseau_actif = None
 
-        # Paramètres joueurs
+        # Parametres joueurs
         self.joueurs = {
             "Joueur 1": {
                 "nom": "Joueur 1",
@@ -77,7 +77,7 @@ class MenuPlay:
             }
         }
         
-        # Variables pour l'édition des noms
+        # Variables pour l'edition des noms
         self.nom_en_edition = None  # "Joueur 1" ou "Joueur 2" ou None
         self.texte_temp = ""
 
@@ -143,7 +143,7 @@ class MenuPlay:
             if os.path.exists(path):
                 img = pygame.image.load(path).convert_alpha()
             else:
-                print(f"⚠️ Fichier non trouvé : {path}")
+                print(f"⚠️ Fichier non trouve : {path}")
                 img = pygame.Surface((80, 80))
                 img.fill((255, 0, 0))
             self.icones_vaisseaux[ship] = pygame.transform.scale(img, (80, 80))
@@ -175,7 +175,7 @@ class MenuPlay:
         if self.onglet_actif in ["Classique", "Avance"]:
             liste_affichee = []
             if self.onglet_actif == "Classique":
-                liste_affichee = ["Nombre de planètes", "Nombre d'astéroïdes"]
+                liste_affichee = ["Nombre de planetes", "Nombre d'asteroides"]
             elif self.onglet_actif == "Avance":
                 liste_affichee = list(self.parametres.keys())
 
@@ -314,7 +314,7 @@ class MenuPlay:
             texte_fleche = Police.petite.render(fleche, True, Couleur.BLANC)
             self.screen.blit(texte_fleche, (self.dropdown_x + self.dropdown_largeur - 30, self.dropdown_y + 8))
             
-            # Liste déroulante
+            # Liste deroulante
             if self.dropdown_ouvert:
                 total_items = len(self.types_vaisseaux)
                 max_dropdown_scroll = max(0, total_items - self.max_items_dropdown)
@@ -343,7 +343,7 @@ class MenuPlay:
             self.img_rect = self.img_vaisseau.get_rect(center=(icone_x + icone_taille//2, icone_y + icone_taille//2))
             self.screen.blit(self.img_vaisseau, self.img_rect.topleft)
             
-            # Sélecteur de tier (MotherShip)
+            # Selecteur de tier (MotherShip)
             if self.vaisseau_actif == "MotherShip":
                 tier_x_start = icone_x + icone_taille + 20
                 tier_y_start = icone_y + 25
@@ -361,14 +361,14 @@ class MenuPlay:
                     texte_tier = Police.petite.render(str(tier), True, Couleur.BLANC)
                     self.screen.blit(texte_tier, texte_tier.get_rect(center=tier_rect.center))
             
-            # Zone scrollable paramètres
+            # Zone scrollable parametres
             params_zone_largeur = self.panneau_largeur - 20
             params_zone_hauteur = self.panneau_hauteur - 130
             
             surf_scroll = pygame.Surface((params_zone_largeur, params_zone_hauteur))
             surf_scroll.fill(Couleur.GRIS_FONCE)
             
-            # Paramètres du vaisseau
+            # Parametres du vaisseau
             if self.vaisseau_actif == "MotherShip":
                 params_vaisseau = vaisseaux_sliders[self.vaisseau_actif][self.tier_actif]
             else:
@@ -486,11 +486,11 @@ class MenuPlay:
             self.screen.blit(texte_surf, rect_texte)
 
     def handle_events(self, event):
-        """Gère les événements de manière centralisée"""
+        """Gere les evenements de maniere centralisee"""
         if event.type == pygame.QUIT:
             self.en_cours = False
 
-        # === GESTION DU CLAVIER POUR ÉDITION DES NOMS ===
+        # === GESTION DU CLAVIER POUR eDITION DES NOMS ===
         elif event.type == pygame.KEYDOWN:
             if self.nom_en_edition:
                 if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
@@ -500,14 +500,14 @@ class MenuPlay:
                     self.nom_en_edition = None
                     self.texte_temp = ""
                 elif event.key == pygame.K_ESCAPE:
-                    # Annuler l'édition
+                    # Annuler l'edition
                     self.nom_en_edition = None
                     self.texte_temp = ""
                 elif event.key == pygame.K_BACKSPACE:
-                    # Supprimer un caractère
+                    # Supprimer un caractere
                     self.texte_temp = self.texte_temp[:-1]
                 else:
-                    # Ajouter le caractère (limiter à 20 caractères)
+                    # Ajouter le caractere (limiter à 20 caracteres)
                     if len(self.texte_temp) < 20 and event.unicode.isprintable():
                         self.texte_temp += event.unicode
             
@@ -594,7 +594,7 @@ class MenuPlay:
                 if self.rect_dropdown.collidepoint(event.pos):
                     self.dropdown_ouvert = not self.dropdown_ouvert
                 
-                # Clic sur liste déroulante
+                # Clic sur liste deroulante
                 elif self.dropdown_ouvert:
                     for rect_item, ship in self.liste_rects:
                         if rect_item.collidepoint(event.pos):
@@ -681,10 +681,10 @@ def draw(ecran):
     largeur_ecran, hauteur_ecran = ecran.get_size()
     screen_ratio = (largeur_ecran * 100 / 600) / 100
     
-    # Création du fond spatial animé
+    # Creation du fond spatial anime
     stars, planet_manager, vaisseau_fond = create_space_background()
     
-    # Création de l'instance du menu
+    # Creation de l'instance du menu
     menu = MenuPlay()
     menu.update()
     menu.en_cours = True
@@ -692,7 +692,7 @@ def draw(ecran):
     horloge = pygame.time.Clock()
 
     while menu.en_cours:
-        # Fond animé
+        # Fond anime
         ecran.fill((0, 0, 0))
         stars.update()
         stars.draw(ecran)
@@ -701,7 +701,7 @@ def draw(ecran):
         PlanetAnimator.update_all()
         ShipAnimator.update_all()
 
-        # Gestion des événements
+        # Gestion des evenements
         for event in pygame.event.get():
             menu.handle_events(event)
         

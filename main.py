@@ -576,8 +576,8 @@ def start_game(parametres, random_active, joueurs):
 
 
     map_obj = Map()
-    map_obj.generer_planet(parametres["Nombre de planètes"]["valeur"])
-    map_obj.generer_asteroides(parametres["Nombre d'astéroïdes"]["valeur"])
+    map_obj.generer_planet(parametres["Nombre de planetes"]["valeur"])
+    map_obj.generer_asteroides(parametres["Nombre d'asteroides"]["valeur"])
     
     # couleurs pour l'affichage des zones
     colors = {
@@ -636,7 +636,7 @@ def start_game(parametres, random_active, joueurs):
 
     # MotherShip du joueur 1
     smm1 = MotherShipIA(
-        tier=4,
+        tier=1,
         cordonner=Point(0, 0),
         id=next_uid[0],
         path=img_base_dir,
@@ -668,7 +668,7 @@ def start_game(parametres, random_active, joueurs):
 
     # MotherShip du joueur 2
     smm2 = MotherShipIA(
-        tier=4,
+        tier=1,
         cordonner=Point(25, 46),
         id=next_uid[0],
         path=img_base_dir,
@@ -689,7 +689,7 @@ def start_game(parametres, random_active, joueurs):
 
     # Foreuse joueur 2
     sf2 = Foreuse(
-        cordonner=Point(24, 38),
+        cordonner=Point(23, 46),
         id=next_uid[0],
         path=img_foreuse_dir,
         image=img_foreuse,
@@ -793,7 +793,8 @@ def start_game(parametres, random_active, joueurs):
                     ships_passed = True
 
                     for ship_ia in joueur_actuel.ships[:]:
-                        transport_ia_instance = None
+
+
 
                         if ship_ia.animator.target == (ship_ia.animator.x, ship_ia.animator.y) or ship_ia.animator.current_anim != "weapon":
                             if isinstance(ship_ia, IA_Lourd):
@@ -804,8 +805,8 @@ def start_game(parametres, random_active, joueurs):
                                 ships_passed = ia_petit_play(ship_ia, map_obj, tous_les_vaisseaux)
                             elif isinstance(ship_ia, Foreuse):
                                 jouer_tour_foreuse(ship_ia, map_obj.grille, tous_les_vaisseaux)
-                            elif isinstance(ship_ia, Transport):
-                                transport_ia_instance.jouer_tour(map_obj.grille, joueur_actuel.ships)
+                            elif isinstance(ship_ia, IATransport):
+                                ship_ia.jouer_tour(map_obj.grille, joueur_actuel.ships)
                             elif isinstance(ship_ia, MotherShipIA):
                                 if not ship_ia.est_mort():
                                     ship_ia.jouer_tour(map_obj.grille, tous_les_vaisseaux, joueur_actuel, shop, map_obj, next_uid, images, paths)

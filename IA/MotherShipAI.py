@@ -1,10 +1,11 @@
 import pygame
 from typing import Optional, Tuple, List
 from classes.MotherShip import MotherShip
-from classes.Ship import Ship, Petit, Moyen, Lourd, Foreuse
+from classes.Ship import Ship, Petit, Moyen, Lourd, Foreuse, Transport
 from classes.Point import Point, Type
 from menu.modifShips import SHIP_STATS
 from IA.IA_Lourd import IA_Lourd
+from IA.IATransport import IATransport
 
 class MotherShipIA(MotherShip):
     """
@@ -162,11 +163,11 @@ class MotherShipIA(MotherShip):
         valuation = self._valuation_militaire(ships)
         
         # Compter les foreuses existantes
+        nb_transport = sum(1 for s in player.ships if isinstance(s, Transport) and not s.est_mort())
         nb_foreuses = sum(1 for s in player.ships if isinstance(s, Foreuse) and not s.est_mort())
         nb_petits = sum(1 for s in player.ships if isinstance(s, Petit) and not s.est_mort())
         nb_moyens = sum(1 for s in player.ships if isinstance(s, Moyen) and not s.est_mort())
         nb_lourds = sum(1 for s in player.ships if isinstance(s, Lourd) and not s.est_mort())
-        
         # SITUATION CRITIQUE
         if valuation < -2000:
             # Essayer d'acheter un Lourd si possible
@@ -206,6 +207,11 @@ class MotherShipIA(MotherShip):
                             return
             
             # Priorité 2 : Maintenir au moins 2 foreuses pour l'économie
+            if nb_transport < 1:
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Transport", (3, 3)):
+                    return
+
+            # Priorité 2 : Maintenir au moins 2 foreuses pour l'économie
             if nb_foreuses < 2:
                 if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Foreuse", (1, 1)):
                     return
@@ -231,16 +237,18 @@ class MotherShipIA(MotherShip):
                     if self.upgrade():
                         return
             
-            # Priorité 2 : Acheter un Lourd si tier 4 et qu'on en a moins de 2
-            if self.tier >= 4 and nb_lourds < 2 and argent_disponible >= 1050:
-                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Grand", (3, 4)):
+            if nb_transport < 2:
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Transport", (3, 3)):
                     return
-            
+
+            # Priorité 2 : Acheter un Lourd si tier 4 et qu'on en a moins de 2
+            if self.tier == 4 and nb_lourds < 2 and argent_disponible >= 1050:
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Lourd", (3, 4)) :
+                    return
             # Priorité 3 : Maximiser les foreuses (jusqu'à 4)
             if nb_foreuses < 4:
-                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Foreuse", (1, 1)):
+                if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Foreuse", (1, 1)) :
                     return
-            
             # Priorité 4 : Si on a trop d'argent, acheter un Moyen
             if argent_disponible >= 1000 and self.tier >= 3:
                 self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Moyen", (2, 2))
@@ -265,8 +273,9 @@ class MotherShipIA(MotherShip):
                             type_map = {
                                 "Petit": "Petit",
                                 "Moyen": "Moyen",
-                                "Grand": "Lourd",
-                                "Foreuse": "Foreuse"
+                                "Lourd": "Lourd",
+                                "Foreuse": "Foreuse",
+                                "Transport": "Transport"
                             }
                             type_vaisseau = type_map.get(nom_vaisseau)
                             
@@ -355,6 +364,14 @@ class MotherShipIA(MotherShip):
                 id=uid,
                 path=paths.get('foreuse'),
                 image=images.get('foreuse'),
+                joueur=joueur_id
+            )
+        elif type_vaisseau == "Transport":
+            return IATransport(
+                cordonner=position,
+                id=uid,
+                path=paths.get('transport'),
+                image=images.get('transport'),
                 joueur=joueur_id
             )
         

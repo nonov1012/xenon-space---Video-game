@@ -49,7 +49,9 @@ PETIT_SCORE = {
         "MotherShip" : 250,
         "MotherShipIA" : 250,
         "Foreuse" : 50,
-        "Transport" : 10
+        "Transport" : 10,
+        "IATransport" : 10
+        
     }
 
 RPC_ID = "1419749281190903848"
