@@ -130,18 +130,31 @@ class MenuPause:
         y_start = (self.hauteur_ecran - total_height) // 2
         
         # Création des boutons
+        # Création des boutons
         self.buttons = []
         for i, (text, action) in enumerate(button_configs):
-            image = pygame.transform.scale(image_base, (button_width, button_height))
+
+            # --- Taille du bouton ---
+            if text == "RETOUR AU MENU PRINCIPAL":
+                btn_w, btn_h = 1250, 130   # ← largeur augmentée
+            elif text == "QUITTER":
+                btn_w, btn_h = 500, 130   # ← largeur augmentée
+            else:
+                btn_w, btn_h = 630, 130   # ← taille normale
+
+            image = pygame.transform.scale(image_base, (btn_w, btn_h))
+            
             y = y_start + i * (button_height + espacement)
             rect = pygame.Rect(
-                self.largeur_ecran // 2 - button_width // 2,
+                self.largeur_ecran // 2 - btn_w // 2,  # recentre le bouton
                 y,
-                button_width,
-                button_height
+                btn_w,
+                btn_h
             )
+
             button = PauseButton(rect, text, self.police_bouton, image, action)
             self.buttons.append(button)
+
             
     # =====================================
     # ACTIONS DES BOUTONS
