@@ -54,6 +54,17 @@ PETIT_SCORE = {
 
 RPC_ID = "1419749281190903848"
 
+def get_resource_path(relative_path):
+    """ Obtient le chemin absolu vers la ressource """
+    try:
+        # PyInstaller crée un dossier temp et stocke le chemin dans _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
+
 # ========== FONCTIONS DE MISE À JOUR ==========
 
 # def update_all(screen: pygame.Surface):
