@@ -10,6 +10,9 @@ from PIL import Image, ImageSequence
 import numpy as np
 from typing import ClassVar
 
+from classes.GlobalVar.GridVar import GridVar
+from classes.GlobalVar.ScreenVar import ScreenVar
+
 def load_spritesheet(path: str, frame_width: int, frame_height: int) -> List[pygame.Surface]:
     """
     Charge une spritesheet à partir d'un fichier image.
@@ -35,12 +38,6 @@ def load_spritesheet(path: str, frame_width: int, frame_height: int) -> List[pyg
     return frames
 
 class Animator:
-    screen = None
-
-    @staticmethod
-    def set_screen(screen: pygame.Surface):
-        Animator.screen = screen
-
     """
     Gère l'image statique et plusieurs animations à partir de spritesheets.
     """
@@ -48,8 +45,7 @@ class Animator:
         self,
         path: str,
         dimensions: Tuple[int, int],   # (width_tiles, height_tiles)
-        coord: Tuple[int, int],        # (x, y) en pixels
-        tile_size: int = TAILLE_CASE,
+        coord: Tuple[int, int],        # (x, y) en pixels,
         default_fps: int = 10,
         speed : int = 1
         ):
@@ -64,21 +60,16 @@ class Animator:
         :param speed: Vitesse de mouvement (défaut = 1)
         """
         self.path = path
-        self.tile_size = tile_size
+        self.tile_size = GridVar.cell_size
 
         # attribut de l'entité
-        self.pixel_w = dimensions[0] * tile_size
-        self.pixel_h = dimensions[1] * tile_size
+        self.pixel_w = dimensions[0] * self.tile_size
+        self.pixel_h = dimensions[1] * self.tile_size
 
         # position
-        self.x = coord[0] * tile_size
-        self.x += OFFSET_X
-        self.y = coord[1] * tile_size
-
-        # --- dimensions en nombre de cases ---
-        self.tile_w, self.tile_h = dimensions
-        self.pixel_w = self.tile_w * tile_size
-        self.pixel_h = self.tile_h * tile_size
+        self.x = coord[0] * self.tile_size
+        self.x += GridVar.offset_x
+        self.y = coord[1] * self.tile_size
 
         # image statique (chargée une seule fois)
         self.static_image = None
@@ -190,7 +181,7 @@ class Animator:
         rotated_frame = pygame.transform.rotate(frame, self.angle)
         rect = rotated_frame.get_rect(center=(self.x + self.pixel_w/2, self.y + self.pixel_h/2))
         # effacer la zone avec la couleur demandée
-        pygame.draw.rect(Animator.screen, color, rect)
+        pygame.draw.rect(ScreenVar.screen, color, rect)
 
 
     def update_and_draw(self):
@@ -221,7 +212,7 @@ class Animator:
         # appliquer la rotation autour du centre
         rotated_frame = pygame.transform.rotate(frame, -self.angle)  # négatif si 0° = vers la droite
         rect = rotated_frame.get_rect(center=(self.x + self.pixel_w/2, self.y + self.pixel_h/2))
-        Animator.screen.blit(rotated_frame, rect.topleft)
+        ScreenVar.screen.blit(rotated_frame, rect.topleft)
 
     def get_center(self) -> Tuple[int, int]:
         """

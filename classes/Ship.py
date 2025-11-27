@@ -1,5 +1,7 @@
 import pygame
 from typing import Tuple, List, Optional
+from classes.GlobalVar.GridVar import GridVar
+from classes.ProjectileAnimator import ProjectileAnimator
 from classes.ShipAnimator import ShipAnimator
 from blazyck import *
 from classes.Point import Point, Type
@@ -7,6 +9,9 @@ from classes.Economie import *
 from heapq import heappush, heappop
 from classes.FloatingText import FloatingText
 from menu.modifShips import SHIP_STATS
+from collections import deque
+import threading
+
 
 # =======================
 # Classe Ship = Vaisseau
@@ -17,7 +22,7 @@ class Ship:
                  pv_max: int, attaque: int, port_attaque: int, port_deplacement: int, cout: int,
                  taille: Tuple[int,int], peut_miner: bool, peut_transporter: bool, image: pygame.Surface,
                  tier: int, cordonner: Optional[Point] = None, id: Optional[int] = None,
-                 path: str = None, joueur : int = 0):
+                 path: str = None, joueur : int = 0, isAI: bool = False):
         """
         Classe de base pour tous les vaisseaux.
         
@@ -52,6 +57,7 @@ class Ship:
         self.joueur = joueur
         self.gain = 0
         self.projectile_type = "laser"
+        self.isAI = isAI
 
         # Inventaire (3 slots si transport possible)
         self.cargaison = [None, None, None]
@@ -123,14 +129,11 @@ class Ship:
         - déclenche animation de tir si le vaisseau est armé
         """
         if self.joueur != cible.joueur:
-            cible.subir_degats(self.attaque)
-            FloatingText(f"-{self.attaque}", (cible.animator.x + cible.animator.pixel_w, cible.animator.y + cible.animator.pixel_h / 2 ), color=(255, 0, 0))
-            
             if self.attaque > 0 and not isinstance(self, Foreuse):
                 # Calcul position centrale de la cible
                 largeur, hauteur = cible.donner_dimensions(cible.direction)
-                target_x = (cible.cordonner.y * TAILLE_CASE) + (largeur * TAILLE_CASE) / 2 + OFFSET_X
-                target_y = (cible.cordonner.x * TAILLE_CASE) + (hauteur * TAILLE_CASE) / 2
+                target_x = (cible.cordonner.y * GridVar.cell_size) + (largeur * GridVar.cell_size) / 2 + GridVar.offset_x
+                target_y = (cible.cordonner.x * GridVar.cell_size) + (hauteur * GridVar.cell_size) / 2
 
                 self.animator.fire(
                     projectile_type=self.projectile_type,
@@ -138,6 +141,14 @@ class Ship:
                     is_fired=True,
                     projectile_speed=3
                 )
+
+                def appliquer_degats():
+                    cible.subir_degats(self.attaque)
+                    FloatingText(f"-{self.attaque}", (cible.animator.x + cible.animator.pixel_w, cible.animator.y + cible.animator.pixel_h / 2 ), color=(255, 0, 0))
+
+                threading.Timer(1, appliquer_degats).start()
+
+                self.port_attaque = 0
         if cible.est_mort():
             self.gain += cible.cout * POURCENT_DEATH_REWARD
 
@@ -156,10 +167,7 @@ class Ship:
             # Supprimer de la liste des vaisseaux vivants
             player_ships = Turn.get_player_with_id(self.joueur).ships
             if self in player_ships:  # ou la liste globale de ships
-                print(player_ships)
                 player_ships.remove(self)
-                print(player_ships)
-
 
     def est_mort(self):
         """Retourne True si le vaisseau est détruit."""
@@ -271,7 +279,7 @@ class Ship:
         Retourne (chemin, cout_total) ou (None, inf).
         """
         largeur, hauteur = self.donner_dimensions(direction)
-        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2}
+        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2, Type.PLANETE: 9999, Type.ASTEROIDE: 9999}
 
         def heuristique(pos1, pos2):
             return abs(pos1[0]-pos2[0]) + abs(pos1[1]-pos2[1])
@@ -327,7 +335,7 @@ class Ship:
         reachable = []
         largeur, hauteur = self.donner_dimensions(direction)
         nb_lignes, nb_colonnes = len(grille), len(grille[0])
-        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2}
+        cout_case = {Type.VIDE: 1, Type.ATMOSPHERE: 2, Type.PLANETE: 9999, Type.ASTEROIDE: 9999}
 
         from collections import deque
         queue = deque()
@@ -369,8 +377,6 @@ class Ship:
                                 reachable.append((nl, nc))
 
         return reachable
-
-
 
     def positions_possibles_attaque(self, grille: List[List[Point]], direction=None):
         """Retourne toutes les cases dans la portée d’attaque (distance de Manhattan)."""
@@ -430,13 +436,12 @@ class Ship:
                         return True
         return False
 
-
-    def deplacement(self, case_cible: Tuple[int, int], grille: List[List[Point]], ships: List["Ship"]):
+    def deplacement(self, case_cible: Tuple[int, int], grille: list[list], ships: list["Ship"]):
         """
-        Exécute un déplacement ou une attaque :
-        - Si case cible est attaquable → attaque
-        - Sinon, si case cible atteignable → déplace le vaisseau
-        Met à jour la grille et les animations, et réduit la portée en fonction du terrain.
+        Déplace le vaisseau ou attaque/miner la case cible.
+        - Si la case est attaquable → attaque
+        - Si la case est un astéroïde minable → mine
+        - Sinon, avance vers la case, au maximum selon la portée de déplacement
         """
 
         if self.id is None:
@@ -448,7 +453,7 @@ class Ship:
         ligne, colonne = case_cible
         cible_direction = self.aperçu_direction
 
-        # ---- Attaque ----
+        # ---------------- Attaque ----------------
         positions_attaque = self.positions_possibles_attaque(grille, direction=cible_direction)
         if case_cible in positions_attaque:
             cible_ship = self.trouver_vaisseau_a_position(ships, ligne, colonne)
@@ -465,71 +470,70 @@ class Ship:
                 self.miner_asteroide(grille, colonne, ligne)
                 return True
 
-        # ---- Déplacement ----
-        # On récupère toutes les positions atteignables et leur coût via BFS limité
-        reachable = self.positions_possibles_adjacentes(grille, direction=cible_direction)
-        if (ligne, colonne) not in reachable:
-            return False
+        # ---------------- Déplacement ----------------
+        
 
-        # Reconstituer le chemin vers la case cible (BFS + dictionnaire de parents)
-        from collections import deque
-        queue = deque()
         start = (self.cordonner.x, self.cordonner.y)
-        queue.append(start)
+        queue = deque([start])
         parent = {start: None}
         visited = {start: 0}
 
         while queue:
             current = queue.popleft()
-            if current == (ligne, colonne):
-                break
             l, c = current
             for dl, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
                 nl, nc = l + dl, c + dc
-                if 0 <= nl <= len(grille)-self.donner_dimensions(cible_direction)[1] and \
-                0 <= nc <= len(grille[0])-self.donner_dimensions(cible_direction)[0]:
 
-                    if not self.verifier_collision(grille, nl, nc, cible_direction, ignorer_self=True):
-                        continue
+                largeur, hauteur = self.donner_dimensions(cible_direction)
+                if not (0 <= nl <= len(grille)-hauteur and 0 <= nc <= len(grille[0])-largeur):
+                    continue
 
-                    max_cost = 0
-                    valide = True
-                    largeur, hauteur = self.donner_dimensions(cible_direction)
-                    for yy in range(nl, nl+hauteur):
-                        for xx in range(nc, nc+largeur):
-                            point = grille[yy][xx]
-                            if point.type == Type.VIDE:
-                                max_cost = max(max_cost, 1)
-                            elif point.type == Type.ATMOSPHERE:
-                                max_cost = max(max_cost, 2)
-                            elif point.type == Type.VAISSEAU:
-                                continue
-                            else:
-                                valide = False
-                                break
-                        if not valide:
+                if not self.verifier_collision(grille, nl, nc, cible_direction, ignorer_self=True):
+                    continue
+
+                max_cost = 0
+                valide = True
+                for yy in range(nl, nl+hauteur):
+                    for xx in range(nc, nc+largeur):
+                        point = grille[yy][xx]
+                        if point.type == Type.VIDE:
+                            max_cost = max(max_cost, 1)
+                        elif point.type == Type.ATMOSPHERE:
+                            max_cost = max(max_cost, 2)
+                        elif point.type == Type.VAISSEAU:
+                            continue
+                        else:
+                            valide = False
                             break
+                    if not valide:
+                        break
 
-                    if valide:
-                        g_next = visited[(l,c)] + max_cost
-                        if g_next <= self.port_deplacement and ((nl, nc) not in visited or g_next < visited[(nl,nc)]):
-                            visited[(nl, nc)] = g_next
-                            parent[(nl, nc)] = (l, c)
-                            queue.append((nl, nc))
+                if valide:
+                    g_next = visited[(l,c)] + max_cost
+                    if ((nl, nc) not in visited) or (g_next < visited[(nl, nc)]):
+                        visited[(nl, nc)] = g_next
+                        parent[(nl, nc)] = (l, c)
+                        queue.append((nl, nc))
 
-        # Reconstituer le chemin
-        chemin = []
+        # ---------------- Reconstituer le chemin ----------------
         node = (ligne, colonne)
+        if node not in parent:
+            # cible hors portée → prendre le noeud le plus proche
+            distances = [(abs(node[0]-n[0]) + abs(node[1]-n[1]), n) for n in parent.keys()]
+            node = min(distances)[1]
+
+        chemin = []
         while node:
             chemin.append(node)
             node = parent.get(node)
         chemin.reverse()
 
-        if not chemin or len(chemin) < 2:
+        if len(chemin) < 2:
             return False
-        
-        # Réduire la portée selon le chemin parcouru, case par case
-        for nl, nc in chemin[1:]:  # ignorer la case de départ
+
+        # ---------------- Parcours du chemin ----------------
+        dernier_ligne, dernier_colonne = chemin[0]
+        for nl, nc in chemin[1:]:
             largeur, hauteur = self.donner_dimensions(cible_direction)
             max_cost = 0
             for yy in range(nl, nl + hauteur):
@@ -539,31 +543,28 @@ class Ship:
                         max_cost = max(max_cost, 1)
                     elif point.type == Type.ATMOSPHERE:
                         max_cost = max(max_cost, 2)
-                    elif point.type == Type.VAISSEAU:
-                        continue
+            if self.port_deplacement - max_cost < 0:
+                break
             self.port_deplacement -= max_cost
-            if self.port_deplacement < 0:
-                self.port_deplacement = 0
+            dernier_ligne, dernier_colonne = nl, nc
 
-        # Libérer l'ancienne position
+        # ---------------- Mettre à jour la position ----------------
         self.liberer_position(grille)
-
-        # Mettre à jour la position finale
-        self.cordonner._x = ligne
-        self.cordonner._y = colonne
+        self.cordonner._x = dernier_ligne
+        self.cordonner._y = dernier_colonne
         self.direction = cible_direction
         self.occuper_plateau(grille, Type.VAISSEAU)
 
-        # Mise à jour de l'animator
+        # ---------------- Animator ----------------
         largeur, hauteur = self.donner_dimensions(self.direction)
-        x = colonne * TAILLE_CASE + OFFSET_X
-        y = ligne * TAILLE_CASE
+        x = colonne * GridVar.cell_size + GridVar.offset_x
+        y = ligne * GridVar.cell_size
 
-        self.prevision.x = ligne
-        self.prevision.y = colonne
+        self.prevision.x = dernier_ligne
+        self.prevision.y = dernier_colonne
         self.animator.set_target((x, y))
-        self.animator.pixel_w = largeur * TAILLE_CASE
-        self.animator.pixel_h = hauteur * TAILLE_CASE
+        self.animator.pixel_w = largeur * GridVar.cell_size
+        self.animator.pixel_h = hauteur * GridVar.cell_size
 
         angles = {"haut": 0, "droite": -90, "gauche": 90, "bas": 180}
         if cible_direction in angles:
@@ -574,7 +575,6 @@ class Ship:
         self.prevision.alpha = 0
 
         return True
-
 
     # ------------ ROTATION (aperçu) ------------
     def rotation_aperçu(self, grille: List[List[Point]]):
@@ -601,9 +601,9 @@ class Ship:
             self.aperçu_cordonner._y = nouvelle_col
             
             # Mise à jour du visualiseur de prévision
-            x = nouvelle_col * TAILLE_CASE + OFFSET_X
-            y = nouvelle_ligne * TAILLE_CASE
-            w, h = largeur * TAILLE_CASE, hauteur * TAILLE_CASE
+            x = nouvelle_col * GridVar.cell_size + GridVar.offset_x
+            y = nouvelle_ligne * GridVar.cell_size
+            w, h = largeur * GridVar.cell_size, hauteur * GridVar.cell_size
 
             self.prevision.x = x
             self.prevision.y = y
@@ -620,8 +620,8 @@ class Ship:
         self.aperçu_cordonner._x = case_souris[0]
         self.aperçu_cordonner._y = case_souris[1]
         
-        self.prevision.x = case_souris[1] * TAILLE_CASE + OFFSET_X
-        self.prevision.y = case_souris[0] * TAILLE_CASE
+        self.prevision.x = case_souris[1] * GridVar.cell_size + GridVar.offset_x
+        self.prevision.y = case_souris[0] * GridVar.cell_size
         
         self.rotation_aperçu(grille)
 
@@ -630,14 +630,16 @@ class Ship:
 
 class Petit(Ship):
     """Vaisseau rapide et fragile."""
-    def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None, 
+    def __init__(self, cordonner: Point, id: Optional[int] = None, 
                  image: Optional[pygame.Surface] = None, joueur: int = 1):
         stats = SHIP_STATS["Petit"]
         
         # Créer l'image si non fournie
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
-        
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
+            
+        path = os.path.join(SHIPS_PATH, "petit")
+
         super().__init__(
             pv_max=stats["pv_max"],
             attaque=stats["attaque"],
@@ -647,7 +649,7 @@ class Petit(Ship):
             taille=stats["taille"],
             peut_miner=stats["peut_miner"],
             peut_transporter=stats["peut_transporter"],
-            image=image,
+            image=os.path.join(path, "base.png"),
             tier=1,
             cordonner=cordonner,
             id=id,
@@ -665,7 +667,7 @@ class Moyen(Ship):
         stats = SHIP_STATS["Moyen"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -694,7 +696,7 @@ class Lourd(Ship):
         stats = SHIP_STATS["Lourd"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -723,12 +725,12 @@ class Foreuse(Ship):
         stats = SHIP_STATS["Foreuse"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
-            attaque=stats["attaque"],
-            port_attaque=stats["port_attaque"],
+            attaque=0,
+            port_attaque=0,
             port_deplacement=stats["port_deplacement"],
             cout=stats["cout"],
             taille=stats["taille"],
@@ -743,7 +745,6 @@ class Foreuse(Ship):
         )
         self.animator.speed = 10
 
-
 class Transport(Ship):
     """Vaisseau pouvant transporter d'autres vaisseaux."""
     def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None,
@@ -751,7 +752,7 @@ class Transport(Ship):
         stats = SHIP_STATS["Transport"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             pv_max=stats["pv_max"],
@@ -776,39 +777,80 @@ class Transport(Ship):
         self.animator.speed = 7
 
 
-    def ajouter_cargo(self, ship: Ship) -> bool:
-        """Ajoute un vaisseau à la cargaison."""
+    def ajouter_cargo(self, ship: Ship, grille: List[List[Point]]) -> bool:
+        """
+        Ajoute un vaisseau à la cargaison :
+        - Vérifie qu’il reste un slot libre
+        - Vérifie que le vaisseau est à portée d’embarquement
+        - Retire le vaisseau de la grille et de la liste des vaisseaux actifs
+        - Supprime son animation du rendu
+        """
         if not self.peut_transporter:
             return False
-            
+
         for i in range(len(self.cargaison)):
             if self.cargaison[i] is None:
+                if ship.est_mort():
+                    return False
+
+                # Libérer les cases sur la grille
+                ship.liberer_position(grille)
+                
+                ship.animator.alpha = 0  # totalement transparent
+                ship.animator.show_health = False
+                
+
+                # Ajouter dans la cargaison
                 self.cargaison[i] = ship
+
                 return True
+
         return False
 
+
     def retirer_cargo(self, index: int, ligne: int, colonne: int, grille: List[List[Point]], ships: List[Ship]) -> bool:
-        """Retire un vaisseau de la cargaison et le place sur la grille."""
+        """
+        Retire un vaisseau de la cargaison et le replace sur la grille :
+        - Vérifie la validité de la position
+        - Réactive l’animation et le rend visible
+        - Réinsère dans la liste des vaisseaux actifs
+        """
         if 0 <= index < len(self.cargaison):
             ship = self.cargaison[index]
             if ship is None:
                 return False
-                
-            # Vérifier si la position est libre
+
+            # Vérifier que la position est valide
             if not ship.verifier_collision(grille, ligne, colonne, ship.direction):
                 return False
-                
-            self.cargaison[index] = None
+
+            # Placer le vaisseau sur la carte
             ship.cordonner._x = ligne
             ship.cordonner._y = colonne
             ship.direction = "haut"
             ship.occuper_plateau(grille, Type.VAISSEAU)
-            
-            # Remettre le vaisseau dans la liste des vaisseaux actifs
-            if ship not in ships:
-                ships.append(ship)
+
+            # Réactiver animations
+            ship.animator.alpha = 255  # totalement transparent*
+            ship.animator.show_health = True
+
+            ship.port_deplacement = 0
+
+
+            # Repositionner le sprite
+            largeur, hauteur = ship.donner_dimensions(ship.direction)
+            ship.animator.x = colonne * GridVar.cell_size + GridVar.offset_x
+            ship.animator.y = ligne * GridVar.cell_size
+            ship.animator.pixel_w = largeur * GridVar.cell_size
+            ship.animator.pixel_h = hauteur * GridVar.cell_size
+
+            # Retirer du cargo
+            self.cargaison[index] = None
+
             return True
+
         return False
+
 
     def _taille_vaisseau(self, ship: Ship) -> int:
         """Détermine la taille d'un vaisseau pour l'affichage."""
@@ -824,21 +866,20 @@ class Transport(Ship):
         for i, ship in enumerate(self.cargaison):
             if ship is None:
                 continue
-            mini_img = pygame.transform.scale(ship.image, (20, 20))
-            x = (self.cordonner.y * TAILLE_CASE) + OFFSET_X + (i * 22)
-            y = self.cordonner.x * TAILLE_CASE - 22
+
+            mini_img = pygame.transform.scale(ship.animator.static_image, (20, 20))
+            x = (self.cordonner.y * GridVar.cell_size) + GridVar.offset_x + (i * 22)
+            y = self.cordonner.x * GridVar.cell_size - 22
             fenetre.blit(mini_img, (x, y))
 
     def positions_debarquement(self, ship_stocke: Ship, grille: List[List[Point]]) -> List[Tuple[int, int]]:
         """Trouve les positions valides pour débarquer un vaisseau."""
         positions_valides = []
-        port = ship_stocke.port_deplacement
-        nb_lignes = len(grille)
-        nb_colonnes = len(grille[0])
+        port_entier = int(ship_stocke.port_deplacement)
 
-        for dy in range(-port, port + 1):
-            for dx in range(-port, port + 1):
-                if abs(dy) + abs(dx) > port:
+        for dy in range(port_entier, port_entier + 1):
+            for dx in range(port_entier, port_entier + 1):
+                if abs(dy) + abs(dx) > port_entier:
                     continue
                     
                 nl = self.cordonner.x + dy

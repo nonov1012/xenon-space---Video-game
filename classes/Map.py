@@ -3,6 +3,7 @@ import os
 
 import pygame
 import random
+from classes.GlobalVar.GridVar import GridVar
 from classes.Point import Point, Type
 from classes.ShipAnimator import ShipAnimator
 from classes.Start_Animation.StarField import StarField
@@ -23,8 +24,8 @@ def load_image(path):
 
 
 class Map:
-    nb_cases_x = NB_CASE_X
-    nb_cases_y = NB_CASE_Y
+    nb_cases_x = GridVar.nb_cells_x
+    nb_cases_y = GridVar.nb_cells_y
 
     def __init__(self) -> None:
         # On initialise la grille avec des Points de type VIDE
@@ -57,7 +58,6 @@ class Map:
         
         # Si pas encore chargées (mode debug), charger maintenant
         if not self.planete_images:
-            print("[Map] Images non pré-chargées, chargement maintenant...")
             resource_manager.load_planetes()
             resource_manager.load_asteroides()
             self.planete_images = resource_manager.get_planete_images()
@@ -127,10 +127,6 @@ class Map:
                 self.placer_asteroide(x, y)
                 placed += 1
 
-        if placed < nb_asteroides:
-            print(f"/!\\ Seulement {placed} astéroïdes placés sur {nb_asteroides} demandés")
-
-
     def generer_planet(self, nb_planet: int) -> None:
         """
         Générer `nb_planet` planètes carrées aléatoires.
@@ -149,17 +145,14 @@ class Map:
                 self.placer_planete(x, y, taille)
                 pid += 1
 
-        if pid <= nb_planet:
-            print(f"/!\\ Seulement {pid-1} planètes placées sur {nb_planet} demandées")
-
     def generer_grille(self, screen: pygame.Surface, afficher_zones: bool = False, afficher_grille: bool = True, colors: dict[Type, tuple[int, int, int, int]] = None) -> None:
         for y in range(self.nb_cases_y):
             for x in range(self.nb_cases_x):
                 point = self.grille[y][x]
-                rect = pygame.Rect(x * TAILLE_CASE + OFFSET_X, y * TAILLE_CASE, TAILLE_CASE, TAILLE_CASE)
+                rect = pygame.Rect(x * GridVar.cell_size + GridVar.offset_x, y * GridVar.cell_size, GridVar.cell_size, GridVar.cell_size)
 
                 # surface temporaire avec alpha
-                temp_surf = pygame.Surface((TAILLE_CASE, TAILLE_CASE), pygame.SRCALPHA)
+                temp_surf = pygame.Surface((GridVar.cell_size, GridVar.cell_size), pygame.SRCALPHA)
 
                 # si affichage des zones → fond coloré
                 if afficher_zones:
@@ -178,7 +171,7 @@ if __name__ == "__main__":
     pygame.init()
     clock = pygame.time.Clock()
 
-    screen = pygame.display.set_mode((NB_CASE_X * TAILLE_CASE, NB_CASE_Y * TAILLE_CASE), pygame.SRCALPHA)
+    screen = pygame.display.set_mode((GridVar.nb_cells_x * GridVar.cell_size, GridVar.nb_cells_y * GridVar.cell_size), pygame.SRCALPHA)
     pygame.display.set_caption("Génération de la map aléatoire")
 
     Animator.set_screen(screen)
@@ -235,7 +228,7 @@ if __name__ == "__main__":
         ShipAnimator.update_all()
             
         for (ax, ay), img in map_obj.asteroide_img_map.items():
-            screen.blit(img, (ax * TAILLE_CASE, ay * TAILLE_CASE))
+            screen.blit(img, (ax * GridVar.cell_size, ay * GridVar.cell_size))
 
         clock.tick(60)
         pygame.display.flip()

@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 import pygame
 from blazyck import *
 from classes.Animator import Animator
+from classes.GlobalVar.GridVar import GridVar
 
 class ProjectileAnimator(Animator):
     projectiles_data = {
@@ -18,11 +19,11 @@ class ProjectileAnimator(Animator):
         dimensions: Tuple[int, int],
         coord: Tuple[int, int],
         default_fps: int = 10,
-        speed: int = 1,
+        speed: int = 3,
         movable: bool = True,
         projectile_type: str = "projectile",
         dissipate_speed: Optional[float] = None,
-        duration_ms: Optional[int] = 5000
+        duration_ms: Optional[int] = 30
     ):
         """
         Initialisation de l'Animator de projetile.
@@ -36,7 +37,7 @@ class ProjectileAnimator(Animator):
         :param dissipate_speed: Vitesse de dissipation du laser (défaut = None)
         :param duration_ms: Durée de vie en millisecondes (défaut = 5000)
         """
-        super().__init__(PROJECTILES_PATH, dimensions, coord, TAILLE_CASE, default_fps, speed)
+        super().__init__(PROJECTILES_PATH, dimensions, coord, default_fps, speed)
         self.movable = movable
         self.projectile_type = projectile_type
         self.duration_ms = duration_ms   # durée de vie en millisecondes

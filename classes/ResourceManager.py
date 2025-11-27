@@ -3,6 +3,8 @@ import pygame
 from blazyck import *
 from PIL import Image
 
+from classes.GlobalVar.GridVar import GridVar
+
 class ResourceManager:
     """Singleton pour gérer les ressources pré-chargées du jeu"""
     _instance = None
@@ -56,7 +58,7 @@ class ResourceManager:
                     size = pil_img.size
                     data = pil_img.tobytes()
                     img = pygame.image.fromstring(data, size, mode)
-                    img = pygame.transform.scale(img, (TAILLE_CASE, TAILLE_CASE))
+                    img = pygame.transform.scale(img, (GridVar.cell_size, GridVar.cell_size))
                     self.asteroide_images.append(img)
                     
                     if progress_callback:
