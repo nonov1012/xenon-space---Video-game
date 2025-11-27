@@ -3,14 +3,14 @@
 # 🚀 Xenon Space 🌌
 
 ```
-  __   __ __                      _____
-  \ \ / //_/                     / ____|
-   \ V / ___ _ __   ___  _ __   | (___  _ __   __ _  ___ ___
-    > < / _ \ '_ \ / _ \| '_ \   \___ \| '_ \ / _` |/ __/ _ \
-   / . \  __/ | | | (_) | | | |  ____) | |_) | (_| | (_|  __/
-  /_/ \_\___|_| |_|\___/|_| |_| |_____/| .__/ \__,_|\___\___|
-                                       | |
-                                       |_|
+  __   __ __                      _____  
+  \ \ / //_/                     / ____|  
+   \ V / ___ _ __   ___  _ __   | (___  _ __   __ _  ___ ___  
+    > < / _ \ '_ \ / _ \| '_ \   \___ \| '_ \ / _` |/ __/ _ \  
+   / . \  __/ | | | (_) | | | |  ____) | |_) | (_| | (_|  __/  
+  /_/ \_\___|_| |_|\___/|_| |_| |_____/| .__/ \__,_|\___\___|  
+                                       | |  
+                                       |_|  
 ```
 
 ### ⚔️ Jeu de Stratégie Spatiale au Tour par Tour ⚔️
@@ -159,17 +159,17 @@ pip install pygame
 <tr>
 <td width="50%">
 
-**🚀 Lancement rapide**
+**🚀 Lancement avec python**
 ```bash
-python main.py
+python loading_run.py
 ```
 
 </td>
 <td width="50%">
 
-**✨ Avec écran de chargement**
+**✨ Lancer l'executable**
 ```bash
-python loading_run.py
+./Xenon-Space
 ```
 
 </td>
@@ -218,54 +218,6 @@ python loading_run.py
 </td>
 </tr>
 </table>
-
-### 🎮 Guide de Gameplay
-
-```mermaid
-graph LR
-    A[🎯 Sélection] --> B[🔵 Déplacement]
-    B --> C[🔴 Attaque]
-    C --> D[💰 Ressources]
-    D --> E[🛒 Shop]
-    E --> F[⏭️ Fin de tour]
-```
-
-<table>
-<tr>
-<td width="33%">
-
-**1️⃣ Sélection**
-- Cliquez sur vos vaisseaux
-- Visualisez les portées
-
-</td>
-<td width="33%">
-
-**2️⃣ Mouvement**
-- 🔵 Cases bleues = déplacement
-- 🔴 Cases rouges = attaque
-- 🟠 Cases orange = minage
-
-</td>
-<td width="33%">
-
-**3️⃣ Actions**
-- Attaquez les ennemis
-- Minez les ressources
-- Transportez vos troupes
-
-</td>
-</tr>
-</table>
-
-### 💰 Système Économique
-
-| Source | Gain | Description |
-|--------|------|-------------|
-| ⛏️ **Minage Astéroïde** | 💎 Crédits | Foreuse près d'astéroïde |
-| 🪐 **Minage Planète** | 💎💎 Bonus | Foreuse près de planète |
-| 🏪 **Achat Vaisseau** | -💰 Coût | Développez votre flotte |
-| 🏗️ **Amélioration Base** | -💰💰 Investissement | Débloquez capacités |
 
 ---
 
