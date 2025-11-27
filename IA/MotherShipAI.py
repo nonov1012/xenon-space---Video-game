@@ -57,14 +57,12 @@ class MotherShipIA(MotherShip):
         if cible:
             # Attaquer la cible
             self.attaquer(cible)
-            print(f"IA : J'attaque {cible.__class__.__name__} ennemi")
             
             # Si la cible est détruite, la retirer
             if cible.est_mort():
                 cible.liberer_position(grille)
                 if cible in ships:
                     ships.remove(cible)
-                print("IA : Cible détruite !")
             
             return True
         
@@ -169,12 +167,8 @@ class MotherShipIA(MotherShip):
         nb_moyens = sum(1 for s in player.ships if isinstance(s, Moyen) and not s.est_mort())
         nb_lourds = sum(1 for s in player.ships if isinstance(s, Lourd) and not s.est_mort())
         
-        print(f"IA : Argent={argent_disponible}, Valuation={valuation}, Tier={self.tier}")
-        print(f"IA : Flotte - Foreuses={nb_foreuses}, Petits={nb_petits}, Moyens={nb_moyens}, Lourds={nb_lourds}")
-        
         # SITUATION CRITIQUE
         if valuation < -2000:
-            print("IA : 🔴 SITUATION CRITIQUE - Défense d'urgence !")
             # Essayer d'acheter un Lourd si possible
             if self._acheter_vaisseau(player, shop, map_obj, next_uid, images, paths, ships, "Grand", (3, 4)):
                 return
@@ -187,7 +181,6 @@ class MotherShipIA(MotherShip):
         
         # SITUATION DÉFAVORABLE : On perd la bataille
         elif valuation < 0:
-            print("IA : 🟠 Situation défavorable - Construction d'armée")
             
             # Si on a assez d'argent pour un Moyen et qu'on en a peu
             if argent_disponible >= 650 and nb_moyens < 2 and self.tier >= 3:
@@ -199,17 +192,18 @@ class MotherShipIA(MotherShip):
             return
         
         # SITUATION ÉQUILIBRÉE : Développement équilibré
+        
         elif valuation < 1500:
-            print("IA : 🟡 Situation équilibrée - Développement mixte")
+            
             
             # Priorité 1 : Upgrade de la base si rentable
-            cout_upgrade = self.get_next_tier_cost()
-            if cout_upgrade and argent_disponible >= cout_upgrade and self.tier < 4:
-                # Upgrade si le coût est inférieur à 2x notre argent (on garde une marge)
-                if argent_disponible >= cout_upgrade * 1.2:
-                    if self.upgrade(player.buy):
-                        print(f"IA : ⬆️ Base améliorée au tier {self.tier} !")
-                        return
+            if self.tier != 4 :
+                cout_upgrade = self.get_next_tier_cost()
+                if cout_upgrade and argent_disponible >= cout_upgrade and self.tier < 4:
+                    # Upgrade si le coût est inférieur à 2x notre argent (on garde une marge)
+                    if argent_disponible >= cout_upgrade * 1.2:
+                        if self.upgrade():
+                            return
             
             # Priorité 2 : Maintenir au moins 2 foreuses pour l'économie
             if nb_foreuses < 2:
@@ -229,14 +223,13 @@ class MotherShipIA(MotherShip):
         
         # SITUATION DOMINANTE : Focus économie et tech
         else:
-            print("IA : 🟢 Situation dominante - Focus économie et upgrades")
             
-            # Priorité 1 : Upgrade de la base (débloquer attaque au tier 4)
-            cout_upgrade = self.get_next_tier_cost()
-            if cout_upgrade and argent_disponible >= cout_upgrade:
-                if self.upgrade(player.buy):
-                    print(f"IA : ⭐ Base améliorée au tier {self.tier} !")
-                    return
+            if self.tier != 4 :
+                # Priorité 1 : Upgrade de la base (débloquer attaque au tier 4)
+                cout_upgrade = self.get_next_tier_cost()
+                if cout_upgrade and argent_disponible >= cout_upgrade:
+                    if self.upgrade():
+                        return
             
             # Priorité 2 : Acheter un Lourd si tier 4 et qu'on en a moins de 2
             if self.tier >= 4 and nb_lourds < 2 and argent_disponible >= 1050:
@@ -285,11 +278,9 @@ class MotherShipIA(MotherShip):
                                 player.ships.append(nouveau_vaisseau)
                                 ships.append(nouveau_vaisseau)  # Ajouter à la liste globale
                                 nouveau_vaisseau.occuper_plateau(map_obj.grille, Type.VAISSEAU)
-                                print(f"IA : ✅ Achat d'un {nom_vaisseau} réussi !")
                                 return True
                         else:
                             player.economie.ajouter(ship_dict["price"])
-                            print(f"IA : ❌ Pas de place pour {nom_vaisseau}, remboursé")
                 break
         return False
 

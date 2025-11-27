@@ -1,6 +1,8 @@
 from typing import Optional, Tuple
 from classes.Animator import Animator
 from blazyck import *
+from classes.GlobalVar.GridVar import GridVar
+from classes.GlobalVar.ScreenVar import ScreenVar
 
 class PlanetAnimator(Animator):
     def __init__(self, dimensions, coord, default_fps=10, speed=1):
@@ -12,7 +14,7 @@ class PlanetAnimator(Animator):
         :param default_fps: Nombre de frames par seconde (défaut = 10)
         :param speed: Vitesse de mouvement (défaut = 1)
         """
-        super().__init__(PLANETES_PATH, dimensions, coord, TAILLE_CASE, default_fps, speed)
+        super().__init__(PLANETES_PATH, dimensions, coord, default_fps, speed)
         self._atmosphere_surface: Optional[pygame.Surface] = None # Attribut pour stocker la surface de l'atmosphère
         self._atmosphere_offset: Tuple[int, int] = (0, 0) # Attribut pour stocker le décalage de l'atmosphère
 
@@ -64,8 +66,7 @@ class PlanetAnimator(Animator):
         at_x = self.x + self._atmosphere_offset[0] - 1
         at_y = self.y + self._atmosphere_offset[1] - 1
 
-        # Utiliser Animator.screen (même référence que PlanetAnimator.screen)
-        Animator.screen.blit(self._atmosphere_surface, (at_x, at_y))
+        ScreenVar.screen.blit(self._atmosphere_surface, (at_x, at_y))
 
     def _generate_atmosphere(self,
                              color_atmosphere=(0, 200, 255),
@@ -84,7 +85,7 @@ class PlanetAnimator(Animator):
             return pygame.Surface((1, 1), pygame.SRCALPHA), (0, 0)
 
         # épaisseur : au moins 2*tile, ou proportionnelle à la planète
-        extra = max(2 * TAILLE_CASE, int(taille_px * thickness_ratio))
+        extra = max(2 * GridVar.cell_size, int(taille_px * thickness_ratio))
         taille_atmos = taille_px + 2 * extra
 
         atmos_surface = pygame.Surface((taille_atmos, taille_atmos), pygame.SRCALPHA)

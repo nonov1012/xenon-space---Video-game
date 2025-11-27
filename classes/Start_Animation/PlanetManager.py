@@ -1,6 +1,8 @@
 import pygame
 import random
 from classes.Animator import Animator
+from classes.GlobalVar.GridVar import GridVar
+from classes.GlobalVar.ScreenVar import ScreenVar
 from classes.PlanetAnimator import PlanetAnimator
 from blazyck import *
 
@@ -48,8 +50,8 @@ class PlanetManager:
         name = random.choice(self.planet_names)
         # Coordonnées aléatoires de la planète
         x = random.randint(-w * 3, -w * 2)
-        y = random.randint(0, (Animator.screen.get_height() - 50))
-        y = y / TAILLE_CASE
+        y = random.randint(0, (ScreenVar.screen.get_height() - 50))
+        y = y / GridVar.cell_size
         # Vitesse aléatoire de la planète
         speed = random.randint(self.speed_range[0], self.speed_range[1])
 
@@ -60,7 +62,7 @@ class PlanetManager:
         # Centre de la planète
         centre = planet.get_center()
         # Fixe la cible de la planète
-        planet.set_target((Animator.screen.get_width() + planet.pixel_w * 10, centre[1]), True, "right")
+        planet.set_target((ScreenVar.screen.get_width() + planet.pixel_w * 10, centre[1]), True, "right")
 
         # Réinitialiser la probabilité après spawn
         self.spawn_prob = 1
@@ -88,5 +90,5 @@ class PlanetManager:
         # --- Mettre à jour les planètes existantes ---
         for planet in PlanetAnimator.liste_animation:
             # Supprimer si hors écran
-            if planet.x > Animator.screen.get_width() + planet.pixel_w + 100:
+            if planet.x > ScreenVar.screen.get_width() + planet.pixel_w + 100:
                 planet.remove_from_list()

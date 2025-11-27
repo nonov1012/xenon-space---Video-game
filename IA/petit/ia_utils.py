@@ -3,7 +3,9 @@ from typing import Dict, List, Tuple, Optional
 from classes.MotherShip import MotherShip
 from classes.Ship import Petit, Ship
 from classes.Point import Point, Type
-from blazyck import NB_CASE_X, NB_CASE_Y, PETIT_SCORE
+from blazyck import PETIT_SCORE
+from classes.GlobalVar.ScreenVar import ScreenVar
+from classes.GlobalVar.GridVar import GridVar
 import random
 
 # ---- Fonctions utilitaires ----
@@ -20,7 +22,7 @@ def utility_attack_pos(ship: Ship, enemies: List[Ship], pos: Tuple[int,int]) -> 
         # Quand le vaisseau peut attaquer l'ennemi il vat vers les ennemis
         if ship.port_attaque != 0:
             if isinstance(enemy, MotherShip): # Score de base qui fait avancer le vaisseau vers la base ennemie
-                score += max(0, ((NB_CASE_X * NB_CASE_Y) - d)/(NB_CASE_X * NB_CASE_Y))
+                score += max(0, ((GridVar.nb_cells_x * GridVar.nb_cells_y) - d)/(GridVar.nb_cells_x * GridVar.nb_cells_y))
             if d <= ship.port_attaque:
                 score += 200
             else:
@@ -28,7 +30,7 @@ def utility_attack_pos(ship: Ship, enemies: List[Ship], pos: Tuple[int,int]) -> 
         
         # Quand le vaisseau ne peut pas attaquer l'ennemi il le fuit
         else:
-            score += d / (NB_CASE_X * NB_CASE_Y)
+            score += d / (GridVar.nb_cells_x * GridVar.nb_cells_y)
     
     return score
 
@@ -36,7 +38,7 @@ def utility_defend_pos(ship: Ship, allies: List[Ship], enemies: List[Ship], pos:
     score : int = 0
     danger_max : int = 0
     for ally in allies:
-        if ally == ship:
+        if ally == ship or isinstance(ally, Petit):
             continue
         dist = distance(pos, (ally.cordonner.x, ally.cordonner.y))
         if dist <= 2:
@@ -51,6 +53,15 @@ def utility_defend_pos(ship: Ship, allies: List[Ship], enemies: List[Ship], pos:
                     danger_max = danger
         if danger_max:
             score += max(0, PETIT_SCORE[ally.__class__.__name__] - 10 * danger_max)
+
+        # Vérifie si d'autre vaisseau petit sont proches de l'allié
+        if not isinstance(ally, Petit):
+            for a in allies:
+                if a == ally:
+                    continue
+                dist = distance((ally.cordonner.x, ally.cordonner.y), (a.cordonner.x, a.cordonner.y))
+                if dist <= 7:    
+                    score = score // 2
 
     return score
 
@@ -202,20 +213,16 @@ def choose_random_best_action(ship: Ship, grille, allies, enemies) -> Tuple[str,
     return ("move", best_pos)
 
 def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
-    print(f"===========================================")
-    print(f"TURN SHIP : {ship.id}")
-    print(f"Stat : port_deplacement : {ship.port_deplacement}, port_attaque : {ship.port_attaque}")
+
 
     # Si le vaisseau est mort → tour fini
     if ship.est_mort():
-        print(f"{ship.id} est mort → fin du tour")
-        print(f"===========================================")
+
         return True
 
     # Si le vaisseau ne peut rien faire → tour fini
     if ship.port_deplacement == 0 and ship.port_attaque == 0:
-        print(f"{ship.id} ne peut plus agir → fin du tour")
-        print(f"===========================================")
+
         return True
 
     sorted_ships = ally_or_enemy(ship, tous_les_vaisseaux)
@@ -223,7 +230,7 @@ def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
 
     # ---- ACTION : Déplacement ----
     if move[0] == "move":
-        print(f"MOVE {ship.cordonner} -> {move[1]}")
+        # print(f"MOVE {ship.cordonner} -> {move[1]}")
         action_ok = ship.deplacement(move[1], map_obj.grille, tous_les_vaisseaux)
 
         # Si le déplacement a réussi, on attend la fin avant de continuer
@@ -231,8 +238,6 @@ def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
             ship.port_deplacement = max(0, ship.port_deplacement - 1)
         else:
             # S’il n’a pas pu bouger, il a fini (aucune action possible)
-            print(f"{ship.id} n’a pas pu se déplacer")
-            print(f"===========================================")
             return True
 
     # ---- ACTION : Attaque ----
@@ -240,46 +245,34 @@ def ia_petit_play(ship: Ship, map_obj, tous_les_vaisseaux: List[Ship]) -> bool:
         if ship.port_attaque > 0:
             cible = get_ship(move[1], tous_les_vaisseaux)
             if cible:
-                print(f"ATTACK {cible} -> {move[1]}")
+                # print(f"ATTACK {cible} -> {move[1]}")
                 ship.attaquer(cible)
                 ship.port_attaque = max(0, ship.port_attaque - 1)
-            else:
-                print(f"{ship.id} a voulu attaquer, mais cible introuvable")
-        else:
-            print(f"{ship.id} ne peut plus attaquer")
+        #     else:
+        #         print(f"{ship.id} a voulu attaquer, mais cible introuvable")
+        # else:
+        #     print(f"{ship.id} ne peut plus attaquer")
 
     # ---- ACTION : Rester ----
     elif move[0] == "stay":
-        print(f"STAY {ship.cordonner}")
-        print(f"===========================================")
         return True
 
     # ---- Vérifie s’il peut encore jouer ----
     if ship.port_deplacement == 0 and ship.port_attaque == 0:
-        print(f"{ship.id} a fini ses actions")
-        print(f"===========================================")
         return True
 
-    print(f"{ship.id} peut encore jouer")
-    print(f"===========================================")
     return False
 
 def ia_petit_play_random(ship : Ship, map_obj, tous_les_vaisseaux : List[Ship]) -> bool:
     
-    print(f"===========================================")
-    print(f"TURN SHIP : {ship.id}")
-    print(f"Stat : port_deplacement : {ship.port_deplacement}, port_attaque : {ship.port_attaque}")
     if ship.port_deplacement == 0 and ship.port_attaque == 0:
         return True
     if not ship.est_mort():
         sorted_ships = ally_or_enemy(ship, tous_les_vaisseaux)
         move = choose_random_best_action(ship, map_obj.grille, sorted_ships["allies"], sorted_ships["enemies"])
         if move[0] == "move":
-            print(f"MOVE {ship.cordonner} -> {move[1]}")
             ship.deplacement(move[1], map_obj.grille, tous_les_vaisseaux)
         elif move[0] == "stay":
-            print(f"STAY {ship.cordonner}")
-            print(f"===========================================")
             return True
         elif move[0] == "attack":
             if ship.port_attaque == 0:
@@ -287,7 +280,6 @@ def ia_petit_play_random(ship : Ship, map_obj, tous_les_vaisseaux : List[Ship]) 
             else:
                 cible = get_ship(move[1], tous_les_vaisseaux)
                 if cible:
-                    print(f"ATTACK {cible} -> {move[1]}")
+                    # print(f"ATTACK {cible} -> {move[1]}")
                     ship.attaquer(cible)
-    print(f"===========================================")
     return False

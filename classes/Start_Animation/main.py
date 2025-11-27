@@ -11,19 +11,23 @@ from classes.MotherShip import MotherShip
 from classes.Point import Point
 from blazyck import *
 from classes.Achievements import AchievementManager 
+from classes.GlobalVar.ScreenVar import ScreenVar
+from classes.GlobalVar.GridVar import GridVar
 
-def create_space_background(num_stars=100, screen_ratio=1.0):
+def create_space_background():
     """
     Initialise le fond spatial avec des étoiles et des planètes.
     Retourne : les étoiles, le gestionnaire de planètes, B1 (vaisseau centré)
     """
-    screen_width, screen_height = Animator.screen.get_size()
+    screen_width, screen_height = ScreenVar.screen.get_size()
+    scale = ScreenVar.scale
+    
 
     # --- Gestion des étoiles ---
     stars = StarField(
         screen_width,
         screen_height,
-        num_stars=num_stars,
+        num_stars=int(200 * ScreenVar.scale),
         min_radius=1,
         max_radius=3,
         size_distribution="small-biased",
@@ -33,18 +37,21 @@ def create_space_background(num_stars=100, screen_ratio=1.0):
 
     # --- Gestionnaire de planètes ---
     planet_manager = PlanetManager(
-        speed_range=(1, int(2 * screen_ratio)),
-        planet_size_range=(1, int(5 * screen_ratio)),
+        speed_range=(1, int(2 * scale)),
+        planet_size_range=(1, int(5 * scale)),
         prob_increment=1
     )
 
     # --- Vaisseau centré avec taille personnalisée ---
-    center_x = (screen_width / TAILLE_CASE) / 2
-    center_y = (screen_height / TAILLE_CASE) / 2
-    vaisseau_w = int(4 * screen_ratio)  # largeur en cases
-    vaisseau_h = int(5 * screen_ratio)  # hauteur en cases
-    x = int(center_x - vaisseau_w / 1.30)
-    y = int(center_y - vaisseau_h / 2.30)
+    center_x = (ScreenVar.screen.get_width() // GridVar.cell_size) / 2
+    center_y = (ScreenVar.screen.get_height() // GridVar.cell_size) / 2
+
+    vaisseau_w = int(4 * 4 * scale)  # largeur en cases
+    vaisseau_h = int(5 * 4 * scale)  # hauteur en cases
+
+    # le vaisseau est tourne vers la gauche
+    x = center_x - (vaisseau_h) / 2
+    y = center_y - (vaisseau_w) / 2
 
     B1 = MotherShip(
         tier=1,
@@ -67,15 +74,13 @@ if __name__ == "__main__":
     info = pygame.display.Info()
     screen_width = info.current_w
     screen_height = info.current_h
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    ScreenVar(pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE))
+    GridVar()
+    screen = ScreenVar.screen
     clock = pygame.time.Clock()
 
-    Animator.set_screen(screen)
-
-    screen_ratio = (screen_width * 100 / 600) / 100
-
     # Création du fond spatial et du vaisseau
-    stars, planet_manager, B1 = create_space_background(num_stars=100, screen_ratio=screen_ratio)
+    stars, planet_manager, B1 = create_space_background(num_stars=100)
 
     # --- Initialisation succès ---
     achievements = AchievementManager()
@@ -87,6 +92,9 @@ if __name__ == "__main__":
                 running = False
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.VIDEORESIZE:
+                ScreenVar.update_scale()
+                GridVar.update_grid()
 
         stars.update()
         screen.fill((0, 0, 0))
@@ -99,5 +107,3 @@ if __name__ == "__main__":
         clock.tick(30)
 
     pygame.quit()
-
-    print("Succès obtenus :", achievements.list_unlocked())

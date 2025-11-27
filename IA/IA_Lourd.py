@@ -1,4 +1,6 @@
 from classes.Ship import *
+from classes.GlobalVar.ScreenVar import ScreenVar
+from classes.GlobalVar.GridVar import GridVar
 
 class IA_Lourd(Lourd):
     def __init__(self, cordonner: Point, id: Optional[int] = None, path: str = None,
@@ -6,7 +8,7 @@ class IA_Lourd(Lourd):
         stats = SHIP_STATS["Lourd"]
         
         if image is None:
-            image = pygame.Surface((stats["taille"][1]*TAILLE_CASE, stats["taille"][0]*TAILLE_CASE))
+            image = pygame.Surface((stats["taille"][1]*GridVar.cell_size, stats["taille"][0]*GridVar.cell_size))
         
         super().__init__(
             cordonner,

@@ -2,6 +2,8 @@ import math
 import os
 import pygame
 from classes.Animator import Animator
+from classes.GlobalVar.GridVar import GridVar
+from classes.GlobalVar.ScreenVar import ScreenVar
 from classes.ProjectileAnimator import ProjectileAnimator
 from typing import Optional, Tuple, List, Dict
 from blazyck import *
@@ -15,7 +17,7 @@ class ShipAnimator(Animator):
         path : str,
         dimensions : Tuple[int, int],   # (width_tiles, height_tiles)
         coord : Tuple[int, int],        # (x, y) en pixels
-        tile_size : int = TAILLE_CASE,
+        tile_size : int = GridVar.cell_size,
         default_fps : int = 10,
         PV_actuelle : int = 100,
         PV_max : int = 100,
@@ -93,7 +95,7 @@ class ShipAnimator(Animator):
             if self.alpha < 255:
                 surface = surface.copy()
                 surface.set_alpha(self.alpha)
-            Animator.screen.blit(surface, pos)
+            ScreenVar.screen.blit(surface, pos)
 
         # --- Image statique si aucune animation prioritaire ---
         if hasattr(self, "static_image") and self.static_image and (self.current_anim not in ("sheild", "destruction")):
@@ -172,7 +174,7 @@ class ShipAnimator(Animator):
         Elle est chargée une seule fois et est dessinée à chaque mise à jour si elle existe.
         """
         if self.static_image:
-            Animator.screen.blit(self.static_image, (self.x, self.y))
+            ScreenVar.screen.blit(self.static_image, (self.x, self.y))
 
     def display_health(self):
         """
@@ -189,13 +191,13 @@ class ShipAnimator(Animator):
         y = self.y + self.pixel_h - bar_h
 
         # dessine le fond de la barre de vie
-        pygame.draw.rect(Animator.screen, (255, 0, 0), (x, y, bar_w, bar_h))
+        pygame.draw.rect(ScreenVar.screen, (255, 0, 0), (x, y, bar_w, bar_h))
 
         # calcul de la largeur de la partie de la barre qui repésente la quantité de vie actuelle
         cur_w = int(self.PV_actuelle * bar_w / self.PV_max) if self.PV_max > 0 else 0
 
         # dessine la partie de la barre qui repésente la quantité de vie actuelle
-        pygame.draw.rect(Animator.screen, self.color, (x, y, cur_w, bar_h))
+        pygame.draw.rect(ScreenVar.screen, self.color, (x, y, cur_w, bar_h))
 
     def disepear(self, duration_ms: int = 1000) -> bool:
         """
@@ -228,7 +230,7 @@ class ShipAnimator(Animator):
         temp = base_surface.copy()
         temp.set_alpha(alpha)
         # Dessin de l'image avec l'alpha
-        Animator.screen.blit(temp, (self.x, self.y))
+        ScreenVar.screen.blit(temp, (self.x, self.y))
 
         # Retourne True si la disparition est terminée
         return elapsed >= duration_ms
@@ -306,13 +308,13 @@ class ShipAnimator(Animator):
             spawn_y = center_y - math.cos(angle_rad) * distance
 
             # --- Conversion en coordonnées grille ---
-            proj_x = center_x / TAILLE_CASE -4
-            proj_y = center_y / TAILLE_CASE
+            proj_x = center_x / GridVar.cell_size -4
+            proj_y = center_y / GridVar.cell_size
  
             # --- Animation du projectile (si pas laser) ---
             if projectile_type != "laser":
                 bullet = ProjectileAnimator(
-                    (frame_w / TAILLE_CASE, frame_h / TAILLE_CASE),
+                    (frame_w / GridVar.cell_size, frame_h / GridVar.cell_size),
                     (proj_x, proj_y),
                     projectile_type=self.projectile_type,
                     speed=self.projectile_speed*1.7,
@@ -321,7 +323,7 @@ class ShipAnimator(Animator):
                 bullet.play(self.projectile_type, True, frame_size=(frame_w, frame_h))
             else:
                 bullet = ProjectileAnimator(
-                    (frame_w / TAILLE_CASE, frame_h / TAILLE_CASE),
+                    (frame_w / GridVar.cell_size, frame_h / GridVar.cell_size),
                     (proj_x, proj_y),
                     projectile_type=self.projectile_type,
                     speed=self.projectile_speed,
@@ -352,6 +354,3 @@ class ShipAnimator(Animator):
                     if animation.play_with_fade("destruction"):
                         # Suppression de l'animation de la liste
                         animation.remove_from_list()
-    
-
-    

@@ -1,46 +1,40 @@
 import os
 import pygame
 
-# Constantes
+# ========== VARIABLES GLOBALES ==========
+BASE_W = 1920
+BASE_H = 1080
 
-pygame.init()
-
-info = pygame.display.Info()
-SCREEN_WIDTH = info.current_w
-SCREEN_HEIGHT = info.current_h
-
-pygame.quit()
+SCALE_X = 1
+SCALE_Y = 1
+SCALE = 1
 
 # Shop
 BAR_HEIGHT = 85
 ICON_SIZE = 50
 ICON_MARGIN = 20
 CASE_PADDING = 8
+FONT_SIZE = 30
 
-# Taille de la map
-NB_CASE_X = 50 # Nombre de cases en largeur
-NB_CASE_Y = 30 # Nombre de cases en hauteur
-TAILLE_CASE = (SCREEN_HEIGHT - BAR_HEIGHT) // NB_CASE_Y # Taille d'une case en pixels
-
-# Adapté l'écran
-GRID_WIDTH = NB_CASE_X * TAILLE_CASE
-OFFSET_X = max((SCREEN_WIDTH - GRID_WIDTH) // 2, 100)
+# Map
 
 # Planètes
-MAX_PLANETES_ANIMATIONS = 50 # Nombre d'animations de planètes différents
-PLANETES_FRAME_SIZE = (75, 75) # Taille d'une frame de planètes
+MAX_PLANETES_ANIMATIONS = 50
+PLANETES_FRAME_SIZE = (75, 75)
 
-# Chemain des fichiers
-BASE_DIR = os.path.dirname(__file__) # Chemain du dossier du projet
+# Chemins
+BASE_DIR = os.path.dirname(__file__)
 IMG_PATH = os.path.join(BASE_DIR, "assets", "img")
 PLANETES_PATH = os.path.join(IMG_PATH, "planets")
 PROJECTILES_PATH = os.path.join(IMG_PATH, "projectiles")
 ASTEROIDES_PATH = os.path.join(IMG_PATH, "asteroides")
+ICONES_PATH = os.path.join(BASE_DIR, "assets", "icons")
 SHIPS_PATH = os.path.join(IMG_PATH, "ships")
 MENU_PATH = os.path.join(IMG_PATH, "menu")
 
 # Stats des vaisseaux
 CSTE : int = 10
+
 # Gains
 PLANETES_REWARD = 150
 ASTEROIDES_REWARD = 100
@@ -48,7 +42,7 @@ POURCENT_DEATH_REWARD = 0.6
 
 # Score des vaisseau
 PETIT_SCORE = {
-        "Petit" : 0,
+        "Petit" : 1,
         "Moyen" : 25,
         "IA_Lourd" : 50,
         "Lourd" : 150,
@@ -60,5 +54,50 @@ PETIT_SCORE = {
 
 RPC_ID = "1419749281190903848"
 
+# ========== FONCTIONS DE MISE À JOUR ==========
+
+# def update_all(screen: pygame.Surface):
+#     """Met à jour toutes les dimensions dépendantes de l'écran."""
+#     update_screen(screen)
+#     update_shop()
+#     update_map_size()
+
+
+# def update_screen(screen: pygame.Surface) -> None:
+#     """Met à jour les infos de résolution + SCALE."""
+#     global SCREEN_WIDTH, SCREEN_HEIGHT
+#     global SCALE_X, SCALE_Y, SCALE
+
+#     SCREEN_WIDTH = screen.get_width()
+#     SCREEN_HEIGHT = screen.get_height()
+
+#     SCALE_X = SCREEN_WIDTH / BASE_W
+#     SCALE_Y = SCREEN_HEIGHT / BASE_H
+#     SCALE = min(SCALE_X, SCALE_Y)
+
+
+# def update_shop() -> None:
+#     """Met à jour les dimensions de la barre du shop."""
+#     global BAR_HEIGHT, ICON_SIZE, ICON_MARGIN, CASE_PADDING
+
+#     BAR_HEIGHT = int(85 * SCALE)
+#     ICON_SIZE = int(50 * SCALE)
+#     ICON_MARGIN = int(20 * SCALE)
+#     CASE_PADDING = int(8 * SCALE)
+
+
+# def update_map_size() -> None:
+#     """Met à jour la taille de la map et le centrage horizontal."""
+#     global BASE_TAILLE_CASE, TAILLE_CASE, GRID_WIDTH, OFFSET_X
+
+#     BASE_TAILLE_CASE = (BASE_H - BAR_HEIGHT) // NB_CASE_Y
+#     TAILLE_CASE = int(BASE_TAILLE_CASE * SCALE)
+
+#     GRID_WIDTH = NB_CASE_X * TAILLE_CASE
+#     OFFSET_X = max((SCREEN_WIDTH - GRID_WIDTH) // 2, 100)
+
 if __name__ == "__main__":
-    print("\n" + IMG_PATH)
+    pygame.init()
+    screen = pygame.display.set_mode((400, 800), pygame.RESIZABLE)
+    # update_all(screen)
+    # print("WIDTH =", SCREEN_WIDTH, "HEIGHT =", SCREEN_HEIGHT, "SCALE =", SCALE)
