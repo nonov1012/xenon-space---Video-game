@@ -167,11 +167,17 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                             selection_ship = nouveau_vaisseau
                     else:
                         # Si aucune position libre, on rembourse
-                        # On retrouve le prix via le shop
-                        for ship_data in shop.ships:
-                            if ship_data["type"] == type_action:
-                                joueur_actuel.economie.ajouter(ship_data["price"])
-                                break
+                        prix_vaisseaux = {
+                            "Petit": 250,
+                            "Moyen": 1000,
+                            "Lourd": 4000,
+                            "Foreuse": 700,
+                            "Transport": 2000
+                        }
+                        
+                        prix = prix_vaisseaux.get(type_action, 0)
+                        if prix > 0:
+                            joueur_actuel.economie.ajouter(prix)
 
                 # Si c’est une amélioration de base
                 elif type_action == "base_upgrade":

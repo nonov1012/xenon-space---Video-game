@@ -875,12 +875,10 @@ class Transport(Ship):
         """Trouve les positions valides pour débarquer un vaisseau."""
         positions_valides = []
         port_entier = int(ship_stocke.port_deplacement)
-        nb_lignes = len(grille)
-        nb_colonnes = len(grille[0])
 
-        for dy in range(port, port + 1):
-            for dx in range(port, port + 1):
-                if abs(dy) + abs(dx) > port:
+        for dy in range(port_entier, port_entier + 1):
+            for dx in range(port_entier, port_entier + 1):
+                if abs(dy) + abs(dx) > port_entier:
                     continue
                     
                 nl = self.cordonner.x + dy
