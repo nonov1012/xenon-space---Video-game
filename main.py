@@ -250,8 +250,10 @@ def handle_events(running, selection_ship, selection_cargo, interface_transport_
                     if case_souris in positions_valides:
                         index = selection_ship.cargaison.index(selection_cargo)
                         success = selection_ship.retirer_cargo(index, case_souris[0], case_souris[1],
-                                                               map_obj.grille, ships)
+                                                                map_obj.grille, ships)
                         if success:
+                            ships.append(selection_cargo)
+                            # ----------------------------------
                             selection_cargo, interface_transport_active = None, False
             else:
                 for target in ships:
