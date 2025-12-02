@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/License-Academic-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Completed-success?style=for-the-badge)
 
-[🎮 Installation](#-installation) • [📖 Comment Jouer](#-comment-jouer) • [🏆 Succès](#-succès) • [👥 Équipe](#-développeurs) • [📄 Documentation Technique](https://nonov1012.github.io/xenon-space---Video-game/)
+[🎮 Installation](#-installation) • [📖 Comment Jouer](#-comment-jouer) • [🏆 Succès](#-succès) • [👥 Équipe](#-développeurs) • [📄 Documentation](https://nonov1012.github.io/xenon-space---Video-game/)
 
 ---
 
