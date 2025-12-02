@@ -2,17 +2,6 @@
 
 # 🚀 Xenon Space 🌌
 
-```
-  __   __ __                      _____  
-  \ \ / //_/                     / ____|  
-   \ V / ___ _ __   ___  _ __   | (___  _ __   __ _  ___ ___  
-    > < / _ \ '_ \ / _ \| '_ \   \___ \| '_ \ / _` |/ __/ _ \  
-   / . \  __/ | | | (_) | | | |  ____) | |_) | (_| | (_|  __/  
-  /_/ \_\___|_| |_|\___/|_| |_| |_____/| .__/ \__,_|\___\___|  
-                                       | |  
-                                       |_|  
-```
-
 ### ⚔️ Jeu de Stratégie Spatiale au Tour par Tour ⚔️
 
 ![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -20,7 +9,7 @@
 ![License](https://img.shields.io/badge/License-Academic-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Completed-success?style=for-the-badge)
 
-[🎮 Installation](#-installation) • [📖 Comment Jouer](#-comment-jouer) • [🏆 Succès](#-succès) • [👥 Équipe](#-développeurs)
+[🎮 Installation](#-installation) • [📖 Comment Jouer](#-comment-jouer) • [🏆 Succès](#-succès) • [👥 Équipe](#-développeurs) • [📄 Documentation Technique](https://nonov1012.github.io/xenon-space---Video-game/)
 
 ---
 
@@ -69,60 +58,6 @@
 
 ---
 
-## 🚢 Types de Vaisseaux
-
-<table>
-<tr>
-<td align="center" width="20%">
-
-### ⚡ Petit
-**250💰**
-
-Léger et agile
-Attaques rapides
-
-</td>
-<td align="center" width="20%">
-
-### 🎯 Moyen
-**1000💰**
-
-Équilibré
-Polyvalent
-
-</td>
-<td align="center" width="20%">
-
-### 🛡️ Lourd
-**4000💰**
-
-Tank blindé
-Puissance max
-
-</td>
-<td align="center" width="20%">
-
-### ⛏️ Foreuse
-**700💰**
-
-Mineur spécialisé
-Génère crédits
-
-</td>
-<td align="center" width="20%">
-
-### 🚚 Transport
-**2000💰**
-
-Cargo (3 slots)
-Repositionnement
-
-</td>
-</tr>
-</table>
-
----
-
 ## 💻 Installation
 
 ### 📋 Prérequis
@@ -150,7 +85,7 @@ Repositionnement
 
 ```bash
 # Installer Pygame
-pip install pygame
+pip install -r requirements.txt
 ```
 
 ### 🎯 Lancement du Jeu
@@ -161,7 +96,7 @@ pip install pygame
 
 **🚀 Lancement avec python**
 ```bash
-python loading_run.py
+python run_game.py
 ```
 
 </td>

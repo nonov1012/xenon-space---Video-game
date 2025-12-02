@@ -1,0 +1,23 @@
+# Xenon Space - Dépendances Python
+
+# Interface graphique et jeu
+pygame>=2.5.2
+
+# Traitement d'images
+Pillow>=10.0.0
+
+# Intégration Discord Rich Presence
+pypresence>=4.3.0
+
+# Bibliothèque standard (incluses dans Python)
+# - pickle
+# - time
+# - threading
+# - enum
+# - typing
+# - heapq
+# - collections
+# - traceback
+# - sys
+# - os
+# - math
