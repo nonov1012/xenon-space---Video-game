@@ -111,33 +111,51 @@ Une fois la partie lancée, vous verrez :
   <TabItem value="souris" label="Souris" default>
 
 **Clic gauche :**
-- Sur un vaisseau allié : Le sélectionner
-- Sur une case bleue : Déplacer le vaisseau sélectionné
-- Sur un ennemi en zone rouge : Attaquer
+
+<ul>
+  <li>Sur un vaisseau allié : Le sélectionner</li>
+  <li>Sur une case bleue : Déplacer le vaisseau sélectionné</li>
+  <li>Sur un ennemi en zone rouge : Attaquer</li>
+</ul>
 
 **Clic droit :**
-- Sur un astéroïde (avec foreuse) : Miner
-- Sur le transporteur : Embarquer un vaisseau
-- Sur une mini-icône (transporteur) : Débarquer un vaisseau
+
+<ul>
+  <li>Sur un astéroïde (avec foreuse) : Miner</li>
+  <li>Sur le transporteur : Embarquer un vaisseau</li>
+  <li>Sur une mini-icône (transporteur) : Débarquer un vaisseau</li>
+</ul>
 
 **Molette :**
-- Zoomer / Dézoomer sur la carte
+
+<ul>
+  <li>Zoomer / Dézoomer sur la carte</li>
+</ul>
 
   </TabItem>
 
   <TabItem value="clavier" label="Clavier">
 
 **Touches de déplacement :**
-- `↑` `↓` `←` `→` ou `ZQSD` : Déplacer la caméra
+
+<ul>
+  <li><code>↑</code> <code>↓</code> <code>←</code> <code>→</code> ou <code>ZQSD</code> : Déplacer la caméra</li>
+</ul>
 
 **Touches d'action :**
-- `R` : Faire pivoter le vaisseau sélectionné
-- `ENTRÉE` : Terminer votre tour
-- `ÉCHAP` : Menu pause
+
+<ul>
+  <li><code>R</code> : Faire pivoter le vaisseau sélectionné</li>
+  <li><code>ENTRÉE</code> : Terminer votre tour</li>
+  <li><code>ÉCHAP</code> : Menu pause</li>
+</ul>
 
 **Raccourcis :**
-- `F1` : Aide rapide
-- `F11` : Plein écran / Fenêtré
+
+<ul>
+  <li><code>F1</code> : Aide rapide</li>
+  <li><code>F11</code> : Plein écran / Fenêtré</li>
+</ul>
 
   </TabItem>
 </Tabs>
@@ -265,14 +283,20 @@ Quand vous détruisez un vaisseau ennemi, vous recevez **60% de son coût** :
 **Deux façons de gagner :**
 
 **1. Minage d'astéroïdes :**
-- Clic droit sur un astéroïde
-- Gain : **+100₿** immédiat
-- Coût : -10% PV de la foreuse
+
+<ul>
+  <li>Clic droit sur un astéroïde</li>
+  <li>Gain : <strong>+100₿</strong> immédiat</li>
+  <li>Coût : -10% PV de la foreuse</li>
+</ul>
 
 **2. Bonus planète (RECOMMANDÉ) :**
-- Placez une foreuse à côté d'une planète
-- Gain : **+150₿ par tour** automatique
-- Aucun coût !
+
+<ul>
+  <li>Placez une foreuse à côté d'une planète</li>
+  <li>Gain : <strong>+150₿ par tour</strong> automatique</li>
+  <li>Aucun coût !</li>
+</ul>
 
   </TabItem>
 
@@ -507,10 +531,13 @@ Une fois que vous avez appuyé sur **ENTRÉE**, impossible de revenir en arrièr
 **Objectif : Développer l'économie**
 
 ✅ Actions prioritaires :
-- Acheter 2-3 foreuses
-- Les placer sur des planètes
-- Améliorer la base au niveau 2
-- Acheter quelques vaisseaux Petits pour défendre
+
+<ul>
+  <li>Acheter 2-3 foreuses</li>
+  <li>Les placer sur des planètes</li>
+  <li>Améliorer la base au niveau 2</li>
+  <li>Acheter quelques vaisseaux Petits pour défendre</li>
+</ul>
 
 💡 Focus sur les **revenus passifs** !
 
@@ -521,10 +548,13 @@ Une fois que vous avez appuyé sur **ENTRÉE**, impossible de revenir en arrièr
 **Objectif : Construire une flotte**
 
 ✅ Actions prioritaires :
-- Acheter des vaisseaux Moyens
-- Commencer à attaquer les vaisseaux ennemis
-- Améliorer la base au niveau 3
-- Protéger vos foreuses
+
+<ul>
+  <li>Acheter des vaisseaux Moyens</li>
+  <li>Commencer à attaquer les vaisseaux ennemis</li>
+  <li>Améliorer la base au niveau 3</li>
+  <li>Protéger vos foreuses</li>
+</ul>
 
 💡 Équilibrez **économie** et **armée** !
 
@@ -535,10 +565,13 @@ Une fois que vous avez appuyé sur **ENTRÉE**, impossible de revenir en arrièr
 **Objectif : Offensive finale**
 
 ✅ Actions prioritaires :
-- Acheter des vaisseaux Lourds si disponibles
-- Concentrer les attaques sur la base ennemie
-- Détruire les vaisseaux ennemis pour les récompenses
-- Avancer progressivement vers la base
+
+<ul>
+  <li>Acheter des vaisseaux Lourds si disponibles</li>
+  <li>Concentrer les attaques sur la base ennemie</li>
+  <li>Détruire les vaisseaux ennemis pour les récompenses</li>
+  <li>Avancer progressivement vers la base</li>
+</ul>
 
 💡 **Focus fire** sur la base ennemie !
 
