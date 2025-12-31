@@ -112,14 +112,6 @@ Ouvrez le Terminal et tapez :
 python3 --version
 ```
 
-### Installation via Homebrew (recommandé)
-
-Si vous avez [Homebrew](https://brew.sh/), c'est la méthode la plus simple :
-
-```bash
-brew install python@3.11
-```
-
 ### Installation manuelle
 
 1. Téléchargez [Python depuis python.org](https://www.python.org/downloads/macos/)
@@ -217,6 +209,15 @@ Redémarrez votre terminal après l'installation de Python pour vous assurer que
 git clone https://github.com/votre-repo/xenon-space.git
 cd xenon-space
 
+# 2. (Optionnel mais recommandé) Créer un environnement virtuel
+python -m venv venv
+
+# 3. Activer l'environnement virtuel
+# Sur Windows :
+venv\Scripts\activate
+# Sur macOS/Linux :
+source venv/bin/activate
+
 # 4. Installer les dépendances
 pip install -r requirements.txt
 
@@ -243,7 +244,7 @@ Les bibliothèques suivantes seront installées automatiquement :
   <TabItem value="windows-exe" label="Windows" default>
 
 1. Décompressez `xenon-space-windows.zip`
-2. Double-cliquez sur `xenon-space.exe`
+2. Double-cliquez sur `xenon-space.exe` ou `run.bat`
 3. Si Windows affiche un avertissement de sécurité :
    - Cliquez sur **"Informations complémentaires"**
    - Puis **"Exécuter quand même"**
@@ -257,7 +258,7 @@ Il est normal que Windows affiche un avertissement pour les applications non sig
   <TabItem value="macos-app" label="macOS">
 
 1. Décompressez `xenon-space-macos.zip`
-2. Faites glisser `Xenon Space` dans votre dossier Applications
+2. Faites glisser `Xenon Space.app` dans votre dossier Applications
 3. Double-cliquez sur l'application
 4. Si macOS bloque le lancement :
    - Ouvrez **Préférences Système** → **Confidentialité et sécurité**
@@ -266,7 +267,7 @@ Il est normal que Windows affiche un avertissement pour les applications non sig
 Ou utilisez cette commande dans le Terminal :
 
 ```bash
-./xenon_space
+xattr -cr "/Applications/Xenon Space.app"
 ```
 
   </TabItem>
@@ -279,10 +280,10 @@ tar -xzf xenon-space-linux.tar.gz
 cd xenon-space
 
 # Rendre le script exécutable
-chmod +x xenon_space
+chmod +x run.sh
 
 # Lancer le jeu
-./xenon_space
+./run.sh
 ```
 
   </TabItem>
@@ -298,9 +299,32 @@ Si vous avez installé depuis les sources (Option 2) :
 # Assurez-vous d'être dans le bon dossier
 cd xenon-space
 
+# Activez l'environnement virtuel si vous en avez créé un
+# Windows :
+venv\Scripts\activate
+# macOS/Linux :
+source venv/bin/activate
+
 # Lancez le jeu
-python loading_run.py
+python main.py
 ```
+
+**Options de lancement personnalisées :**
+
+```bash
+# Mode debug (affiche plus d'informations)
+python main.py --debug
+
+# Désactiver le son
+python main.py --no-audio
+
+# Mode fenêtré
+python main.py --windowed
+```
+
+:::info Paramètres optionnels
+Les arguments de ligne de commande peuvent varier selon la version. Consultez `python main.py --help` pour la liste complète.
+:::
 
 ---
 
@@ -356,17 +380,198 @@ Avant de commencer, nous recommandons de :
 
 ---
 
+## 🛠️ Résolution des problèmes
+
+### Le jeu ne se lance pas
+
+<Tabs>
+  <TabItem value="python-error" label="Erreur Python" default>
+
+**Symptôme :** Message "Python not found" ou "command not found"
+
+**Solution :**
+
+1. Vérifiez votre version Python :
+   ```bash
+   python --version
+   # ou sur macOS/Linux :
+   python3 --version
+   ```
+2. Assurez-vous d'avoir **Python 3.8+**
+3. Vérifiez que Python est dans le PATH
+4. Réinstallez Python si nécessaire (voir section précédente)
+
+  </TabItem>
+
+  <TabItem value="dependencies" label="Erreurs de dépendances">
+
+**Symptôme :** "ModuleNotFoundError: No module named 'pygame'" ou autres imports manquants
+
+**Solutions :**
+
+1. Réinstallez les dépendances :
+   ```bash
+   pip install -r requirements.txt --force-reinstall
+   ```
+
+2. Vérifiez que vous utilisez le bon Python/pip :
+   ```bash
+   # Windows
+   python -m pip install -r requirements.txt
+
+   # macOS/Linux
+   python3 -m pip install -r requirements.txt
+   ```
+
+3. Si vous avez créé un environnement virtuel, assurez-vous qu'il est activé
+
+  </TabItem>
+
+  <TabItem value="graphics-error" label="Problèmes graphiques">
+
+**Symptôme :** Écran noir, textures manquantes, erreur SDL
+
+**Solutions :**
+
+1. Mettez à jour vos pilotes graphiques
+2. Réinstallez pygame :
+   ```bash
+   pip uninstall pygame
+   pip install pygame
+   ```
+3. Sur Linux, installez les dépendances SDL2 :
+   ```bash
+   # Ubuntu/Debian
+   sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev
+
+   # Fedora
+   sudo dnf install SDL2-devel SDL2_image-devel SDL2_mixer-devel
+   ```
+4. Réduisez la résolution dans les paramètres du jeu
+
+  </TabItem>
+
+  <TabItem value="performance" label="Performance">
+
+**Symptôme :** Ralentissements, FPS bas
+
+**Solutions :**
+
+1. Fermez les applications en arrière-plan
+2. Réduisez la taille de la carte dans les paramètres de jeu
+3. Désactivez la Rich Presence Discord si activée
+4. Vérifiez que vous n'utilisez pas trop de vaisseaux simultanément
+5. Sur laptop, assurez-vous d'être branché et en mode haute performance
+
+  </TabItem>
+
+  <TabItem value="crash" label="Crash/Freeze">
+
+**Symptôme :** Le jeu plante aléatoirement
+
+**Solutions :**
+
+1. Vérifiez les logs dans le dossier du jeu
+2. Lancez en mode debug pour plus d'informations :
+   ```bash
+   python main.py --debug
+   ```
+3. Vérifiez les erreurs dans la console
+4. Reportez le bug sur [GitHub Issues](https://github.com/votre-repo/xenon-space/issues) avec :
+   - Le message d'erreur complet
+   - Votre système d'exploitation
+   - Votre version de Python
+   - Les étapes pour reproduire le bug
+
+  </TabItem>
+
+  <TabItem value="audio" label="Problèmes audio">
+
+**Symptôme :** Pas de son, crackling, erreur mixer
+
+**Solutions :**
+
+1. Vérifiez que votre système audio fonctionne
+2. Réinstallez pygame avec support audio
+3. Sur Linux, installez les bibliothèques audio :
+   ```bash
+   sudo apt install libsdl2-mixer-2.0-0
+   ```
+4. Lancez sans audio pour tester :
+   ```bash
+   python main.py --no-audio
+   ```
+
+  </TabItem>
+</Tabs>
+
+### Fichiers de logs
+
+Les fichiers de logs s'affichent directement dans la console/terminal lors de l'exécution du jeu.
+
+Pour sauvegarder les logs, redirigez la sortie :
+
+```bash
+# Sauvegarder les logs dans un fichier
+python main.py > xenon-space.log 2>&1
+```
+
+---
+
+## 📁 Structure des fichiers
+
+Après installation, voici l'organisation des dossiers :
+
+```
+xenon-space/
+├── main.py                  # Point d'entrée du jeu
+├── requirements.txt         # Liste des dépendances Python
+├── classes/                 # Classes du jeu
+│   ├── Game.py
+│   ├── Ship.py
+│   ├── Map.py
+│   └── ...
+├── menu/                    # Menus du jeu
+│   ├── menuPrincipal.py
+│   ├── menuParam.py
+│   └── ...
+├── assets/                  # Ressources du jeu
+│   ├── ships/              # Sprites des vaisseaux
+│   ├── planets/            # Textures des planètes
+│   ├── sounds/             # Effets sonores
+│   └── music/              # Musiques
+├── saves/                   # Sauvegardes de parties (créé automatiquement)
+└── venv/                    # Environnement virtuel (si créé)
+```
+
+:::caution Sauvegardes
+Ne supprimez pas le dossier `saves/` si vous voulez conserver vos parties !
+:::
+
+---
+
 ## 🔄 Mise à jour du jeu
 
-### Vérifier les mises à jour
+### Via Git (si installé depuis les sources)
 
-Le jeu vérifie automatiquement les nouvelles versions au démarrage.
+Si vous avez cloné le dépôt avec Git :
+
+```bash
+# Allez dans le dossier du jeu
+cd xenon-space
+
+# Récupérez les dernières modifications
+git pull origin main
+
+# Mettez à jour les dépendances (au cas où)
+pip install -r requirements.txt --upgrade
+```
 
 ### Installation manuelle
 
 1. Téléchargez la nouvelle version depuis [GitHub Releases](https://github.com/votre-repo/xenon-space/releases)
-2. Remplacez l'ancien fichier `.jar` par le nouveau
-3. Conservez vos dossiers `saves/` et `config/`
+2. Remplacez les fichiers du jeu par la nouvelle version
+3. **Important :** Conservez votre dossier `saves/` pour ne pas perdre vos parties
 
 :::tip Sauvegardez vos parties
 Avant toute mise à jour, copiez le dossier `saves/` en lieu sûr.
@@ -376,32 +581,38 @@ Avant toute mise à jour, copiez le dossier `saves/` en lieu sûr.
 
 ## 🗑️ Désinstallation
 
-### Windows
-
-1. Supprimez le dossier d'installation
-2. Supprimez les données utilisateur dans :
-   ```
-   C:\Users\VotreNom\AppData\Local\XenonSpace\
-   ```
-
-### macOS
-
-1. Faites glisser `Xenon Space.app` vers la corbeille
-2. Supprimez les préférences :
-   ```bash
-   rm -rf ~/Library/Application\ Support/XenonSpace
-   ```
-
-### Linux
+### Installation depuis les sources
 
 ```bash
-# Supprimer le jeu
-rm -rf ~/xenon-space
+# Allez dans le dossier parent
+cd ..
 
-# Supprimer les données utilisateur
-rm -rf ~/.local/share/XenonSpace
-rm -rf ~/.config/XenonSpace
+# Supprimez le dossier du jeu
+rm -rf xenon-space
+
+# Sur Windows, utilisez :
+# rmdir /s xenon-space
 ```
+
+### Version packagée
+
+**Windows :**
+1. Supprimez le dossier d'installation du jeu
+2. Supprimez les sauvegardes si vous ne voulez pas les conserver
+
+**macOS :**
+1. Faites glisser `Xenon Space.app` vers la corbeille
+2. Videz la corbeille
+
+**Linux :**
+```bash
+# Supprimer le dossier d'installation
+rm -rf ~/xenon-space
+```
+
+:::info Données de jeu
+Les sauvegardes se trouvent généralement dans le dossier `saves/` à l'intérieur du dossier d'installation.
+:::
 
 ---
 
