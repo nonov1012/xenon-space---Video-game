@@ -3,6 +3,7 @@ from blazyck import *
 from menu.modifShips import SHIP_STATS
 from classes.GlobalVar.ScreenVar import ScreenVar
 from classes.GlobalVar.GridVar import GridVar
+from menu.menuPrincipal import sm
 
 class Shop:
     pygame.font.init()
@@ -76,8 +77,10 @@ class Shop:
         """Achète un vaisseau et retourne son nom si l'achat réussit"""
         if mothership_actuel.tier >= ship["tier"] :
             if self.player.economie.retirer(ship["price"]):
+                sm.play_sfx("shop_yes")
                 return ship["name"]
             else:
+                sm.play_sfx("shop_no")
                 return None
 
 
@@ -89,10 +92,13 @@ class Shop:
             
             if self.player.economie.retirer(next_upgrade["price"]):
                 self.base_level = next_upgrade["level"]
+                sm.play_sfx("shop_yes")
                 return True
             else:
+                sm.play_sfx("shop_no")
                 return False
         else:
+            sm.play_sfx("shop_no")
             return False
     
     def get_base_color_filter(self):

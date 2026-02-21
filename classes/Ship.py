@@ -876,16 +876,23 @@ class Transport(Ship):
         """Trouve les positions valides pour débarquer un vaisseau."""
         positions_valides = []
         port_entier = int(ship_stocke.port_deplacement)
-
-        for dy in range(port_entier, port_entier + 1):
-            for dx in range(port_entier, port_entier + 1):
+        
+        # 💡 CORRECTION: Parcourir le rayon [-P, P]
+        for dy in range(-port_entier, port_entier + 1):
+            for dx in range(-port_entier, port_entier + 1):
+                
+                # Vérifie si le point (dx, dy) est dans la limite de mouvement (Manhattan distance)
                 if abs(dy) + abs(dx) > port_entier:
                     continue
                     
                 nl = self.cordonner.x + dy
                 nc = self.cordonner.y + dx
                 
+                # Vérifie si la nouvelle position est valide pour le vaisseau stocké
                 if ship_stocke.verifier_collision(grille, nl, nc, ship_stocke.direction):
                     positions_valides.append((nl, nc))
 
         return positions_valides
+
+
+

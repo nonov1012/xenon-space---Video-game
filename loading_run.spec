@@ -5,7 +5,7 @@ a = Analysis(
     ['loading_run.py'],
     pathex=[],
     binaries=[],
-    datas=[('save_parametre.json', '.'), ('succes.json', './menu/'), ('assets', 'assets')],
+    datas=[('save_parametre.json', '.'), ('assets', 'assets')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
